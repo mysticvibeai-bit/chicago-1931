@@ -175,10 +175,10 @@ svg.i{width:16px;height:16px;flex:none}
 .pre-h{margin:10px 0 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sepia)}
 .timer{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:10px}
 .timer i{display:block;height:100%;background:var(--gold-2)}
-.moves{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.moves{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .move{min-height:72px;border-radius:12px;border:1px solid var(--gold-dim);background:var(--coal);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--paper)}
-.move b{font-size:17px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
-.move span{font-size:11px;color:var(--sepia)}
+.move b{font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.move span{font-size:10px;color:var(--sepia);text-align:center;line-height:1.25;padding-inline:2px}
 .move:not(:disabled):hover{border-color:var(--gold);background:var(--coal-2)}
 .move:disabled{opacity:.45;cursor:default}
 .trump{margin-top:8px;width:100%;flex:none}
@@ -283,8 +283,9 @@ svg.i{width:16px;height:16px;flex:none}
       <div class="timer"><i id="d-timer"></i></div>
       <div class="moves">
         <button class="move" data-m="F"><b>Огонь</b><span>бьёт рывок</span></button>
-        <button class="move" data-m="C"><b>Укрытие</b><span>бьёт огонь</span></button>
+        <button class="move" data-m="C"><b>Укрытие</b><span>бьёт огонь и нож</span></button>
         <button class="move" data-m="D"><b>Рывок</b><span>бьёт укрытие</span></button>
+        <button class="move" data-m="K"><b>Нож</b><span>сбивает прицел · ×2</span></button>
       </div>
       <button class="btn trump" id="d-trump">Козырь</button>
     </div>
@@ -1739,9 +1740,14 @@ const BRASS = (g, y0, y1) => vgrad(g, y0, y1, ['#fff0b0', '#f0c04a', '#a8701c'])
 function poseOf(name, t, o) {
   const p = { crouch: 0, lean: 0, back: [-.15, -.05], front: [.25, .55], stride: 0, hatLift: 0, flare: 0, extra: null, hideW: false, face: 'calm', bob: Math.sin(t * 2) * .7 };
   if (name === 'aim') { p.front = [1.45, 1.57]; p.back = [1.05, 1.5]; p.face = 'focus'; }
-  else if (name === 'cover') { p.crouch = .5; p.front = [1.15, 1.6]; p.back = [.8, 1.4]; p.lean = .25; p.face = 'focus'; }
+  else if (name === 'cover') { p.crouch = .9; p.front = [1.15, 1.6]; p.back = [.8, 1.4]; p.lean = .25; p.face = 'focus'; }
   else if (name === 'dash') { p.lean = .38; p.stride = 1; p.front = [-.55, .15]; p.back = [1.0, 1.9]; p.flare = 1; p.face = 'focus'; }
   else if (name === 'hit') { p.lean = -.32; p.front = [2.2, 2.7]; p.back = [2.5, 3.0]; p.hatLift = 4; p.face = 'hit'; }
+  else if (name === 'dodge') { p.lean = -.6; p.crouch = .18; p.front = [2.0, 2.5]; p.back = [2.3, 2.85]; p.face = 'scared'; }
+  else if (name === 'punch') { p.lean = .35; p.stride = .6; p.front = [1.55, 1.6]; p.back = [.6, 1.25]; p.hideW = true; p.face = 'focus'; }
+  else if (name === 'windup') { p.lean = -.12; p.front = [2.65, 3.05]; p.extra = 'knife'; p.hideW = true; p.face = 'focus'; }
+  else if (name === 'throw') { p.lean = .3; p.stride = .4; p.front = [1.3, 1.05]; p.hideW = true; p.face = 'focus'; }
+  else if (name === 'down') { p.crouch = .95; p.lean = -.7; p.front = [2.2, 2.6]; p.back = [2.4, 2.9]; p.face = 'hit'; }
   else if (name === 'win') {
     const k = (Math.sin(t * 2.4) + 1) / 2; p.face = 'smirk';
     if (o.win === 'win_tip_hat') { p.front = [2.5, 3.05]; p.hatLift = 6 + 5 * k; p.hideW = true; }
@@ -1901,10 +1907,6 @@ function drawGangster(g, o, poseName, t, opt = {}) {
     for (const ly of [sy + 6, sy + 12]) { g.fillStyle = '#ffd86a'; g.beginPath(); g.arc(-sw - 3.5, ly, 1.6, 0, 7); g.fill(); glowAt(g, -sw - 3.5, ly, 6, .5 + .3 * Math.sin(t * 5 + ly)); }
     g.strokeStyle = OL; g.lineWidth = 1.1; g.beginPath(); g.moveTo(-sw - 7, sy + 1); g.lineTo(-sw - 12, sy - 30); g.stroke();
   }
-  // задняя рука
-  g.strokeStyle = OL; g.lineWidth = 3.4;
-  const bh = limb(g, -sw + 4, sy + 3, P.back[0], 17, P.back[1], 17);
-  g.beginPath(); g.arc(bh[0], bh[1], o.acc === 'acc_gloves' ? 3 : 2.4, 0, 7); ink(g, o.acc === 'acc_gloves' ? '#ffffff' : OL, 1);
   // плащ сзади
   if (hasCoat) {
     const c = COATS[o.coat], fl = P.flare * 10;
@@ -1946,6 +1948,18 @@ function drawGangster(g, o, poseName, t, opt = {}) {
     if (o.coat === 'coat_cape') { g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-sw - 2, sy + 10); g.quadraticCurveTo(-sw - 4, hem * .6, -sw - 6, hem - 4); g.stroke(); }
     g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1.1; g.beginPath(); g.moveTo(-sw, sy + 5); g.lineTo(-sw - 5 - fl, hem - 2); g.stroke();
   }
+  // вторая рука поверх одежды — у палочника всегда видны обе
+  g.strokeStyle = OL; g.lineWidth = 3.4;
+  const bh = limb(g, -sw + 3, sy + 3, P.back[0], 17, P.back[1], 17);
+  g.beginPath(); g.arc(bh[0], bh[1], o.acc === 'acc_gloves' ? 3 : 2.4, 0, 7); ink(g, o.acc === 'acc_gloves' ? '#ffffff' : OL, 1);
+  // отметины попаданий
+  if (opt.wounds) for (const w of opt.wounds) {
+    if (w.knife) { if (!w.fade) { g.save(); g.translate(w.x + 7, w.y); g.rotate(Math.PI + .25); drawKnife(g, 0, 0, 0, .85); g.restore(); } }
+    const drip = Math.min(7, Math.max(0, (Tnow - w.t) * 9));
+    g.strokeStyle = '#b3141f'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(w.x, w.y); g.lineTo(w.x + .3, w.y + drip); g.stroke();
+    g.beginPath(); g.arc(w.x, w.y, w.knife ? 2.6 : 2.2, 0, 7); ink(g, '#d81f2c', .9);
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(w.x - .7, w.y - .7, .6, 0, 7); g.fill();
+  }
   if (o.acc === 'acc_carnation') { for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283; g.beginPath(); g.arc(-6 + Math.cos(a) * 1.8, sy + 7 + Math.sin(a) * 1.8, 1.6, 0, 7); ink(g, '#e0303c', .6); } g.fillStyle = '#ffd86a'; g.beginPath(); g.arc(-6, sy + 7, .9, 0, 7); g.fill(); }
   if (o.acc === 'acc_watch') { g.strokeStyle = '#f0c04a'; g.lineWidth = 1; g.beginPath(); g.moveTo(-7, sy + 20); g.quadraticCurveTo(-1, sy + 25, 4, sy + 21); g.stroke(); g.beginPath(); g.arc(5, sy + 21, 2.4, 0, 7); ink(g, BRASS(g, sy + 18, sy + 24), .9); glowAt(g, 5, sy + 21, 6, .45); }
   // шея и голова
@@ -1960,14 +1974,20 @@ function drawGangster(g, o, poseName, t, opt = {}) {
   const blink = (t % 4.3) < .12;
   const ex = [hx + 4, hx + 13], ey = hy + 1;
   g.fillStyle = OL; g.strokeStyle = OL;
-  if (P.face === 'hit') { g.lineWidth = 1.5; for (const x of ex) { g.beginPath(); g.moveTo(x - 2, ey - 2.5); g.lineTo(x + 2, ey); g.lineTo(x - 2, ey + 2.5); g.stroke(); } g.beginPath(); g.ellipse(hx + 9, hy + 11, 2.2, 2.8, 0, 0, 7); g.fill(); }
+  const face = opt.scared && P.face !== 'hit' ? 'scared' : P.face;
+  if (opt.sweat || face === 'scared') { const ph = (t * .9) % 1; g.globalAlpha = 1 - ph * .6; g.beginPath(); g.moveTo(hx - 15, hy - 8 + ph * 10); g.quadraticCurveTo(hx - 18, hy - 2 + ph * 10, hx - 15, hy - 1 + ph * 10); g.quadraticCurveTo(hx - 12, hy - 2 + ph * 10, hx - 15, hy - 8 + ph * 10); ink(g, '#8fd3ff', .8); g.globalAlpha = 1; g.fillStyle = OL; }
+  if (face === 'scared') {
+    for (const x of ex) { g.beginPath(); g.arc(x, ey, 3.6, 0, 7); ink(g, '#ffffff', 1.1); g.fillStyle = OL; g.beginPath(); g.arc(x + .6, ey + .4, 1.2, 0, 7); g.fill(); }
+    g.lineWidth = 1.3; g.beginPath(); g.moveTo(ex[0] - 3, ey - 5.5); g.lineTo(ex[0] + 2, ey - 7.5); g.moveTo(ex[1] - 2, ey - 7.5); g.lineTo(ex[1] + 3, ey - 5.5); g.stroke();
+    g.beginPath(); g.moveTo(hx + 4, hy + 12); for (let n = 1; n <= 6; n++) g.lineTo(hx + 4 + n * 1.6, hy + 12 + (n % 2 ? -1.4 : 1.4)); g.stroke();
+  } else if (face === 'hit') { g.lineWidth = 1.5; for (const x of ex) { g.beginPath(); g.moveTo(x - 2, ey - 2.5); g.lineTo(x + 2, ey); g.lineTo(x - 2, ey + 2.5); g.stroke(); } g.beginPath(); g.ellipse(hx + 9, hy + 11, 2.2, 2.8, 0, 0, 7); g.fill(); }
   else {
     for (const x of ex) { g.beginPath(); g.ellipse(x, ey, 2, blink ? .4 : 2.9, 0, 0, 7); g.fill(); if (!blink) { g.fillStyle = '#fff'; g.beginPath(); g.arc(x + .6, ey - 1, .6, 0, 7); g.fill(); g.fillStyle = OL; } }
-    if (P.face === 'focus') { g.lineWidth = 1.4; g.beginPath(); g.moveTo(ex[0] - 3, ey - 6); g.lineTo(ex[0] + 2.5, ey - 4.3); g.moveTo(ex[1] - 2.5, ey - 4.3); g.lineTo(ex[1] + 3, ey - 6); g.stroke(); }
+    if (face === 'focus') { g.lineWidth = 1.4; g.beginPath(); g.moveTo(ex[0] - 3, ey - 6); g.lineTo(ex[0] + 2.5, ey - 4.3); g.moveTo(ex[1] - 2.5, ey - 4.3); g.lineTo(ex[1] + 3, ey - 6); g.stroke(); }
     if (she) { g.lineWidth = 1; for (const x of ex) { g.beginPath(); g.moveTo(x + 1.5, ey - 2.5); g.lineTo(x + 3.5, ey - 4); g.stroke(); } }
     g.lineWidth = 1.5; g.beginPath();
-    if (P.face === 'smirk') { g.moveTo(hx + 5, hy + 11); g.quadraticCurveTo(hx + 10, hy + 13.5, hx + 14, hy + 9); }
-    else if (P.face === 'focus') { g.moveTo(hx + 5.5, hy + 11.5); g.lineTo(hx + 12.5, hy + 11); }
+    if (face === 'smirk') { g.moveTo(hx + 5, hy + 11); g.quadraticCurveTo(hx + 10, hy + 13.5, hx + 14, hy + 9); }
+    else if (face === 'focus') { g.moveTo(hx + 5.5, hy + 11.5); g.lineTo(hx + 12.5, hy + 11); }
     else { g.moveTo(hx + 5, hy + 11); g.lineTo(hx + 12, hy + 11); }
     g.stroke();
     if (she) { g.fillStyle = '#d1343a'; g.beginPath(); g.ellipse(hx + 9, hy + 11.2, 2.6, 1.2, 0, 0, 7); g.fill(); }
@@ -1983,6 +2003,7 @@ function drawGangster(g, o, poseName, t, opt = {}) {
   g.strokeStyle = OL; g.lineWidth = 3.4;
   const fh = limb(g, sw - 4, sy + 3, P.front[0], 17, P.front[1], 17);
   g.save(); g.translate(fh[0], fh[1]);
+  if (P.extra === 'knife') drawKnife(g, 0, 0, Math.PI / 2 - P.front[1], 1);
   if (P.extra === 'match') { glowAt(g, 0, -6, 16, .8); g.beginPath(); g.moveTo(0, -3); g.quadraticCurveTo(3, -7, 0, -12); g.quadraticCurveTo(-3, -7, 0, -3); ink(g, '#ffd86a', .8); }
   if (P.extra === 'coin') { const k = (t * 1.6) % 1, cy = -6 - 50 * 4 * k * (1 - k); g.beginPath(); g.ellipse(0, cy, 4.2 * Math.abs(Math.cos(t * 9)) + .5, 4.2, 0, 0, 7); ink(g, BRASS(g, cy - 4, cy + 4), 1); glowAt(g, 0, cy, 10, .5); }
   if (P.extra === 'bolt') {
@@ -1998,7 +2019,18 @@ function drawGangster(g, o, poseName, t, opt = {}) {
     g.strokeStyle = '#3a2a1c'; g.lineWidth = 1.2; g.stroke();
     g.beginPath(); g.arc(bh[0], bh[1] - 2, 3, 0, 7); ink(g, CHROME(g, bh[1] - 5, bh[1] + 1), 1);
   }
-  g.restore(); g.restore();
+  g.restore();
+  if (opt.scared) {
+    g.fillStyle = 'rgba(122,82,34,.75)'; g.beginPath(); g.ellipse(-5, -1, 11, 2.4, 0, 0, 7); g.fill();
+    g.beginPath(); g.ellipse(-1, hipY + 7, 8.5, 7.5, 0, 0, 7); ink(g, '#7a5222', 1.2);
+    g.fillStyle = '#5a3a14'; g.beginPath(); g.ellipse(-2, hipY + 9, 4.6, 4, 0, 0, 7); g.fill();
+    g.strokeStyle = '#7a5222'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(-3, hipY + 13); g.lineTo(-3.5, hipY + 24 + Math.sin(t * 2) * 1.5); g.moveTo(3, hipY + 12); g.lineTo(4, hipY + 19); g.stroke();
+    g.strokeStyle = 'rgba(150,185,70,.8)'; g.lineWidth = 1.5;
+    for (let n = 0; n < 3; n++) { const ph = (t * .8 + n / 3) % 1, x0 = -15 - n * 5, y0 = hipY + 4 - ph * 34; g.globalAlpha = 1 - ph; g.beginPath(); g.moveTo(x0, y0); g.bezierCurveTo(x0 - 5, y0 - 4, x0 + 5, y0 - 8, x0, y0 - 13); g.stroke(); }
+    g.globalAlpha = 1;
+    for (let n = 0; n < 2; n++) { const a = t * 5 + n * 3, fx = -8 + Math.cos(a) * 15, fy = hipY - 6 + Math.sin(a * 1.3) * 9; g.fillStyle = OL; g.beginPath(); g.arc(fx, fy, 1.5, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(fx, fy - 2, 1.6, .8, Math.sin(t * 40), 0, 7); g.fill(); }
+  }
+  g.restore();
 }
 
 function smokeOn(g, x, y, t, k = 1) {
@@ -2085,39 +2117,54 @@ function drawSpecialsUI() {
   }
 }
 
-// ---------- Подворотня: дуэль с «призраком» (docs/design/ALLEY.md) ----------
-const MV = { F: 'Огонь', C: 'Укрытие', D: 'Рывок' };
-const CLS = { near: { n: 'Ближний', w: 'кастет', bonus: .3, hint: '+30% урона вблизи' }, far: { n: 'Точный', w: 'револьвер', bonus: .2, hint: '+20% урона издалека' }, burst: { n: 'Очередь', w: 'Томпсон', bonus: .15, hint: '+15% в перестрелке' } };
-const SECONDS = { brute: { n: 'Громила', trump: 'Таран', hint: 'Рывок против Огня — размен по 20' }, shadow: { n: 'Тень', trump: 'Из тени', hint: 'в этом раунде не получаешь урона' } };
+// ---------- Подворотня: дуэль с «призраком» (docs/design/ALLEY.md, раздел «Прототип v3») ----------
+// Четыре приёма: Огонь бьёт Рывок, Укрытие бьёт Огонь и Нож, Рывок бьёт Укрытие, Нож сбивает прицел стрелку.
+// Каждая пуля и нож — отдельный бросок меткости: попадание оставляет красную отметину, промах — уворот.
+const MV = { F: 'Огонь', C: 'Укрытие', D: 'Рывок', K: 'Нож' };
+const CLS = {
+  near: { n: 'Ближний', w: 'кастет и нож', bullets: 2, dmg: 11, hint: 'нож и рывок вблизи сильнее на 30%' },
+  far: { n: 'Точный', w: 'револьвер', bullets: 2, dmg: 15, hint: 'меткость издалека +15%' },
+  burst: { n: 'Очередь', w: 'Томпсон', bullets: 4, dmg: 9, hint: '4 пули за выстрел, каждая чуть менее меткая' },
+};
+const ACC = { far: .62, near: .82, open: .15, burstPen: -.08, spoiled: -.35, scared: -.2, farBonus: .15 };
+const KNIFE = { count: 2, dmg: 24, acc: .8, accVsKnife: .6, flight: .26 };
+const RUSH = { vsCover: 30, brawl: 18, vsKnife: 20, ram: 20, nearBonus: .3 };
+const FEAR = { hpBelow: 15, bigHit: 20, accPenalty: ACC.scared };
+const SECONDS = {
+  brute: { n: 'Громила', trump: 'Таран', hint: 'в рывке под огнём ловишь не больше одной пули и всё равно бьёшь' },
+  shadow: { n: 'Тень', trump: 'Из тени', hint: 'в этом раунде все пули и ножи летят мимо' },
+};
 const LEAGUES = [[0, 'Газетчики'], [1100, 'Бутлегеры'], [1250, 'Налётчики'], [1400, 'Лейтенанты'], [1600, 'Боссы'], [1800, 'Синдикат']];
 const leagueOf = (r) => LEAGUES.filter(l => r >= l[0]).pop()[1];
 const OPP_NAMES = ['Сэл Тихоня', 'Фрэнки Два Ствола', 'Мадам Роуз', 'Лу Пароход', 'Джо Сквозняк', 'Ник Мокрый Зонт', 'Бетти Шпилька', 'Гас Полночь', 'Эдди Пуговица', 'Ви Сорока'];
-const STYLE_W = { aggr: [.55, .15, .30], caut: [.25, .55, .20], sneak: [.25, .30, .45] };
+const STYLE_W = { aggr: [.45, .12, .25, .18], caut: [.22, .48, .15, .15], sneak: [.2, .25, .35, .2] };
 const DUEL_LIMIT = 10;
 const DUEL = { winChips: 30, loseChips: 5, winRating: 16, loseRating: -10, dirtyIncomeShare: .25, dirtyMin: 200 };
+const ROUND_LEN = 2.1;
 let duel = null, duelSeed = 1, dcv, dctx, dW = 0, dH = 0, ddpr = 1;
-const pickW = (w) => { const r = Math.random(); return r < w[0] ? 'F' : r < w[0] + w[1] ? 'C' : 'D'; };
+const pickW = (w) => { let r = Math.random(); for (let i = 0; i < 4; i++) { if (r < w[i]) return 'FCDK'[i]; r -= w[i]; } return 'F'; };
 function newOpponent() {
   duelSeed++;
   const style = ['aggr', 'caut', 'sneak'][Math.floor(Math.random() * 3)], plan = Array.from({ length: 5 }, () => pickW(STYLE_W[style]));
-  const say = (mv, truth) => truth ? mv : ['F', 'C', 'D'].filter(m => m !== mv)[Math.floor(Math.random() * 2)];
+  const say = (mv, truth) => truth ? mv : 'FCDK'.replace(mv, '')[Math.floor(Math.random() * 3)];
   const r1 = say(plan[0], Math.random() < .8), r2 = say(plan[4], Math.random() < .8);
-  const first = { F: 'начинает с огня', C: 'сначала прячется за ящики', D: 'с порога бросается в рывок' }[r1];
-  const last = { F: 'под сирену палит без разбора', C: 'под сирену уходит в укрытие', D: 'под сирену идёт врукопашную' }[r2];
+  const first = { F: 'начинает с огня', C: 'сначала прячется за ящики', D: 'с порога бросается в рывок', K: 'первым делом метает нож' }[r1];
+  const last = { F: 'под сирену палит без разбора', C: 'под сирену уходит в укрытие', D: 'под сирену идёт врукопашную', K: 'под сирену бросает последний нож' }[r2];
   const name = OPP_NAMES[Math.floor(Math.random() * OPP_NAMES.length)];
   return { name, rating: Math.max(900, state.rating + Math.round((Math.random() - .5) * 120)), plan, rumor: `Говорят, ${name} ${first}, а ${last}.`, cls: ['near', 'far', 'burst'][Math.floor(Math.random() * 3)], second: Math.random() < .5 ? 'brute' : 'shadow', outfit: randomOutfit(duelSeed) };
 }
 function duelEnter() {
   ensureState();
   dcv = $('duel-cv'); dctx = dcv.getContext('2d');
-  const r = dcv.parentElement.getBoundingClientRect(); dW = r.width; dH = Math.round(Math.min(340, Math.max(260, dW * .72)));
+  const r = dcv.parentElement.getBoundingClientRect(); dW = r.width; dH = Math.round(Math.min(360, Math.max(270, dW * .76)));
   ddpr = Math.min(2, window.devicePixelRatio || 1); dcv.width = Math.round(dW * ddpr); dcv.height = Math.round(dH * ddpr); dcv.style.height = dH + 'px';
   if (!duel) duelReset();
   renderDuelUI();
 }
 function duelReset(keepOpp) {
   const opp = keepOpp && duel ? duel.opp : newOpponent();
-  duel = { phase: 'pre', opp, cls: duel?.cls || 'far', second: duel?.second || 'shadow', hp: [100, 100], grit: [0, 0], streak: [0, 0], used: [false, false], armed: false, round: 1, dist: 'far', pos: [.2, .8], anim: null, deadline: 0, log: [], fx: [] };
+  duel = { phase: 'pre', opp, cls: duel?.cls || 'far', second: duel?.second || 'shadow', hp: [100, 100], grit: [0, 0], streak: [0, 0], used: [false, false], armed: false,
+    knives: [KNIFE.count, KNIFE.count], scared: [false, false], wounds: [[], []], parts: [], stuck: [], fly: [], bursts: [], round: 1, dist: 'far', pos: [.2, .8], anim: null, deadline: 0, fx: [] };
   $('d-extra').hidden = true;
 }
 function duelStart() {
@@ -2125,60 +2172,123 @@ function duelStart() {
   if (state.duels >= DUEL_LIMIT) return toast('Разборок на сегодня хватит', `Лимит ${DUEL_LIMIT} в день. Завтра переулок снова твой.`, 'err');
   duel.phase = 'choose'; duel.deadline = Tnow + 6; renderDuelUI();
 }
-function clash(a, b) {
-  let dA = 0, dB = 0, gA = 0, gB = 0, dist = duel.dist;
-  if (a === 'F' && b === 'D') dB = 35; else if (a === 'D' && b === 'F') dA = 35;
-  else if (a === 'C' && b === 'F') { dB = 15; gA = 1; } else if (a === 'F' && b === 'C') { dA = 15; gB = 1; }
-  else if (a === 'F' && b === 'F') { dA = 15; dB = 15; }
-  else if (a === 'D' && b === 'C') { dB = 35; dist = 'near'; } else if (a === 'C' && b === 'D') { dA = 35; dist = 'near'; }
-  else if (a === 'D' && b === 'D') { dA = 20; dB = 20; dist = 'near'; }
-  else { gA = 1; gB = 1; dist = 'far'; }
-  return { dA, dB, gA, gB, dist };
+function buildEvents(mv, tr) {
+  const d = duel, cls = [d.cls, d.opp.cls], sec = [d.second, d.opp.second], ev = [], dist = d.dist;
+  for (const i of [0, 1]) {
+    const j = 1 - i, me = mv[i], th = mv[j], shadowJ = tr[j] && sec[j] === 'shadow';
+    if (me === 'F') {
+      const c = CLS[cls[i]];
+      const acc = clamp(ACC[dist] + (cls[i] === 'far' && dist === 'far' ? ACC.farBonus : 0) + (cls[i] === 'burst' ? ACC.burstPen : 0) + (th === 'D' ? ACC.open : 0) + (th === 'K' ? ACC.spoiled : 0) + (d.scared[i] ? FEAR.accPenalty : 0), .05, .95);
+      let hitsLeft = tr[j] && sec[j] === 'brute' && th === 'D' ? 1 : 99;
+      for (let k = 0; k < c.bullets; k++) {
+        const hit = th !== 'C' && !shadowJ && hitsLeft > 0 && Math.random() < acc; if (hit) hitsLeft--;
+        ev.push({ t: .34 + k * (c.bullets > 2 ? .085 : .2) + i * .05, type: 'shot', from: i, hit, blocked: th === 'C', dmg: hit ? c.dmg : 0 });
+      }
+    }
+    if (me === 'K') {
+      const blocked = th === 'C', hit = !blocked && !shadowJ && Math.random() < (th === 'K' ? KNIFE.accVsKnife : KNIFE.acc);
+      ev.push({ t: .22 + KNIFE.flight + i * .04, type: 'knife', from: i, hit, blocked, dmg: hit ? Math.round(KNIFE.dmg * (cls[i] === 'near' && dist === 'near' ? 1 + RUSH.nearBonus : 1)) : 0 });
+    }
+    if (me === 'D') {
+      let dmg = th === 'C' ? RUSH.vsCover : th === 'D' ? RUSH.brawl : th === 'K' ? RUSH.vsKnife : (tr[i] && sec[i] === 'brute' && th === 'F' ? RUSH.ram : 0);
+      if (dmg) { if (cls[i] === 'near') dmg = Math.round(dmg * (1 + RUSH.nearBonus)); ev.push({ t: .74 + i * .06, type: 'punch', from: i, hit: !shadowJ, dmg: shadowJ ? 0 : dmg }); }
+    }
+  }
+  for (const i of [0, 1]) if (mv[i] === 'C' && d.streak[i] >= 3) ev.push({ t: .9, type: 'crumble', from: i, hit: true, dmg: 10 });
+  return ev.sort((x, y) => x.t - y.t);
 }
 function chooseMove(a) {
   if (!duel || duel.phase !== 'choose') return;
   const d = duel, o = d.opp;
-  const b = Math.random() < .65 ? o.plan[d.round - 1] : ['F', 'C', 'D'][Math.floor(Math.random() * 3)];
-  const trumpA = d.armed && !d.used[0] && d.grit[0] >= 2, trumpB = !d.used[1] && d.grit[1] >= 2 && Math.random() < .5;
-  let r = clash(a, b);
-  if (trumpA && d.second === 'brute' && a === 'D' && b === 'F') { r.dA = 20; r.dB = 20; }
-  if (trumpB && o.second === 'brute' && b === 'D' && a === 'F') { r.dA = 20; r.dB = 20; }
-  const bonus = (cls, mine, theirs) => (cls === 'near' && r.dist === 'near') || (cls === 'far' && r.dist === 'far') || (cls === 'burst' && mine === 'F' && theirs === 'F') ? 1 + CLS[cls].bonus : 1;
-  r.dB = Math.round(r.dB * bonus(d.cls, a, b)); r.dA = Math.round(r.dA * bonus(o.cls, b, a));
-  d.streak[0] = a === 'C' ? d.streak[0] + 1 : 0; d.streak[1] = b === 'C' ? d.streak[1] + 1 : 0;
-  if (d.streak[0] >= 3) { r.gA = 0; r.dA += 10; } if (d.streak[1] >= 3) { r.gB = 0; r.dB += 10; }
-  if (trumpA && d.second === 'shadow') r.dA = 0; if (trumpB && o.second === 'shadow') r.dB = 0;
-  if (trumpA) { d.used[0] = true; d.grit[0] -= 2; } if (trumpB) { d.used[1] = true; d.grit[1] -= 2; }
+  if (a === 'K' && d.knives[0] <= 0) return;
+  let b = Math.random() < .65 ? o.plan[d.round - 1] : 'FCDK'[Math.floor(Math.random() * 4)];
+  if (b === 'K' && d.knives[1] <= 0) b = 'F';
+  const tr = [d.armed && !d.used[0] && d.grit[0] >= 2, !d.used[1] && d.grit[1] >= 2 && Math.random() < .5];
+  const mv = [a, b];
+  for (const i of [0, 1]) { d.streak[i] = mv[i] === 'C' ? d.streak[i] + 1 : 0; if (mv[i] === 'K') d.knives[i]--; if (tr[i]) { d.used[i] = true; d.grit[i] -= 2; } }
+  const gGain = [0, 1].map(i => mv[i] === 'C' && d.streak[i] < 3 && mv[1 - i] !== 'D' ? 1 : 0);
+  const distAfter = (a === 'D' || b === 'D') ? 'near' : (a === 'C' && b === 'C') ? 'far' : d.dist;
   d.armed = false;
-  d.anim = { t0: Tnow, a, b, r, trumpA, trumpB, applied: false };
+  d.anim = { t0: Tnow, mv, tr, ev: buildEvents(mv, tr), done: 0, hitUntil: [0, 0], dodgeUntil: [0, 0], distAfter, gGain };
   d.phase = 'anim';
+  if (tr[0] || tr[1]) toast(`Козырь: ${tr[0] ? SECONDS[d.second].trump : SECONDS[o.second].trump}`, tr[0] ? 'Твой секундант вступил в дело.' : `${o.name} разыграл козырь.`);
   renderDuelUI();
 }
-function applyRound() {
-  const d = duel, r = d.anim.r;
-  d.hp[0] = Math.max(0, d.hp[0] - r.dA); d.hp[1] = Math.max(0, d.hp[1] - r.dB);
-  d.grit[0] = Math.min(3, d.grit[0] + r.gA); d.grit[1] = Math.min(3, d.grit[1] + r.gB);
-  d.dist = r.dist;
-  if (r.dA) d.fx.push({ t: Tnow, side: 0, text: '−' + r.dA }); if (r.dB) d.fx.push({ t: Tnow, side: 1, text: '−' + r.dB });
-  if (d.anim.trumpA || d.anim.trumpB) toast(`Козырь: ${d.anim.trumpA ? SECONDS[d.second].trump : SECONDS[d.opp.second].trump}`, d.anim.trumpA ? 'Твой секундант вступил в дело.' : `${d.opp.name} разыграл козырь.`);
+function hurt(j, dmg, at) {
+  const d = duel; if (d.hp[j] <= 0 || dmg <= 0) return;
+  d.hp[j] = Math.max(0, d.hp[j] - dmg); d.anim.hitUntil[j] = at + .28;
+  d.fx.push({ t: Tnow, side: j, text: '−' + dmg });
+  if (!d.scared[j] && d.hp[j] > 0 && ((d.hp[j] <= FEAR.hpBelow && dmg >= FEAR.bigHit) || d.hp[j] <= 8)) scare(j);
+}
+function scare(j) {
+  const d = duel; d.scared[j] = true;
+  const who = j ? d.opp.name : 'Вилли Шляпа';
+  d.fx.push({ t: Tnow + .3, side: j, text: 'ой…', small: true });
+  toast(`${who} дрогнул`, j ? 'Кажется, у него мокрые штаны. Меткость −20% до конца боя.' : 'Штаны подвели. Меткость −20% до конца боя — держись.', j ? 'gold' : 'err');
+}
+function bodyPoint(j, wx, wy, k, gr) {
+  const d = duel, dir = j ? -1 : 1, crouch = d.anim && d.anim.mv[j] === 'C' ? .9 : 0, hipY = -52 * (1 - crouch * .42);
+  return [d.pos[j] * dW + wx * k * dir, gr + 8 + (hipY + wy) * k];
+}
+function applyEvent(e, at, k, gr) {
+  const d = duel, j = 1 - e.from, i = e.from;
+  if (d.hp[i] <= 0 && e.type !== 'crumble') return;
+  if (e.type === 'shot') {
+    if (e.hit) {
+      const wx = (Math.random() - .5) * 16, wy = -30 + Math.random() * 26;
+      d.wounds[j].push({ x: wx, y: wy, t: Tnow });
+      const [px, py] = bodyPoint(j, wx, wy, k, gr); e.px = px; e.py = py;
+      for (let n = 0; n < 7; n++) d.parts.push({ x: px, y: py, vx: (j ? 1 : -1) * (20 + Math.random() * 60) * -1 + (Math.random() - .5) * 40, vy: -40 - Math.random() * 60, life: .7, t: Tnow, c: '#d01f2a', r: 1.2 + Math.random() * 1.4 });
+      hurt(j, e.dmg, at);
+    } else if (e.blocked) {
+      const cx = d.pos[j] * dW + (j ? 34 : -34) * k, cy = gr + 8 - (12 + Math.random() * 14) * k; e.px = cx; e.py = cy;
+      for (let n = 0; n < 8; n++) d.parts.push({ x: cx, y: cy, vx: (Math.random() - .5) * 120, vy: -60 - Math.random() * 80, life: .45, t: Tnow, c: '#ffd86a', r: 1 });
+      d.parts.push({ x: cx, y: cy, vx: 0, vy: 0, life: .5, t: Tnow, c: 'chip', r: 3 });
+    } else {
+      d.anim.dodgeUntil[j] = at + .32;
+      const [px, py] = bodyPoint(j, (Math.random() < .5 ? -1 : 1) * 22, -40 - Math.random() * 30, k, gr);
+      e.px = px + (j ? 1 : -1) * 120; e.py = py - 10;
+      for (let n = 0; n < 5; n++) d.parts.push({ x: e.px, y: e.py, vx: (Math.random() - .5) * 80, vy: -30 - Math.random() * 60, life: .4, t: Tnow, c: '#ffd86a', r: 1 });
+    }
+  } else if (e.type === 'knife') {
+    if (e.hit) {
+      const wx = (Math.random() - .5) * 12, wy = -26 + Math.random() * 18;
+      d.wounds[j].push({ x: wx, y: wy, t: Tnow, knife: true });
+      const [px, py] = bodyPoint(j, wx, wy, k, gr);
+      for (let n = 0; n < 9; n++) d.parts.push({ x: px, y: py, vx: (Math.random() - .5) * 90, vy: -50 - Math.random() * 60, life: .7, t: Tnow, c: '#d01f2a', r: 1.3 + Math.random() * 1.5 });
+      hurt(j, e.dmg, at);
+    } else if (e.blocked) {
+      d.stuck.push({ side: j, oy: 10 + Math.random() * 12, ang: (j ? 1 : -1) * (.3 + Math.random() * .4) });
+      d.bursts.push({ t: Tnow, side: j, text: 'ТЫЦ!', crate: true });
+    } else d.anim.dodgeUntil[j] = at + .32;
+  } else if (e.type === 'punch') {
+    if (e.hit) { d.bursts.push({ t: Tnow, side: j, text: e.dmg >= 30 ? 'БАМ!' : 'ХРЯСЬ!' }); hurt(j, e.dmg, at); }
+    else { d.anim.dodgeUntil[j] = at + .32; d.bursts.push({ t: Tnow, side: j, text: 'МИМО' }); }
+  } else if (e.type === 'crumble') {
+    d.bursts.push({ t: Tnow, side: i, text: 'КИРПИЧ!', crate: true }); hurt(i, e.dmg, at);
+    for (let n = 0; n < 10; n++) d.parts.push({ x: d.pos[i] * dW, y: gr - 120 * k, vx: (Math.random() - .5) * 60, vy: 20 + Math.random() * 40, life: .8, t: Tnow, c: '#8a4a2a', r: 2 });
+  }
 }
 function endDuel() {
   const d = duel, me = d.hp[0], op = d.hp[1];
-  const win = me > op || (me === op && d.grit[0] > d.grit[1]);
   const draw = me === op && d.grit[0] === d.grit[1];
-  state.duels++; d.phase = 'end'; d.endAt = Tnow; d.win = win && !draw; d.draw = draw;
+  const win = !draw && (me > op || (me === op && d.grit[0] > d.grit[1]));
+  const loser = win ? 1 : 0;
+  if (!draw && d.hp[loser] <= 0 && !d.scared[loser] && Math.random() < .5) scare(loser);
+  state.duels++; d.phase = 'end'; d.endAt = Tnow; d.win = win; d.draw = draw;
   const dirty = Math.max(DUEL.dirtyMin, Math.round(totalIncome() * DUEL.dirtyIncomeShare));
-  if (d.win) { state.wins++; state.chips += DUEL.winChips; state.dirty += dirty; state.rating += DUEL.winRating; }
+  if (win) { state.wins++; state.chips += DUEL.winChips; state.dirty += dirty; state.rating += DUEL.winRating; }
   else { state.chips += DUEL.loseChips; if (!draw) state.rating = Math.max(900, state.rating + DUEL.loseRating); }
-  d.reward = d.win ? `+${DUEL.winChips} фишек · +${money(dirty)} грязными · рейтинг +${DUEL.winRating}` : draw ? `Ничья · +${DUEL.loseChips} фишек` : `+${DUEL.loseChips} фишек · рейтинг ${DUEL.loseRating}`;
-  const streets = ['Лейк-стрит', 'Кларк-стрит', 'у причала № 9', 'за скотобойнями', 'под надземкой на Уэллс'];
-  const where = streets[duelSeed % streets.length];
+  const reward = win ? `+${DUEL.winChips} фишек · +${money(dirty)} грязными · рейтинг +${DUEL.winRating}` : draw ? `Ничья · +${DUEL.loseChips} фишек` : `+${DUEL.loseChips} фишек · рейтинг ${DUEL.loseRating}`;
+  const streets = ['НА ЛЕЙК-СТРИТ', 'НА КЛАРК-СТРИТ', 'У ПРИЧАЛА № 9', 'ЗА СКОТОБОЙНЯМИ', 'ПОД НАДЗЕМКОЙ НА УЭЛЛС'];
+  const where = streets[duelSeed % streets.length], opp = d.opp.name.toUpperCase();
+  const wet = d.scared[loser] && !draw;
+  const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} УДИРАЛ ${where} В МОКРЫХ ШТАНАХ` : `ВИЛЛИ ШЛЯПА УЛОЖИЛ ${opp} ${where}`) : (wet ? `ВИЛЛИ ШЛЯПА ДРОГНУЛ ${where}` : `${opp} ВЗЯЛ ВЕРХ ${where}`);
+  const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, он даже не снял шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : 'Вилли ушёл дворами. Говорят, уже ищет реванш.');
   const ex = $('d-extra');
   ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
-  ex.querySelector('.np-h').textContent = d.win ? `ВИЛЛИ ШЛЯПА УЛОЖИЛ: ${d.opp.name.toUpperCase()} ВЫБЫЛ ${where.toUpperCase()}` : d.draw ? `НИЧЬЯ ${where.toUpperCase()}: ОБА УШЛИ ДВОРАМИ` : `${d.opp.name.toUpperCase()} ВЗЯЛ ВЕРХ ${where.toUpperCase()}`;
-  ex.querySelector('.np-s').textContent = d.win ? 'Свидетели говорят, он даже не снял шляпу.' : d.draw ? 'Сирена развела их по разным переулкам.' : 'Вилли ушёл дворами. Говорят, уже ищет реванш.';
-  ex.querySelector('.np-r').textContent = d.reward;
-  setTimeout(() => { ex.hidden = false; }, reduce ? 0 : 1100);
+  ex.querySelector('.np-h').textContent = head; ex.querySelector('.np-s').textContent = sub; ex.querySelector('.np-r').textContent = reward;
+  setTimeout(() => { ex.hidden = false; }, reduce ? 0 : 2800);
   bump('st-cash');
   renderDuelUI();
 }
@@ -2194,7 +2304,8 @@ function renderDuelUI() {
   $('al-league').textContent = `${leagueOf(state.rating)} · ${fmt(state.rating)} · фишки ${fmt(state.chips)}`;
   $('d-nameB').textContent = o.name; $('d-hpA').style.width = d.hp[0] + '%'; $('d-hpB').style.width = d.hp[1] + '%';
   $('d-hpA').classList.toggle('low', d.hp[0] < 30); $('d-hpB').classList.toggle('low', d.hp[1] < 30);
-  $('d-gritA').textContent = '◆'.repeat(d.grit[0]) + '◇'.repeat(3 - d.grit[0]); $('d-gritB').textContent = '◆'.repeat(d.grit[1]) + '◇'.repeat(3 - d.grit[1]);
+  $('d-gritA').textContent = '◆'.repeat(d.grit[0]) + '◇'.repeat(3 - d.grit[0]) + `  нож ×${d.knives[0]}`;
+  $('d-gritB').textContent = `нож ×${d.knives[1]}  ` + '◆'.repeat(d.grit[1]) + '◇'.repeat(3 - d.grit[1]);
   $('d-round').textContent = d.phase === 'pre' ? 'ДО БОЯ' : d.phase === 'end' ? 'ИТОГ' : `РАУНД ${Math.min(5, d.round)}/5`;
   $('d-dist').textContent = d.dist === 'far' ? 'ДАЛЬНЯЯ' : 'БЛИЖНЯЯ';
   $('d-rumor').textContent = '«' + o.rumor + '»';
@@ -2206,7 +2317,8 @@ function renderDuelUI() {
   $('d-left').textContent = `Разборок сегодня ${state.duels} из ${DUEL_LIMIT}`;
   const tb = $('d-trump'); tb.textContent = d.used[0] ? 'Козырь разыгран' : `Козырь: ${SECONDS[d.second].trump} · 2◆`; tb.disabled = d.used[0] || d.grit[0] < 2 || d.phase !== 'choose';
   tb.setAttribute('aria-pressed', String(d.armed));
-  document.querySelectorAll('#d-moves [data-m]').forEach(b => b.disabled = d.phase !== 'choose');
+  document.querySelectorAll('#d-moves [data-m]').forEach(b => b.disabled = d.phase !== 'choose' || (b.dataset.m === 'K' && d.knives[0] <= 0));
+  const kb = document.querySelector('#d-moves [data-m="K"] span'); if (kb) kb.textContent = d.knives[0] > 0 ? `сбивает прицел · ×${d.knives[0]}` : 'ножи кончились';
 }
 document.querySelectorAll('#d-cls [data-c]').forEach(b => b.addEventListener('click', () => { duel.cls = b.dataset.c; renderDuelUI(); }));
 document.querySelectorAll('#d-sec [data-s]').forEach(b => b.addEventListener('click', () => { duel.second = b.dataset.s; renderDuelUI(); }));
@@ -2215,32 +2327,51 @@ $('d-other').addEventListener('click', () => { duelReset(false); renderDuelUI();
 document.querySelectorAll('#d-moves [data-m]').forEach(b => b.addEventListener('click', () => chooseMove(b.dataset.m)));
 $('d-trump').addEventListener('click', () => { duel.armed = !duel.armed; renderDuelUI(); });
 
-function poseFor(mv) { return mv === 'F' ? 'aim' : mv === 'C' ? 'cover' : 'dash'; }
+function drawKnife(g, x, y, ang, sc = 1) {
+  g.save(); g.translate(x, y); g.rotate(ang); g.scale(sc, sc);
+  g.beginPath(); g.moveTo(0, -2); g.lineTo(13, -1.2); g.lineTo(16, 0); g.lineTo(13, 1.2); g.lineTo(0, 1.6); g.closePath(); ink(g, CHROME(g, -2, 2), .9);
+  g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(2, -1.4, 10, .5);
+  g.beginPath(); g.roundRect(-1.5, -3.2, 2.2, 6.4, .8); ink(g, BRASS(g, -3, 3), .8);
+  g.beginPath(); g.roundRect(-9, -1.8, 7.5, 3.6, 1.4); ink(g, WOOD(g, -2, 2), .9);
+  g.restore();
+}
+function poseNow(i, at) {
+  const an = duel.anim, mv = an.mv[i];
+  if (at < an.hitUntil[i]) return 'hit';
+  if (at < an.dodgeUntil[i]) return 'dodge';
+  if (mv === 'F') return at > .12 ? 'aim' : 'stand';
+  if (mv === 'C') return 'cover';
+  if (mv === 'D') return at < .66 ? 'dash' : 'punch';
+  const ke = an.ev.find(e => e.type === 'knife' && e.from === i);
+  return ke && at < ke.t - KNIFE.flight ? 'windup' : 'throw';
+}
 function duelFrame(T, dt) {
   if (!dctx || !duel) return;
-  const d = duel, g = dctx;
+  const d = duel, g = dctx, W2 = dW, H2 = dH, gr = H2 * .8, k = H2 / 300 * 1.2;
   if (d.phase === 'choose') {
     const left = d.deadline - T; $('d-timer').style.width = clamp(left / 6) * 100 + '%';
     if (left <= 0) { toast('Замешкался', 'Сам собой пригнулся за ящик.', 'err'); chooseMove('C'); }
   }
-  let poseA = 'stand', poseB = 'stand', at = 0;
+  let at = 0, poses = ['stand', 'stand'];
   if (d.phase === 'anim') {
     at = T - d.anim.t0;
-    poseA = poseFor(d.anim.a); poseB = poseFor(d.anim.b);
-    if (at > .55 && !d.anim.applied) { d.anim.applied = true; applyRound(); renderDuelUI(); }
-    if (at > .6 && at < 1.0) { if (d.anim.r.dA > 0) poseA = 'hit'; if (d.anim.r.dB > 0) poseB = 'hit'; }
-    if (at > 1.7) {
-      d.round++;
-      if (d.round > 5 || d.hp[0] <= 0 || d.hp[1] <= 0) endDuel(); else { d.phase = 'choose'; d.deadline = T + 6; renderDuelUI(); }
+    while (d.anim.done < d.anim.ev.length && at >= d.anim.ev[d.anim.done].t) { applyEvent(d.anim.ev[d.anim.done], at, k, gr); d.anim.done++; renderDuelUI(); }
+    poses = [poseNow(0, at), poseNow(1, at)];
+    if (at > ROUND_LEN || ((d.hp[0] <= 0 || d.hp[1] <= 0) && at > d.anim.ev[Math.max(0, d.anim.done - 1)]?.t + .9)) {
+      for (const i of [0, 1]) d.grit[i] = Math.min(3, d.grit[i] + d.anim.gGain[i]);
+      d.dist = d.anim.distAfter; d.round++; d.wounds.forEach(w => w.forEach(x => { if (x.knife) x.fade = T; }));
+      d.stuck = d.stuck.slice(-4);
+      if (d.round > 5 || d.hp[0] <= 0 || d.hp[1] <= 0) endDuel(); else { d.phase = 'choose'; d.deadline = T + 6; d.anim = null; renderDuelUI(); }
     }
   }
-  if (d.phase === 'end') { poseA = d.win ? 'win' : 'hit'; poseB = d.win ? 'hit' : (d.draw ? 'stand' : 'win'); }
-  const target = (d.phase === 'anim' && at < .6 ? (d.anim.a === 'D' || d.anim.b === 'D' ? 'near' : d.dist) : d.dist) === 'near' ? [.36, .64] : [.2, .8];
-  d.pos[0] += (target[0] - d.pos[0]) * Math.min(1, dt * 5); d.pos[1] += (target[1] - d.pos[1]) * Math.min(1, dt * 5);
+  if (d.phase === 'end') { const lose = d.win ? 1 : 0; poses = d.draw ? ['stand', 'stand'] : lose ? ['win', d.hp[1] <= 0 ? 'down' : 'hit'] : [d.hp[0] <= 0 ? 'down' : 'hit', 'win']; }
+  const rush = d.anim && (d.anim.mv[0] === 'D' || d.anim.mv[1] === 'D');
+  let target = (rush && at < 1.4) || d.dist === 'near' ? [.34, .66] : [.2, .8];
+  if (rush && at > .66 && at < .9) { if (d.anim.mv[0] === 'D') target[0] = .42; if (d.anim.mv[1] === 'D') target[1] = .58; }
+  for (const i of [0, 1]) { let tx = target[i]; if (poses[i] === 'dodge') tx += (i ? .03 : -.03); d.pos[i] += (tx - d.pos[i]) * Math.min(1, dt * 7); }
   g.setTransform(ddpr, 0, 0, ddpr, 0, 0);
-  const shake = d.phase === 'anim' && at > .5 && at < .75 && (d.anim.r.dA + d.anim.r.dB) >= 35 ? (Math.random() - .5) * 4 : 0;
+  const shake = d.phase === 'anim' && d.anim.hitUntil.some(h => at < h && at > h - .14) ? (Math.random() - .5) * 5 : 0;
   g.translate(shake, 0);
-  const W2 = dW, H2 = dH, gr = H2 * .78;
   const bg = g.createLinearGradient(0, 0, 0, gr); bg.addColorStop(0, '#0a0909'); bg.addColorStop(1, '#241c15'); g.fillStyle = bg; g.fillRect(-10, 0, W2 + 20, H2);
   g.fillStyle = '#16110d'; g.fillRect(W2 * .3, H2 * .12, W2 * .4, gr - H2 * .12);
   g.fillStyle = 'rgba(0,0,0,.3)'; for (let y = H2 * .12 + 5; y < gr; y += 6) g.fillRect(W2 * .3, y, W2 * .4, .6);
@@ -2249,55 +2380,91 @@ function duelFrame(T, dt) {
     const x0 = side ? W2 : 0, x1 = side ? W2 * .7 : W2 * .3;
     g.fillStyle = side ? '#1d150f' : '#22180f'; g.beginPath(); g.moveTo(x0, 0); g.lineTo(x1, H2 * .12); g.lineTo(x1, gr); g.lineTo(x0, H2); g.closePath(); g.fill();
     g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = .6;
-    for (let k = 0; k < 18; k++) { const f = k / 18; g.beginPath(); g.moveTo(x0, H2 * f); g.lineTo(x1, H2 * .12 + (gr - H2 * .12) * f); g.stroke(); }
+    for (let n = 0; n < 18; n++) { const f = n / 18; g.beginPath(); g.moveTo(x0, H2 * f); g.lineTo(x1, H2 * .12 + (gr - H2 * .12) * f); g.stroke(); }
   }
   g.fillStyle = '#0c0b0a'; g.fillRect(-10, H2 * .04, W2 + 20, H2 * .05); g.fillRect(W2 * .12, 0, 6, H2 * .09); g.fillRect(W2 * .86, 0, 6, H2 * .09);
   const fl = g.createLinearGradient(0, gr, 0, H2); fl.addColorStop(0, '#2a2119'); fl.addColorStop(1, '#0d0b09'); g.fillStyle = fl; g.fillRect(-10, gr, W2 + 20, H2 - gr);
   const bx = W2 / 2 + Math.sin(T * 1.1) * 8, by = H2 * .2;
   g.strokeStyle = '#0b0908'; g.lineWidth = .8; g.beginPath(); g.moveTo(W2 / 2, H2 * .09); g.lineTo(bx, by); g.stroke();
   g.fillStyle = '#ffeec4'; g.beginPath(); g.arc(bx, by + 3, 4, 0, 7); g.fill(); glowAt(g, bx, by + 3, 90, .45); glowAt(g, bx, by + 3, 18, .8);
-  const k = H2 / 300 * 1.25;
-  const crates = [[d.pos[0] * W2 + 34 * k, 0], [d.pos[1] * W2 - 34 * k, 1]];
-  const fighters = [[0, d.pos[0] * W2, state.outfit, poseA, false], [1, d.pos[1] * W2, d.opp.outfit, poseB, true]];
   const outs = [{}, {}];
-  for (const [i, x, o, pose, flip] of fighters) { g.save(); g.translate(x, gr + 8); g.scale(k, k); drawGangster(g, o, pose, T + i * 1.7, Object.assign(outs[i], { flip })); g.restore(); }
-  for (const [cx2, side] of crates) {
-    g.save(); g.translate(cx2, gr + 8); g.scale(k, k);
-    g.fillStyle = '#4a3d28'; g.fillRect(-14, -30, 28, 30); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-14, -16, 28, 1.2); g.fillRect(-1, -30, 1.2, 30);
-    g.fillStyle = 'rgba(239,230,208,.22)'; g.fillRect(-14, -30, 28, .8);
+  for (const i of [0, 1]) {
+    g.save(); g.translate(d.pos[i] * W2, gr + 8); g.scale(k, k);
+    const o = i ? d.opp.outfit : state.outfit;
+    drawGangster(g, o, poses[i], T + i * 1.7, Object.assign(outs[i], { flip: !!i, wounds: d.wounds[i], scared: d.scared[i], sweat: d.hp[i] < 35 }));
     g.restore();
   }
-  if (d.phase === 'anim' && at > .3 && at < .9) {
-    for (const [i, mv, other] of [[0, d.anim.a, 1], [1, d.anim.b, 0]]) {
-      if (mv !== 'F' || !outs[i].muzzle) continue;
-      const m = outs[i].muzzle, mx = m.x / ddpr, my = m.y / ddpr;
-      const burst = (i === 0 ? d.cls : d.opp.cls) === 'burst';
-      const flashOn = burst ? Math.floor(at * 20) % 2 === 0 : at < .5;
-      if (flashOn) {
-        glowAt(g, mx, my, 34, .9); g.fillStyle = '#fff4d0'; g.beginPath(); g.arc(mx, my, 3.5, 0, 7); g.fill();
-        const tx = fighters[other][1], ty = gr - 70 * k, cover = (other === 0 ? d.anim.a : d.anim.b) === 'C';
-        g.strokeStyle = 'rgba(255,230,170,.55)'; g.lineWidth = 1; g.beginPath(); g.moveTo(mx, my); g.lineTo(cover ? crates[other][0] : tx, cover ? gr - 20 * k : ty); g.stroke();
-        if (cover) glowAt(g, crates[other][0], gr - 20 * k, 16, .7);
+  for (const i of [0, 1]) {
+    const cx2 = d.pos[i] * W2 + (i ? -34 : 34) * k;
+    g.save(); g.translate(cx2, gr + 8); g.scale(k, k);
+    g.beginPath(); g.roundRect(-15, -30, 30, 30, 2); ink(g, vgrad(g, -30, 0, ['#8a6a40', '#5a4426']), 1.6);
+    g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(-15, -15); g.lineTo(15, -15); g.moveTo(-15, -30); g.lineTo(15, 0); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(-14, -29, 28, 1);
+    for (const s2 of d.stuck.filter(s3 => s3.side === i)) drawKnife(g, (i ? 1 : -1) * -6, -s2.oy - 4, s2.ang + (i ? Math.PI : 0), .9);
+    g.restore();
+  }
+  if (d.phase === 'anim') {
+    for (const e of d.anim.ev) {
+      const i = e.from, j = 1 - i;
+      if (e.type === 'shot' && outs[i].muzzle && at >= e.t && at < e.t + .07 && d.hp[i] > 0) {
+        const m = outs[i].muzzle, mx = m.x / ddpr - shake, my = m.y / ddpr;
+        glowAt(g, mx, my, 38, .95); g.fillStyle = '#fff4d0'; g.beginPath(); g.arc(mx, my, 4, 0, 7); g.fill();
+        const tx = e.px ?? d.pos[j] * W2, ty = e.py ?? gr - 70 * k;
+        const tg = g.createLinearGradient(mx, my, tx, ty); tg.addColorStop(0, 'rgba(255,240,190,.9)'); tg.addColorStop(1, 'rgba(255,240,190,.2)');
+        g.strokeStyle = tg; g.lineWidth = 1.6; g.beginPath(); g.moveTo(mx, my); g.lineTo(tx, ty); g.stroke();
+        if (!e.hit && !e.blocked) { g.fillStyle = 'rgba(255,255,255,.5)'; g.font = font(600, 11); g.textAlign = 'center'; g.fillText('мимо', d.pos[j] * W2, gr - 150 * k); }
+      }
+      if (e.type === 'knife' && d.hp[i] > 0) {
+        const t0 = e.t - KNIFE.flight;
+        if (at >= t0 && at < e.t) {
+          const p = (at - t0) / KNIFE.flight, sx = d.pos[i] * W2 + (i ? -24 : 24) * k, sy = gr - 120 * k;
+          let tx = d.pos[j] * W2 + (i ? 10 : -10) * k, ty = gr - 72 * k;
+          if (e.blocked) { tx = d.pos[j] * W2 + (j ? -34 : 34) * k; ty = gr - 20 * k; }
+          if (!e.hit && !e.blocked) { tx += (i ? -1 : 1) * 80; ty -= 30; }
+          const x = sx + (tx - sx) * p, y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 30 * k;
+          g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2; g.beginPath(); g.moveTo(sx + (tx - sx) * Math.max(0, p - .2), sy + (ty - sy) * Math.max(0, p - .2) - Math.sin(Math.max(0, p - .2) * Math.PI) * 30 * k); g.lineTo(x, y); g.stroke();
+          drawKnife(g, x, y, (i ? -1 : 1) * T * 26, k * 1.1);
+        }
+      }
+      if (e.type !== 'shot' && at >= e.t && at < e.t + .35 && !e.hit && !e.blocked) {
+        g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5;
+        for (let n = 0; n < 3; n++) { const x = d.pos[j] * W2 + (j ? 18 : -18) * k, y = gr - (60 + n * 25) * k; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (j ? 26 : -26), y); g.stroke(); }
       }
     }
+    for (const j of [0, 1]) if (at < d.anim.dodgeUntil[j]) {
+      g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4;
+      for (let n = 0; n < 4; n++) { const x = d.pos[j] * W2 + (j ? 22 : -22) * k, y = gr - (40 + n * 26) * k; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (j ? 30 : -30), y); g.stroke(); }
+    }
   }
+  for (const p of d.parts) {
+    const a = (T - p.t); if (a > p.life) continue;
+    if (p.c === 'chip') { g.globalAlpha = 1 - a / p.life; glowAt(g, p.x, p.y, 16, .6); continue; }
+    const x = p.x + p.vx * a, y = p.y + p.vy * a + 260 * a * a;
+    g.globalAlpha = 1 - a / p.life; g.fillStyle = p.c; g.beginPath(); g.arc(x, y, p.r, 0, 7); g.fill();
+  }
+  g.globalAlpha = 1; d.parts = d.parts.filter(p => T - p.t < p.life);
+  for (const b of d.bursts) {
+    const a = (T - b.t) / .7; if (a > 1) continue;
+    const x = d.pos[b.side] * W2 + (b.crate ? (b.side ? -34 : 34) * k : 0), y = b.crate ? gr - 40 * k : gr - 110 * k, sc = .7 + Math.min(1, a * 5) * .5;
+    g.save(); g.translate(x, y - a * 14); g.scale(sc, sc); g.rotate((b.side ? 1 : -1) * .12); g.globalAlpha = 1 - Math.max(0, a - .6) / .4;
+    g.beginPath(); for (let n = 0; n < 14; n++) { const ang = n / 14 * 6.283, r = n % 2 ? 16 : 28; g.lineTo(Math.cos(ang) * r * 1.3, Math.sin(ang) * r); } g.closePath(); ink(g, '#ffd23a', 2);
+    g.font = font(700, 13); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#b8202a'; g.fillText(b.text, 0, 1); g.textBaseline = 'alphabetic';
+    g.restore();
+  }
+  g.globalAlpha = 1; d.bursts = d.bursts.filter(b => T - b.t < .7);
   for (const f of d.fx) {
-    const a = (T - f.t) / 1.1; if (a > 1) continue;
-    g.globalAlpha = 1 - a; g.fillStyle = C.gold2; g.font = font(700, 22); g.textAlign = 'center';
-    g.fillText(f.text, d.pos[f.side] * W2, gr - 150 * k - a * 30);
+    const a = (T - f.t) / 1.1; if (a > 1 || a < 0) continue;
+    g.globalAlpha = 1 - a; g.fillStyle = f.small ? '#d6cab0' : '#ff5a4a'; g.font = font(700, f.small ? 15 : 24); g.textAlign = 'center';
+    g.strokeStyle = OL; g.lineWidth = 3; g.strokeText(f.text, d.pos[f.side] * W2, gr - 170 * k - a * 30 + (f.small ? 22 : 0)); g.fillText(f.text, d.pos[f.side] * W2, gr - 170 * k - a * 30 + (f.small ? 22 : 0));
   }
   g.globalAlpha = 1; d.fx = d.fx.filter(f => T - f.t < 1.1);
   g.strokeStyle = 'rgba(225,215,195,.12)'; g.lineWidth = .7; g.beginPath();
   for (let i = 0; i < 70; i++) { const x = (hs(i) * W2 + T * 60) % W2, y = (hs(i + 50) * H2 + T * 520) % H2; g.moveTo(x, y); g.lineTo(x - 3, y - 13); }
   g.stroke();
-  if (d.phase === 'choose' || d.phase === 'pre') {
-    g.font = font(600, 13); g.textAlign = 'center'; g.fillStyle = 'rgba(239,230,208,.8)';
-    g.fillText(d.phase === 'pre' ? 'ВЫБЕРИ СТВОЛ И СЕКУНДАНТА' : 'ТВОЙ ХОД', W2 / 2, H2 - 14);
-  }
-  if (d.phase === 'anim' && at < 1.6) {
-    g.font = font(600, 14); g.fillStyle = C.paper; g.textAlign = 'center';
-    g.fillText(`${MV[d.anim.a]}  ·  ${MV[d.anim.b]}`, W2 / 2, H2 - 14);
-  }
+  g.font = font(600, 13); g.textAlign = 'center'; g.fillStyle = 'rgba(239,230,208,.85)';
+  if (d.phase === 'pre') g.fillText('ВЫБЕРИ СТВОЛ И СЕКУНДАНТА', W2 / 2, H2 - 12);
+  else if (d.phase === 'choose') g.fillText('ТВОЙ ХОД', W2 / 2, H2 - 12);
+  else if (d.phase === 'anim' && at < 1.8) g.fillText(`${MV[d.anim.mv[0]]}  ·  ${MV[d.anim.mv[1]]}`, W2 / 2, H2 - 12);
 }
 
 // ---------- Гардероб ----------
