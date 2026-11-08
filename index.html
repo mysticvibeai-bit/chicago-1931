@@ -1739,7 +1739,7 @@ const BRASS = (g, y0, y1) => vgrad(g, y0, y1, ['#fff0b0', '#f0c04a', '#a8701c'])
 
 function poseOf(name, t, o) {
   const p = { crouch: 0, lean: 0, back: [-.15, -.05], front: [.25, .55], stride: 0, hatLift: 0, flare: 0, extra: null, hideW: false, face: 'calm', bob: Math.sin(t * 2) * .7 };
-  if (name === 'aim') { p.front = [1.45, 1.57]; p.back = [1.05, 1.5]; p.face = 'focus'; }
+  if (name === 'aim') { p.front = [1.45, 1.57]; p.back = [1.05, 1.5]; p.face = 'squint'; }
   else if (name === 'cover') { p.crouch = .9; p.front = [1.15, 1.6]; p.back = [.8, 1.4]; p.lean = .25; p.face = 'focus'; }
   else if (name === 'dash') { p.lean = .38; p.stride = 1; p.front = [-.55, .15]; p.back = [1.0, 1.9]; p.flare = 1; p.face = 'focus'; }
   else if (name === 'hit') { p.lean = -.32; p.front = [2.2, 2.7]; p.back = [2.5, 3.0]; p.hatLift = 4; p.face = 'hit'; }
@@ -1747,9 +1747,17 @@ function poseOf(name, t, o) {
   else if (name === 'punch') { p.lean = .35; p.stride = .6; p.front = [1.55, 1.6]; p.back = [.6, 1.25]; p.hideW = true; p.face = 'focus'; }
   else if (name === 'windup') { p.lean = -.12; p.front = [2.65, 3.05]; p.extra = 'knife'; p.hideW = true; p.face = 'focus'; }
   else if (name === 'throw') { p.lean = .3; p.stride = .4; p.front = [1.3, 1.05]; p.hideW = true; p.face = 'focus'; }
+  else if (name === 'wag') { p.front = [2.0, 3.0 + Math.sin(t * 16) * .3]; p.hideW = true; p.face = 'smug'; p.lean = -.06; }
+  else if (name === 'beckon') { p.front = [1.45, 2.3 + Math.sin(t * 9) * .5]; p.hideW = true; p.face = 'smug'; p.lean = -.05; }
+  else if (name === 'crack') { p.front = [1.05, 1.95]; p.back = [1.25, 2.05]; p.hideW = true; p.face = 'angry'; p.bob += Math.sin(t * 15) * .9; p.lean = .08; }
+  else if (name === 'hat_adjust') { p.front = [2.55, 3.15]; p.hideW = true; p.face = 'smug'; p.hatLift = 1.4 + Math.sin(t * 9) * 1; }
+  else if (name === 'puff') { p.front = [2.0, 2.95]; p.hideW = true; p.face = 'smug'; p.extra = 'ring'; }
+  else if (name === 'lapel') { p.front = [.75, 2.15 + Math.sin(t * 13) * .32]; p.hideW = true; p.face = 'smug'; }
+  else if (name === 'clutch') { p.front = [.5, 2.4]; p.back = [.25, .55]; p.lean = .14; p.face = 'angry'; p.hideW = true; }
+  else if (name === 'dazed') { p.crouch = .95; p.lean = -.55; p.front = [1.25, .95]; p.back = [.95, .65]; p.face = 'dazed'; p.hideW = true; p.bob = Math.sin(t * 3) * 1.6; }
   else if (name === 'down') { p.crouch = .95; p.lean = -.7; p.front = [2.2, 2.6]; p.back = [2.4, 2.9]; p.face = 'hit'; }
   else if (name === 'win') {
-    const k = (Math.sin(t * 2.4) + 1) / 2; p.face = 'smirk';
+    const k = (Math.sin(t * 2.4) + 1) / 2; p.face = 'grin';
     if (o.win === 'win_tip_hat') { p.front = [2.5, 3.05]; p.hatLift = 6 + 5 * k; p.hideW = true; }
     else if (o.win === 'win_match') { p.front = [2.0, 2.75]; p.extra = 'match'; p.hideW = true; }
     else if (o.win === 'win_coin') { p.front = [1.6, 2.5 + .2 * k]; p.extra = 'coin'; p.hideW = true; }
@@ -1884,10 +1892,64 @@ function drawHat(g, id, cx, yb, t) {
   }
 }
 
+function drawFace(g, face, hx, hy, t, she, sweat) {
+  const ex = [hx + 4, hx + 13], ey = hy + 1, blink = (t % 4.3) < .12;
+  g.lineCap = 'round'; g.strokeStyle = OL; g.fillStyle = OL;
+  const dot = (x, ry = 2.9) => { g.fillStyle = OL; g.beginPath(); g.ellipse(x, ey, 2, ry, 0, 0, 7); g.fill(); if (ry > 1.5) { g.fillStyle = '#fff'; g.beginPath(); g.arc(x + .6, ey - 1, .6, 0, 7); g.fill(); } };
+  const brow = (x, yl, yr, w = 1.5) => { g.strokeStyle = OL; g.lineWidth = w; g.beginPath(); g.moveTo(x - 3, ey + yl); g.lineTo(x + 3, ey + yr); g.stroke(); };
+  const lid = (x) => { dot(x); g.fillStyle = '#f2f0eb'; g.fillRect(x - 2.6, ey - 3.6, 5.2, 2.9); g.strokeStyle = OL; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x - 2.7, ey - .7); g.lineTo(x + 2.7, ey - .9); g.stroke(); };
+  const arcEye = (x, up) => { g.strokeStyle = OL; g.lineWidth = 1.5; g.beginPath(); if (up) g.arc(x, ey + 1.6, 2.6, Math.PI * 1.15, Math.PI * 1.85); else g.arc(x, ey - 1.4, 2.6, Math.PI * .15, Math.PI * .85); g.stroke(); };
+  const teeth = (x0, x1, y, h) => { g.beginPath(); g.roundRect(x0, y - h / 2, x1 - x0, h, 1.4); ink(g, '#ffffff', 1.2); g.lineWidth = .55; g.beginPath(); for (let x = x0 + 2; x < x1 - .6; x += 2) { g.moveTo(x, y - h / 2); g.lineTo(x, y + h / 2); } g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); };
+  const lips = () => { if (she) { g.fillStyle = '#d1343a'; g.beginPath(); g.ellipse(hx + 9, hy + 11.2, 2.6, 1.2, 0, 0, 7); g.fill(); } };
+  const lashes = () => { if (!she) return; g.lineWidth = 1; for (const x of ex) { g.beginPath(); g.moveTo(x + 1.5, ey - 2.5); g.lineTo(x + 3.5, ey - 4); g.stroke(); } };
+  if (sweat || face === 'scared' || face === 'dazed') { const ph = (t * .9) % 1; g.globalAlpha = 1 - ph * .6; g.beginPath(); g.moveTo(hx - 15, hy - 8 + ph * 10); g.quadraticCurveTo(hx - 18, hy - 2 + ph * 10, hx - 15, hy - 1 + ph * 10); g.quadraticCurveTo(hx - 12, hy - 2 + ph * 10, hx - 15, hy - 8 + ph * 10); ink(g, '#8fd3ff', .8); g.globalAlpha = 1; }
+  g.strokeStyle = OL; g.fillStyle = OL;
+  if (face === 'scared') {
+    for (const x of ex) { g.beginPath(); g.arc(x, ey, 3.6, 0, 7); ink(g, '#ffffff', 1.1); g.fillStyle = OL; g.beginPath(); g.arc(x + .7 + Math.sin(t * 20) * .4, ey + .4, 1.2, 0, 7); g.fill(); }
+    brow(ex[0], -5.5, -7.8, 1.3); brow(ex[1], -7.8, -5.5, 1.3);
+    g.lineWidth = 1.3; g.beginPath(); g.moveTo(hx + 4, hy + 12); for (let n = 1; n <= 6; n++) g.lineTo(hx + 4 + n * 1.6, hy + 12 + (n % 2 ? -1.4 : 1.4)); g.stroke();
+  } else if (face === 'hit') {
+    g.lineWidth = 1.6; for (const [x, s2] of [[ex[0], 1], [ex[1], -1]]) { g.beginPath(); g.moveTo(x - 2.4 * s2, ey - 2.6); g.lineTo(x + 2 * s2, ey); g.lineTo(x - 2.4 * s2, ey + 2.6); g.stroke(); }
+    brow(ex[0], -4, -6.5, 1.4); brow(ex[1], -6.5, -4, 1.4);
+    teeth(hx + 4, hx + 14, hy + 11.5, 4.6);
+  } else if (face === 'dazed') {
+    g.lineWidth = .9;
+    for (const x of ex) { g.beginPath(); for (let a = 0; a < 12.5; a += .35) { const r = a * .26, xx = x + Math.cos(a + t * 7) * r, yy = ey + Math.sin(a + t * 7) * r; a ? g.lineTo(xx, yy) : g.moveTo(xx, yy); } g.stroke(); }
+    g.lineWidth = 1.3; g.beginPath(); g.moveTo(hx + 4, hy + 12); g.quadraticCurveTo(hx + 7, hy + 9, hx + 9, hy + 12); g.quadraticCurveTo(hx + 11, hy + 15, hx + 14, hy + 11); g.stroke();
+    g.beginPath(); g.ellipse(hx + 12, hy + 13.4, 1.6, 2.2, .3, 0, 7); ink(g, '#ff8a9a', .8);
+  } else if (face === 'squint') {
+    dot(ex[0], 2.4); brow(ex[0], -6.5, -4, 1.6);
+    g.lineWidth = 1.6; g.beginPath(); g.moveTo(ex[1] - 2.8, ey + .3); g.quadraticCurveTo(ex[1], ey - 1.2, ex[1] + 2.8, ey - .2); g.stroke();
+    brow(ex[1], -3.6, -2.4, 1.7);
+    g.lineWidth = 1.5; g.beginPath(); g.moveTo(hx + 5, hy + 11.5); g.lineTo(hx + 10, hy + 11.5); g.quadraticCurveTo(hx + 12.5, hy + 11.2, hx + 14, hy + 9.5); g.stroke(); lips();
+  } else if (face === 'angry') {
+    dot(ex[0], 2.5); dot(ex[1], 2.5); brow(ex[0], -7.5, -3.8, 1.8); brow(ex[1], -3.8, -7.5, 1.8);
+    teeth(hx + 5, hx + 13, hy + 11.5, 3.6);
+  } else if (face === 'smug') {
+    lid(ex[0]); lid(ex[1]); brow(ex[0], -5, -5.5, 1.4);
+    g.strokeStyle = OL; g.lineWidth = 1.5; g.beginPath(); g.moveTo(ex[1] - 3, ey - 6); g.quadraticCurveTo(ex[1], ey - 9.5, ex[1] + 3, ey - 6.5); g.stroke();
+    g.beginPath(); g.moveTo(hx + 5, hy + 11.5); g.quadraticCurveTo(hx + 10, hy + 12.5, hx + 14, hy + 8.8); g.stroke(); lips(); lashes();
+  } else if (face === 'grin') {
+    dot(ex[0]); arcEye(ex[1], true); brow(ex[0], -6.5, -7.5, 1.4);
+    g.beginPath(); g.moveTo(hx + 3, hy + 9); g.quadraticCurveTo(hx + 9, hy + 10.5, hx + 15.5, hy + 8); g.quadraticCurveTo(hx + 13, hy + 16.5, hx + 7.5, hy + 15.5); g.quadraticCurveTo(hx + 4, hy + 14, hx + 3, hy + 9); g.closePath(); ink(g, '#ffffff', 1.3);
+    g.lineWidth = .6; g.beginPath(); g.moveTo(hx + 3.5, hy + 11.2); g.quadraticCurveTo(hx + 9, hy + 12.4, hx + 14.8, hy + 10.2); g.stroke(); lashes();
+  } else {
+    dot(ex[0], blink ? .4 : 2.9); dot(ex[1], blink ? .4 : 2.9);
+    if (face === 'focus') { brow(ex[0], -6, -4.3, 1.4); brow(ex[1], -4.3, -6, 1.4); } else { brow(ex[0], -6.2, -6.6, 1.2); brow(ex[1], -6.6, -6.2, 1.2); }
+    lashes();
+    g.lineWidth = 1.5; g.beginPath();
+    if (face === 'smirk') { g.moveTo(hx + 5, hy + 11); g.quadraticCurveTo(hx + 10, hy + 13.5, hx + 14, hy + 9); }
+    else if (face === 'focus') { g.moveTo(hx + 5.5, hy + 11.5); g.lineTo(hx + 12.5, hy + 11); }
+    else { g.moveTo(hx + 5, hy + 11); g.lineTo(hx + 12, hy + 11); }
+    g.stroke(); lips();
+  }
+}
+
 function drawGangster(g, o, poseName, t, opt = {}) {
-  const P = poseOf(poseName, t, o), she = o.fig === 'she';
+  const P = opt.P || poseOf(poseName, t, o), she = o.fig === 'she';
   const top = TOPS[o.top] || TOPS.top_vest, hasCoat = o.coat && o.coat !== 'coat_none', dress = o.top === 'top_dress';
   g.save(); if (opt.flip) g.scale(-1, 1);
+  if (opt.squash) { const q = Math.min(1.2, opt.squash); g.scale(1 + q * .1, 1 - q * .1); }
   g.lineCap = 'round'; g.lineJoin = 'round';
   g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(2, 0, 22, 4, 0, 0, 7); g.fill();
   const hipY = -52 * (1 - P.crouch * .42) + P.bob * .25;
@@ -1954,11 +2016,9 @@ function drawGangster(g, o, poseName, t, opt = {}) {
   g.beginPath(); g.arc(bh[0], bh[1], o.acc === 'acc_gloves' ? 3 : 2.4, 0, 7); ink(g, o.acc === 'acc_gloves' ? '#ffffff' : OL, 1);
   // отметины попаданий
   if (opt.wounds) for (const w of opt.wounds) {
-    if (w.knife) { if (!w.fade) { g.save(); g.translate(w.x + 7, w.y); g.rotate(Math.PI + .25); drawKnife(g, 0, 0, 0, .85); g.restore(); } }
-    const drip = Math.min(7, Math.max(0, (Tnow - w.t) * 9));
-    g.strokeStyle = '#b3141f'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(w.x, w.y); g.lineTo(w.x + .3, w.y + drip); g.stroke();
-    g.beginPath(); g.arc(w.x, w.y, w.knife ? 2.6 : 2.2, 0, 7); ink(g, '#d81f2c', .9);
-    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(w.x - .7, w.y - .7, .6, 0, 7); g.fill();
+    const age = Tnow - w.t;
+    if (w.knife && !w.fade) { const wob = Math.sin(age * 45) * Math.exp(-age * 6) * .4; g.save(); g.translate(w.x + 7, w.y); g.rotate(Math.PI + .25 + wob); drawKnife(g, 0, 0, 0, .85); g.restore(); }
+    clayDot(g, w.x, w.y, w.r || 2.4, age);
   }
   if (o.acc === 'acc_carnation') { for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283; g.beginPath(); g.arc(-6 + Math.cos(a) * 1.8, sy + 7 + Math.sin(a) * 1.8, 1.6, 0, 7); ink(g, '#e0303c', .6); } g.fillStyle = '#ffd86a'; g.beginPath(); g.arc(-6, sy + 7, .9, 0, 7); g.fill(); }
   if (o.acc === 'acc_watch') { g.strokeStyle = '#f0c04a'; g.lineWidth = 1; g.beginPath(); g.moveTo(-7, sy + 20); g.quadraticCurveTo(-1, sy + 25, 4, sy + 21); g.stroke(); g.beginPath(); g.arc(5, sy + 21, 2.4, 0, 7); ink(g, BRASS(g, sy + 18, sy + 24), .9); glowAt(g, 5, sy + 21, 6, .45); }
@@ -1971,34 +2031,16 @@ function drawGangster(g, o, poseName, t, opt = {}) {
   if (she) { g.beginPath(); g.moveTo(hx - 19, hy - 4); g.quadraticCurveTo(hx - 14, hy - 24, hx + 6, hy - 21); g.quadraticCurveTo(hx + 20, hy - 17, hx + 21, hy - 3); g.quadraticCurveTo(hx + 8, hy - 12, hx - 6, hy - 6); g.closePath(); ink(g, '#1b1615', 1.6); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(hx - 10, hy - 16); g.quadraticCurveTo(hx, hy - 20, hx + 10, hy - 16); g.stroke(); }
   else if (o.hat === 'hat_none') { g.beginPath(); g.moveTo(hx - 18, hy - 9); g.quadraticCurveTo(hx - 12, hy - 25, hx + 6, hy - 21); g.quadraticCurveTo(hx + 18, hy - 17, hx + 19, hy - 8); g.quadraticCurveTo(hx + 6, hy - 14, hx - 6, hy - 10); g.closePath(); ink(g, '#1b1615', 1.6); g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(hx - 8, hy - 17); g.quadraticCurveTo(hx + 2, hy - 21, hx + 12, hy - 15); g.stroke(); }
   // лицо
-  const blink = (t % 4.3) < .12;
-  const ex = [hx + 4, hx + 13], ey = hy + 1;
-  g.fillStyle = OL; g.strokeStyle = OL;
-  const face = opt.scared && P.face !== 'hit' ? 'scared' : P.face;
-  if (opt.sweat || face === 'scared') { const ph = (t * .9) % 1; g.globalAlpha = 1 - ph * .6; g.beginPath(); g.moveTo(hx - 15, hy - 8 + ph * 10); g.quadraticCurveTo(hx - 18, hy - 2 + ph * 10, hx - 15, hy - 1 + ph * 10); g.quadraticCurveTo(hx - 12, hy - 2 + ph * 10, hx - 15, hy - 8 + ph * 10); ink(g, '#8fd3ff', .8); g.globalAlpha = 1; g.fillStyle = OL; }
-  if (face === 'scared') {
-    for (const x of ex) { g.beginPath(); g.arc(x, ey, 3.6, 0, 7); ink(g, '#ffffff', 1.1); g.fillStyle = OL; g.beginPath(); g.arc(x + .6, ey + .4, 1.2, 0, 7); g.fill(); }
-    g.lineWidth = 1.3; g.beginPath(); g.moveTo(ex[0] - 3, ey - 5.5); g.lineTo(ex[0] + 2, ey - 7.5); g.moveTo(ex[1] - 2, ey - 7.5); g.lineTo(ex[1] + 3, ey - 5.5); g.stroke();
-    g.beginPath(); g.moveTo(hx + 4, hy + 12); for (let n = 1; n <= 6; n++) g.lineTo(hx + 4 + n * 1.6, hy + 12 + (n % 2 ? -1.4 : 1.4)); g.stroke();
-  } else if (face === 'hit') { g.lineWidth = 1.5; for (const x of ex) { g.beginPath(); g.moveTo(x - 2, ey - 2.5); g.lineTo(x + 2, ey); g.lineTo(x - 2, ey + 2.5); g.stroke(); } g.beginPath(); g.ellipse(hx + 9, hy + 11, 2.2, 2.8, 0, 0, 7); g.fill(); }
-  else {
-    for (const x of ex) { g.beginPath(); g.ellipse(x, ey, 2, blink ? .4 : 2.9, 0, 0, 7); g.fill(); if (!blink) { g.fillStyle = '#fff'; g.beginPath(); g.arc(x + .6, ey - 1, .6, 0, 7); g.fill(); g.fillStyle = OL; } }
-    if (face === 'focus') { g.lineWidth = 1.4; g.beginPath(); g.moveTo(ex[0] - 3, ey - 6); g.lineTo(ex[0] + 2.5, ey - 4.3); g.moveTo(ex[1] - 2.5, ey - 4.3); g.lineTo(ex[1] + 3, ey - 6); g.stroke(); }
-    if (she) { g.lineWidth = 1; for (const x of ex) { g.beginPath(); g.moveTo(x + 1.5, ey - 2.5); g.lineTo(x + 3.5, ey - 4); g.stroke(); } }
-    g.lineWidth = 1.5; g.beginPath();
-    if (face === 'smirk') { g.moveTo(hx + 5, hy + 11); g.quadraticCurveTo(hx + 10, hy + 13.5, hx + 14, hy + 9); }
-    else if (face === 'focus') { g.moveTo(hx + 5.5, hy + 11.5); g.lineTo(hx + 12.5, hy + 11); }
-    else { g.moveTo(hx + 5, hy + 11); g.lineTo(hx + 12, hy + 11); }
-    g.stroke();
-    if (she) { g.fillStyle = '#d1343a'; g.beginPath(); g.ellipse(hx + 9, hy + 11.2, 2.6, 1.2, 0, 0, 7); g.fill(); }
-  }
-  if (o.acc === 'acc_cigar' && P.face !== 'hit') {
+  const face = opt.scared && !['hit', 'dazed'].includes(P.face) ? 'scared' : P.face;
+  drawFace(g, face, hx, hy, t, she, opt.sweat);
+  if (P.extra === 'ring') for (let n = 0; n < 3; n++) { const ph = (t * .7 + n / 3) % 1; g.globalAlpha = (1 - ph) * .8; g.strokeStyle = '#d8d2c6'; g.lineWidth = 1.4 - ph; g.beginPath(); g.ellipse(hx + 22 + ph * 26, hy + 9 - ph * 14, 2 + ph * 5, 1.4 + ph * 3.4, 0, 0, 7); g.stroke(); g.globalAlpha = 1; }
+  if (o.acc === 'acc_cigar' && !['hit', 'dazed', 'grin', 'scared'].includes(face)) {
     g.beginPath(); g.roundRect(hx + 11, hy + 9.5, 10, 3.2, 1.2); ink(g, vgrad(g, hy + 9, hy + 13, ['#8a5a30', '#4a2a10']), 1);
     g.fillStyle = '#ffb84a'; g.beginPath(); g.arc(hx + 21, hy + 11.1, 1.5, 0, 7); g.fill(); glowAt(g, hx + 21, hy + 11, 6 + Math.sin(t * 1.4) * 2, .7);
     smokeOn(g, hx + 22, hy + 8, t, .7);
   }
   if (o.acc === 'acc_match') { g.strokeStyle = '#e8d8b0'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(hx - 15, hy - 3); g.lineTo(hx - 10, hy + 3); g.stroke(); g.fillStyle = '#d1343a'; g.beginPath(); g.arc(hx - 15, hy - 3, 1.3, 0, 7); g.fill(); }
-  if (o.hat !== 'hat_none') { g.save(); g.translate(0, -P.hatLift); g.rotate(P.hatLift * .01); drawHat(g, o.hat, hx, hy - 12, t); g.restore(); }
+  if (o.hat !== 'hat_none' && !opt.hatOff) { g.save(); g.translate(0, -P.hatLift); g.rotate(P.hatLift * .01); drawHat(g, o.hat, hx, hy - 12, t); g.restore(); }
   // передняя рука с оружием
   g.strokeStyle = OL; g.lineWidth = 3.4;
   const fh = limb(g, sw - 4, sy + 3, P.front[0], 17, P.front[1], 17);
@@ -2161,17 +2203,6 @@ function duelEnter() {
   if (!duel) duelReset();
   renderDuelUI();
 }
-function duelReset(keepOpp) {
-  const opp = keepOpp && duel ? duel.opp : newOpponent();
-  duel = { phase: 'pre', opp, cls: duel?.cls || 'far', second: duel?.second || 'shadow', hp: [100, 100], grit: [0, 0], streak: [0, 0], used: [false, false], armed: false,
-    knives: [KNIFE.count, KNIFE.count], scared: [false, false], wounds: [[], []], parts: [], stuck: [], fly: [], bursts: [], round: 1, dist: 'far', pos: [.2, .8], anim: null, deadline: 0, fx: [] };
-  $('d-extra').hidden = true;
-}
-function duelStart() {
-  if (!duel) duelEnter();
-  if (state.duels >= DUEL_LIMIT) return toast('Разборок на сегодня хватит', `Лимит ${DUEL_LIMIT} в день. Завтра переулок снова твой.`, 'err');
-  duel.phase = 'choose'; duel.deadline = Tnow + 6; renderDuelUI();
-}
 function buildEvents(mv, tr) {
   const d = duel, cls = [d.cls, d.opp.cls], sec = [d.second, d.opp.second], ev = [], dist = d.dist;
   for (const i of [0, 1]) {
@@ -2197,29 +2228,6 @@ function buildEvents(mv, tr) {
   for (const i of [0, 1]) if (mv[i] === 'C' && d.streak[i] >= 3) ev.push({ t: .9, type: 'crumble', from: i, hit: true, dmg: 10 });
   return ev.sort((x, y) => x.t - y.t);
 }
-function chooseMove(a) {
-  if (!duel || duel.phase !== 'choose') return;
-  const d = duel, o = d.opp;
-  if (a === 'K' && d.knives[0] <= 0) return;
-  let b = Math.random() < .65 ? o.plan[d.round - 1] : 'FCDK'[Math.floor(Math.random() * 4)];
-  if (b === 'K' && d.knives[1] <= 0) b = 'F';
-  const tr = [d.armed && !d.used[0] && d.grit[0] >= 2, !d.used[1] && d.grit[1] >= 2 && Math.random() < .5];
-  const mv = [a, b];
-  for (const i of [0, 1]) { d.streak[i] = mv[i] === 'C' ? d.streak[i] + 1 : 0; if (mv[i] === 'K') d.knives[i]--; if (tr[i]) { d.used[i] = true; d.grit[i] -= 2; } }
-  const gGain = [0, 1].map(i => mv[i] === 'C' && d.streak[i] < 3 && mv[1 - i] !== 'D' ? 1 : 0);
-  const distAfter = (a === 'D' || b === 'D') ? 'near' : (a === 'C' && b === 'C') ? 'far' : d.dist;
-  d.armed = false;
-  d.anim = { t0: Tnow, mv, tr, ev: buildEvents(mv, tr), done: 0, hitUntil: [0, 0], dodgeUntil: [0, 0], distAfter, gGain };
-  d.phase = 'anim';
-  if (tr[0] || tr[1]) toast(`Козырь: ${tr[0] ? SECONDS[d.second].trump : SECONDS[o.second].trump}`, tr[0] ? 'Твой секундант вступил в дело.' : `${o.name} разыграл козырь.`);
-  renderDuelUI();
-}
-function hurt(j, dmg, at) {
-  const d = duel; if (d.hp[j] <= 0 || dmg <= 0) return;
-  d.hp[j] = Math.max(0, d.hp[j] - dmg); d.anim.hitUntil[j] = at + .28;
-  d.fx.push({ t: Tnow, side: j, text: '−' + dmg });
-  if (!d.scared[j] && d.hp[j] > 0 && ((d.hp[j] <= FEAR.hpBelow && dmg >= FEAR.bigHit) || d.hp[j] <= 8)) scare(j);
-}
 function scare(j) {
   const d = duel; d.scared[j] = true;
   const who = j ? d.opp.name : 'Вилли Шляпа';
@@ -2229,45 +2237,6 @@ function scare(j) {
 function bodyPoint(j, wx, wy, k, gr) {
   const d = duel, dir = j ? -1 : 1, crouch = d.anim && d.anim.mv[j] === 'C' ? .9 : 0, hipY = -52 * (1 - crouch * .42);
   return [d.pos[j] * dW + wx * k * dir, gr + 8 + (hipY + wy) * k];
-}
-function applyEvent(e, at, k, gr) {
-  const d = duel, j = 1 - e.from, i = e.from;
-  if (d.hp[i] <= 0 && e.type !== 'crumble') return;
-  if (e.type === 'shot') {
-    if (e.hit) {
-      const wx = (Math.random() - .5) * 16, wy = -30 + Math.random() * 26;
-      d.wounds[j].push({ x: wx, y: wy, t: Tnow });
-      const [px, py] = bodyPoint(j, wx, wy, k, gr); e.px = px; e.py = py;
-      for (let n = 0; n < 7; n++) d.parts.push({ x: px, y: py, vx: (j ? 1 : -1) * (20 + Math.random() * 60) * -1 + (Math.random() - .5) * 40, vy: -40 - Math.random() * 60, life: .7, t: Tnow, c: '#d01f2a', r: 1.2 + Math.random() * 1.4 });
-      hurt(j, e.dmg, at);
-    } else if (e.blocked) {
-      const cx = d.pos[j] * dW + (j ? 34 : -34) * k, cy = gr + 8 - (12 + Math.random() * 14) * k; e.px = cx; e.py = cy;
-      for (let n = 0; n < 8; n++) d.parts.push({ x: cx, y: cy, vx: (Math.random() - .5) * 120, vy: -60 - Math.random() * 80, life: .45, t: Tnow, c: '#ffd86a', r: 1 });
-      d.parts.push({ x: cx, y: cy, vx: 0, vy: 0, life: .5, t: Tnow, c: 'chip', r: 3 });
-    } else {
-      d.anim.dodgeUntil[j] = at + .32;
-      const [px, py] = bodyPoint(j, (Math.random() < .5 ? -1 : 1) * 22, -40 - Math.random() * 30, k, gr);
-      e.px = px + (j ? 1 : -1) * 120; e.py = py - 10;
-      for (let n = 0; n < 5; n++) d.parts.push({ x: e.px, y: e.py, vx: (Math.random() - .5) * 80, vy: -30 - Math.random() * 60, life: .4, t: Tnow, c: '#ffd86a', r: 1 });
-    }
-  } else if (e.type === 'knife') {
-    if (e.hit) {
-      const wx = (Math.random() - .5) * 12, wy = -26 + Math.random() * 18;
-      d.wounds[j].push({ x: wx, y: wy, t: Tnow, knife: true });
-      const [px, py] = bodyPoint(j, wx, wy, k, gr);
-      for (let n = 0; n < 9; n++) d.parts.push({ x: px, y: py, vx: (Math.random() - .5) * 90, vy: -50 - Math.random() * 60, life: .7, t: Tnow, c: '#d01f2a', r: 1.3 + Math.random() * 1.5 });
-      hurt(j, e.dmg, at);
-    } else if (e.blocked) {
-      d.stuck.push({ side: j, oy: 10 + Math.random() * 12, ang: (j ? 1 : -1) * (.3 + Math.random() * .4) });
-      d.bursts.push({ t: Tnow, side: j, text: 'ТЫЦ!', crate: true });
-    } else d.anim.dodgeUntil[j] = at + .32;
-  } else if (e.type === 'punch') {
-    if (e.hit) { d.bursts.push({ t: Tnow, side: j, text: e.dmg >= 30 ? 'БАМ!' : 'ХРЯСЬ!' }); hurt(j, e.dmg, at); }
-    else { d.anim.dodgeUntil[j] = at + .32; d.bursts.push({ t: Tnow, side: j, text: 'МИМО' }); }
-  } else if (e.type === 'crumble') {
-    d.bursts.push({ t: Tnow, side: i, text: 'КИРПИЧ!', crate: true }); hurt(i, e.dmg, at);
-    for (let n = 0; n < 10; n++) d.parts.push({ x: d.pos[i] * dW, y: gr - 120 * k, vx: (Math.random() - .5) * 60, vy: 20 + Math.random() * 40, life: .8, t: Tnow, c: '#8a4a2a', r: 2 });
-  }
 }
 function endDuel() {
   const d = duel, me = d.hp[0], op = d.hp[1];
@@ -2335,44 +2304,240 @@ function drawKnife(g, x, y, ang, sc = 1) {
   g.beginPath(); g.roundRect(-9, -1.8, 7.5, 3.6, 1.4); ink(g, WOOD(g, -2, 2), .9);
   g.restore();
 }
+
+// ---- Режиссура боя: плавные позы, отдача, жесты, эффекты (прототип v4) ----
+function clayBall(g, x, y, r, flat = 0) {
+  g.fillStyle = 'rgba(0,0,0,.28)'; g.beginPath(); g.ellipse(x + r * .25, y + r * (.75 - flat * .4), r * (1 + flat * .7), r * (.55 - flat * .2), 0, 0, 7); g.fill();
+  const rx = r * (1 + flat * .65), ry = r * (1 - flat * .55);
+  const gr = g.createRadialGradient(x - rx * .35, y - ry * .45, r * .08, x, y, Math.max(rx, ry) * 1.05);
+  gr.addColorStop(0, '#ff8a80'); gr.addColorStop(.35, '#e8283a'); gr.addColorStop(.8, '#a8101e'); gr.addColorStop(1, '#6e0712');
+  g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(70,0,8,.55)'; g.lineWidth = Math.max(.4, r * .14); g.stroke();
+  g.fillStyle = 'rgba(255,255,255,.8)'; g.beginPath(); g.ellipse(x - rx * .38, y - ry * .42, rx * .3, ry * .17, -.55, 0, 7); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.arc(x + rx * .35, y + ry * .3, r * .12, 0, 7); g.fill();
+}
+function clayDot(g, x, y, r, age) {
+  const pop = age < .14 ? (age / .14) * 1.4 : age < .3 ? 1.4 - (age - .14) / .16 * .4 : 1;
+  clayBall(g, x, y, r * Math.max(.05, pop), .15);
+}
+function muzzleFlash(g, x, y, dir, sc, big) {
+  g.save(); g.translate(x, y); g.scale(dir * sc, sc);
+  glowAt(g, 8, 0, big ? 40 : 30, .95);
+  const pts = 9, rot = Math.random() * .4;
+  g.beginPath();
+  for (let n = 0; n < pts * 2; n++) { const a = n / (pts * 2) * 6.283 + rot, r = n % 2 ? 4 : (n === 0 ? 22 : 9 + Math.random() * 7); g.lineTo(Math.cos(a) * r * (Math.cos(a) > 0 ? 1.5 : .6), Math.sin(a) * r * .8); }
+  g.closePath();
+  const fg = g.createRadialGradient(0, 0, 1, 0, 0, 20); fg.addColorStop(0, '#ffffff'); fg.addColorStop(.35, '#fff2a8'); fg.addColorStop(.7, '#ffb53a'); fg.addColorStop(1, '#ff6a1a');
+  ink(g, fg, 1.1);
+  g.restore();
+}
+function drawStars(g, x, y, k, T) {
+  for (let n = 0; n < 3; n++) {
+    const a = T * 4 + n * 2.094, sx = x + Math.cos(a) * 16 * k, sy = y + Math.sin(a) * 5 * k;
+    g.save(); g.translate(sx, sy); g.rotate(a); g.scale(k, k);
+    g.beginPath(); for (let m = 0; m < 10; m++) { const aa = m / 10 * 6.283 - Math.PI / 2, r = m % 2 ? 2.2 : 5; g.lineTo(Math.cos(aa) * r, Math.sin(aa) * r); } g.closePath();
+    ink(g, '#ffe14a', 1); g.restore();
+  }
+}
+function blendPose(cur, tgt, r) {
+  const k = Math.min(1, r);
+  for (const key of ['crouch', 'lean', 'stride', 'hatLift', 'flare', 'bob']) cur[key] += (tgt[key] - cur[key]) * k;
+  for (const key of ['front', 'back']) for (const n of [0, 1]) cur[key][n] += (tgt[key][n] - cur[key][n]) * k;
+  cur.face = tgt.face; cur.extra = tgt.extra; cur.hideW = tgt.hideW;
+}
+function gestureFor(i, T) {
+  const d = duel;
+  if (d.gest[i] && T < d.gest[i].until) return d.gest[i].n;
+  if (T > d.nextG[i]) {
+    const o = i ? d.opp.outfit : state.outfit, list = ['crack', 'beckon', 'wag'];
+    if (o.hat !== 'hat_none') list.push('hat_adjust', 'hat_adjust');
+    if (o.acc === 'acc_cigar') list.push('puff', 'puff');
+    const n = list[Math.floor(Math.random() * list.length)];
+    d.gest[i] = { n, until: T + 1.6 }; d.nextG[i] = T + 3 + Math.random() * 3.5; return n;
+  }
+  return 'stand';
+}
+function duelReset(keepOpp) {
+  const opp = keepOpp && duel ? duel.opp : newOpponent();
+  duel = { phase: 'pre', opp, cls: duel?.cls || 'far', second: duel?.second || 'shadow', hp: [100, 100], grit: [0, 0], streak: [0, 0], used: [false, false], armed: false,
+    knives: [KNIFE.count, KNIFE.count], scared: [false, false], wounds: [[], []], parts: [], stuck: [], bursts: [], round: 1, dist: 'far', pos: [.2, .8], anim: null, deadline: 0, fx: [],
+    fp: [null, null], imp: [{ arm: 0, lean: 0, sq: 0 }, { arm: 0, lean: 0, sq: 0 }], hatFly: [null, null], muz: [null, null], gest: [null, null], nextG: [Tnow + 1, Tnow + .4], slowUntil: 0, flash: -9, k: 1, gr: 200 };
+  $('d-extra').hidden = true;
+}
+function duelStart() {
+  if (!duel) duelEnter();
+  if (state.duels >= DUEL_LIMIT) return toast('Разборок на сегодня хватит', `Лимит ${DUEL_LIMIT} в день. Завтра переулок снова твой.`, 'err');
+  duel.phase = 'choose'; duel.deadline = Tnow + 6.8;
+  duel.gest = [{ n: 'crack', until: Tnow + 1.3 }, { n: 'beckon', until: Tnow + 1.7 }]; duel.nextG = [Tnow + 5, Tnow + 4];
+  renderDuelUI();
+}
+function chooseMove(a) {
+  if (!duel || duel.phase !== 'choose') return;
+  const d = duel, o = d.opp;
+  if (a === 'K' && d.knives[0] <= 0) return;
+  let b = Math.random() < .65 ? o.plan[d.round - 1] : 'FCDK'[Math.floor(Math.random() * 4)];
+  if (b === 'K' && d.knives[1] <= 0) b = 'F';
+  const tr = [d.armed && !d.used[0] && d.grit[0] >= 2, !d.used[1] && d.grit[1] >= 2 && Math.random() < .5];
+  const mv = [a, b];
+  for (const i of [0, 1]) { d.streak[i] = mv[i] === 'C' ? d.streak[i] + 1 : 0; if (mv[i] === 'K') d.knives[i]--; if (tr[i]) { d.used[i] = true; d.grit[i] -= 2; } }
+  const gGain = [0, 1].map(i => mv[i] === 'C' && d.streak[i] < 3 && mv[1 - i] !== 'D' ? 1 : 0);
+  const distAfter = (a === 'D' || b === 'D') ? 'near' : (a === 'C' && b === 'C') ? 'far' : d.dist;
+  d.armed = false; d.gest = [null, null];
+  d.anim = { at: 0, mv, tr, ev: buildEvents(mv, tr), done: 0, hitUntil: [0, 0], dodgeUntil: [0, 0], dodged: [false, false], hurt: [false, false], distAfter, gGain };
+  d.phase = 'anim';
+  if (tr[0] || tr[1]) toast(`Козырь: ${tr[0] ? SECONDS[d.second].trump : SECONDS[o.second].trump}`, tr[0] ? 'Твой секундант вступил в дело.' : `${o.name} разыграл козырь.`);
+  renderDuelUI();
+}
+function hurt(j, dmg, at) {
+  const d = duel; if (d.hp[j] <= 0 || dmg <= 0) return;
+  d.hp[j] = Math.max(0, d.hp[j] - dmg); d.anim.hitUntil[j] = at + .32; d.anim.hurt[j] = true;
+  d.imp[j].lean -= .42; d.imp[j].sq += 1;
+  d.fx.push({ t: Tnow, side: j, text: '−' + dmg });
+  if (d.hp[j] <= 0) ko(j);
+  else if (!d.scared[j] && ((d.hp[j] <= FEAR.hpBelow && dmg >= FEAR.bigHit) || d.hp[j] <= 8)) scare(j);
+}
+function ko(j) {
+  const d = duel; d.slowUntil = Tnow + 1.1; d.flash = Tnow;
+  const o = j ? d.opp.outfit : state.outfit;
+  if (o.hat !== 'hat_none') d.hatFly[j] = { id: o.hat, x: d.pos[j] * dW + (j ? -4 : 4) * d.k, y: d.gr + 8 - 132 * d.k, vx: (j ? 1 : -1) * (70 + Math.random() * 40), vy: -230, rot: 0, vr: (j ? 1 : -1) * 9, rest: false };
+  d.bursts.push({ t: Tnow, side: j, text: 'НОКАУТ!' });
+}
+const P_GRAV = 560;
+function spawn(p) { p.t = Tnow; duel.parts.push(p); }
+function applyEvent(e, at, k, gr) {
+  const d = duel, j = 1 - e.from, i = e.from, dirJ = j ? 1 : -1;
+  if (d.hp[i] <= 0 && e.type !== 'crumble') return;
+  if (e.type === 'shot') {
+    d.imp[i].arm += .34; d.imp[i].lean -= .07;
+    const m = d.muz[i];
+    if (m) {
+      spawn({ type: 'shell', x: m.x - (i ? -8 : 8) * k, y: m.y, vx: (i ? 1 : -1) * (40 + Math.random() * 50), vy: -120 - Math.random() * 70, vr: (Math.random() - .5) * 30, life: 1.8, k });
+      spawn({ type: 'smoke', x: m.x, y: m.y, vx: (i ? -1 : 1) * 18, vy: -22, life: 1.1, r: 4 * k });
+    }
+    if (e.hit) {
+      const wx = (Math.random() - .5) * 16, wy = -30 + Math.random() * 26;
+      d.wounds[j].push({ x: wx, y: wy, t: Tnow, r: 2.2 + Math.random() * .8 });
+      const [px, py] = bodyPoint(j, wx, wy, k, gr); e.px = px; e.py = py;
+      spawn({ type: 'ring', x: px, y: py, life: .28, k });
+      for (let n = 0; n < 5; n++) spawn({ type: 'clay', x: px, y: py, vx: dirJ * (40 + Math.random() * 90), vy: -60 - Math.random() * 110, life: 1.6, r: (1.1 + Math.random() * 1.4) * k });
+      hurt(j, e.dmg, at);
+    } else if (e.blocked) {
+      const cx = d.pos[j] * dW + (j ? -34 : 34) * k, cy = gr + 8 - (12 + Math.random() * 14) * k; e.px = cx; e.py = cy;
+      for (let n = 0; n < 6; n++) spawn({ type: 'spark', x: cx, y: cy, vx: (Math.random() - .5) * 160, vy: -60 - Math.random() * 120, life: .4 });
+      for (let n = 0; n < 4; n++) spawn({ type: 'chip', x: cx, y: cy, vx: -dirJ * (30 + Math.random() * 60), vy: -80 - Math.random() * 70, vr: (Math.random() - .5) * 20, life: 1.2, k });
+    } else {
+      d.anim.dodgeUntil[j] = at + .34; d.anim.dodged[j] = true;
+      const [px, py] = bodyPoint(j, dirJ * 24, -42 - Math.random() * 30, k, gr);
+      e.px = px + dirJ * 130; e.py = py - 8;
+      spawn({ type: 'dust', x: Math.max(6, Math.min(dW - 6, e.px)), y: e.py, vx: -dirJ * 10, vy: -8, life: .8, r: 5 * k });
+      for (let n = 0; n < 4; n++) spawn({ type: 'spark', x: Math.max(6, Math.min(dW - 6, e.px)), y: e.py, vx: (Math.random() - .5) * 100, vy: -40 - Math.random() * 60, life: .35 });
+    }
+  } else if (e.type === 'knife') {
+    if (e.hit) {
+      const wx = (Math.random() - .5) * 12, wy = -26 + Math.random() * 18;
+      d.wounds[j].push({ x: wx, y: wy, t: Tnow, knife: true, r: 2.8 });
+      const [px, py] = bodyPoint(j, wx, wy, k, gr);
+      spawn({ type: 'ring', x: px, y: py, life: .3, k });
+      for (let n = 0; n < 6; n++) spawn({ type: 'clay', x: px, y: py, vx: dirJ * (30 + Math.random() * 80) + (Math.random() - .5) * 40, vy: -70 - Math.random() * 100, life: 1.6, r: (1.2 + Math.random() * 1.5) * k });
+      hurt(j, e.dmg, at);
+    } else if (e.blocked) {
+      d.stuck.push({ side: j, oy: 10 + Math.random() * 12, ang: (j ? 1 : -1) * (.3 + Math.random() * .4), t: Tnow });
+      d.bursts.push({ t: Tnow, side: j, text: 'ТЫЦ!', crate: true });
+      const cx = d.pos[j] * dW + (j ? -34 : 34) * k;
+      for (let n = 0; n < 4; n++) spawn({ type: 'chip', x: cx, y: gr - 20 * k, vx: (Math.random() - .5) * 90, vy: -70 - Math.random() * 50, vr: (Math.random() - .5) * 20, life: 1.1, k });
+    } else { d.anim.dodgeUntil[j] = at + .34; d.anim.dodged[j] = true; }
+  } else if (e.type === 'punch') {
+    if (e.hit) {
+      d.bursts.push({ t: Tnow, side: j, text: e.dmg >= 30 ? 'БАМ!' : 'ХРЯСЬ!' });
+      const [px, py] = bodyPoint(j, 0, -60, k, gr);
+      spawn({ type: 'ring', x: px, y: py, life: .32, k: k * 1.6 });
+      for (let n = 0; n < 3; n++) spawn({ type: 'clay', x: px, y: py, vx: dirJ * (60 + Math.random() * 60), vy: -90 - Math.random() * 60, life: 1.4, r: (1 + Math.random()) * k });
+      d.imp[j].lean -= .3; hurt(j, e.dmg, at);
+    } else { d.anim.dodgeUntil[j] = at + .34; d.anim.dodged[j] = true; d.bursts.push({ t: Tnow, side: j, text: 'МИМО' }); }
+  } else if (e.type === 'crumble') {
+    d.bursts.push({ t: Tnow, side: i, text: 'КИРПИЧ!', crate: true }); hurt(i, e.dmg, at);
+    for (let n = 0; n < 8; n++) spawn({ type: 'brick', x: d.pos[i] * dW + (Math.random() - .5) * 30 * k, y: gr - 150 * k, vx: (Math.random() - .5) * 40, vy: 20 + Math.random() * 40, vr: (Math.random() - .5) * 10, life: 1.2, k });
+  }
+}
 function poseNow(i, at) {
   const an = duel.anim, mv = an.mv[i];
+  if (duel.hp[i] <= 0) return 'dazed';
   if (at < an.hitUntil[i]) return 'hit';
   if (at < an.dodgeUntil[i]) return 'dodge';
+  if (at > 1.35) { if (an.dodged[i] && !an.hurt[i]) return 'wag'; if (an.hurt[i]) return 'clutch'; }
   if (mv === 'F') return at > .12 ? 'aim' : 'stand';
   if (mv === 'C') return 'cover';
   if (mv === 'D') return at < .66 ? 'dash' : 'punch';
   const ke = an.ev.find(e => e.type === 'knife' && e.from === i);
   return ke && at < ke.t - KNIFE.flight ? 'windup' : 'throw';
 }
+function drawParticles(g, T, dt, floor) {
+  const d = duel;
+  for (const p of d.parts) {
+    const age = T - p.t; if (age > p.life) { p.dead = true; continue; }
+    const a = 1 - age / p.life;
+    if (p.type === 'smoke' || p.type === 'dust') { p.x += p.vx * dt; p.y += p.vy * dt; }
+    else if (p.type !== 'ring' && !p.stuck) {
+      p.vy += P_GRAV * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot = (p.rot || 0) + (p.vr || 0) * dt;
+      if (p.y > floor) {
+        p.y = floor;
+        if (p.type === 'clay') { p.stuck = true; }
+        else if (!p.bounced) { p.vy *= -.32; p.vx *= .55; p.vr = (p.vr || 0) * .5; p.bounced = true; }
+        else { p.vy = 0; p.vx *= .85; p.vr = 0; }
+      }
+    }
+    if (p.type === 'clay') { g.globalAlpha = Math.min(1, a * 3); clayBall(g, p.x, p.y, p.r, p.stuck ? 1 : 0); }
+    else if (p.type === 'shell') {
+      g.globalAlpha = Math.min(1, a * 2.5); g.save(); g.translate(p.x, p.y); g.rotate(p.rot || 0); g.scale(p.k, p.k);
+      g.beginPath(); g.roundRect(-2.4, -1, 4.8, 2, .7); ink(g, BRASS(g, -1, 1), .5); g.restore();
+    } else if (p.type === 'smoke' || p.type === 'dust') {
+      const r = p.r * (1 + age * 3.2); g.globalAlpha = (p.type === 'dust' ? .4 : .5) * a; g.drawImage(SMOKE, p.x - r, p.y - r, r * 2, r * 2);
+    } else if (p.type === 'spark') {
+      g.globalAlpha = a; g.strokeStyle = '#ffe9a8'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x - p.vx * .025, p.y - p.vy * .025); g.stroke();
+    } else if (p.type === 'chip' || p.type === 'brick') {
+      g.globalAlpha = Math.min(1, a * 2); g.save(); g.translate(p.x, p.y); g.rotate(p.rot || 0); g.scale(p.k, p.k);
+      g.beginPath(); g.rect(p.type === 'brick' ? -3 : -1.8, -1.2, p.type === 'brick' ? 6 : 3.6, p.type === 'brick' ? 3 : 2.4); ink(g, p.type === 'brick' ? '#9a4a2a' : '#a8804a', .6); g.restore();
+    } else if (p.type === 'ring') {
+      const r = (4 + (1 - a) * 22) * p.k; g.globalAlpha = a; g.strokeStyle = '#ffffff'; g.lineWidth = 2.4 * a + .4; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.stroke();
+    }
+  }
+  g.globalAlpha = 1; d.parts = d.parts.filter(p => !p.dead);
+}
 function duelFrame(T, dt) {
   if (!dctx || !duel) return;
   const d = duel, g = dctx, W2 = dW, H2 = dH, gr = H2 * .8, k = H2 / 300 * 1.2;
+  d.k = k; d.gr = gr;
   if (d.phase === 'choose') {
-    const left = d.deadline - T; $('d-timer').style.width = clamp(left / 6) * 100 + '%';
+    const left = d.deadline - T; $('d-timer').style.width = clamp(left / 6.8) * 100 + '%';
     if (left <= 0) { toast('Замешкался', 'Сам собой пригнулся за ящик.', 'err'); chooseMove('C'); }
   }
   let at = 0, poses = ['stand', 'stand'];
+  if (d.phase === 'pre' || d.phase === 'choose') poses = [gestureFor(0, T), gestureFor(1, T)];
   if (d.phase === 'anim') {
-    at = T - d.anim.t0;
+    d.anim.at += dt * (T < d.slowUntil ? .3 : 1); at = d.anim.at;
     while (d.anim.done < d.anim.ev.length && at >= d.anim.ev[d.anim.done].t) { applyEvent(d.anim.ev[d.anim.done], at, k, gr); d.anim.done++; renderDuelUI(); }
     poses = [poseNow(0, at), poseNow(1, at)];
-    if (at > ROUND_LEN || ((d.hp[0] <= 0 || d.hp[1] <= 0) && at > d.anim.ev[Math.max(0, d.anim.done - 1)]?.t + .9)) {
+    const lastT = d.anim.ev.length ? d.anim.ev[d.anim.ev.length - 1].t : 0;
+    if (at > ROUND_LEN || ((d.hp[0] <= 0 || d.hp[1] <= 0) && at > Math.min(lastT, at) + 1.2 && T > d.slowUntil)) {
       for (const i of [0, 1]) d.grit[i] = Math.min(3, d.grit[i] + d.anim.gGain[i]);
       d.dist = d.anim.distAfter; d.round++; d.wounds.forEach(w => w.forEach(x => { if (x.knife) x.fade = T; }));
       d.stuck = d.stuck.slice(-4);
-      if (d.round > 5 || d.hp[0] <= 0 || d.hp[1] <= 0) endDuel(); else { d.phase = 'choose'; d.deadline = T + 6; d.anim = null; renderDuelUI(); }
+      if (d.round > 5 || d.hp[0] <= 0 || d.hp[1] <= 0) endDuel(); else { d.phase = 'choose'; d.deadline = T + 6.8; d.anim = null; d.nextG = [T + 2.5, T + 1.5]; renderDuelUI(); }
     }
   }
-  if (d.phase === 'end') { const lose = d.win ? 1 : 0; poses = d.draw ? ['stand', 'stand'] : lose ? ['win', d.hp[1] <= 0 ? 'down' : 'hit'] : [d.hp[0] <= 0 ? 'down' : 'hit', 'win']; }
+  if (d.phase === 'end') {
+    if (d.draw) poses = [gestureFor(0, T), gestureFor(1, T)];
+    else { const w = d.win ? 0 : 1, l = 1 - w; poses[w] = T - d.endAt < 2.4 ? 'win' : 'lapel'; poses[l] = d.hp[l] <= 0 ? 'dazed' : 'clutch'; }
+  }
   const rush = d.anim && (d.anim.mv[0] === 'D' || d.anim.mv[1] === 'D');
-  let target = (rush && at < 1.4) || d.dist === 'near' ? [.34, .66] : [.2, .8];
+  const target = (rush && at < 1.4) || d.dist === 'near' ? [.34, .66] : [.2, .8];
   if (rush && at > .66 && at < .9) { if (d.anim.mv[0] === 'D') target[0] = .42; if (d.anim.mv[1] === 'D') target[1] = .58; }
-  for (const i of [0, 1]) { let tx = target[i]; if (poses[i] === 'dodge') tx += (i ? .03 : -.03); d.pos[i] += (tx - d.pos[i]) * Math.min(1, dt * 7); }
+  for (const i of [0, 1]) { let tx = target[i]; if (poses[i] === 'dodge') tx += (i ? .035 : -.035); if (poses[i] === 'hit') tx += (i ? .012 : -.012); d.pos[i] += (tx - d.pos[i]) * Math.min(1, dt * 8); }
   g.setTransform(ddpr, 0, 0, ddpr, 0, 0);
-  const shake = d.phase === 'anim' && d.anim.hitUntil.some(h => at < h && at > h - .14) ? (Math.random() - .5) * 5 : 0;
-  g.translate(shake, 0);
-  const bg = g.createLinearGradient(0, 0, 0, gr); bg.addColorStop(0, '#0a0909'); bg.addColorStop(1, '#241c15'); g.fillStyle = bg; g.fillRect(-10, 0, W2 + 20, H2);
+  const shaking = d.phase === 'anim' && d.anim.hitUntil.some(h => at < h && at > h - .16);
+  const shake = shaking ? (Math.random() - .5) * (T < d.slowUntil ? 9 : 5) : 0;
+  g.translate(shake, shaking ? (Math.random() - .5) * 3 : 0);
+  const bg = g.createLinearGradient(0, 0, 0, gr); bg.addColorStop(0, '#0a0909'); bg.addColorStop(1, '#241c15'); g.fillStyle = bg; g.fillRect(-10, -10, W2 + 20, H2 + 20);
   g.fillStyle = '#16110d'; g.fillRect(W2 * .3, H2 * .12, W2 * .4, gr - H2 * .12);
   g.fillStyle = 'rgba(0,0,0,.3)'; for (let y = H2 * .12 + 5; y < gr; y += 6) g.fillRect(W2 * .3, y, W2 * .4, .6);
   g.fillStyle = '#e6c27a'; g.globalAlpha = .8; g.fillRect(W2 * .46, H2 * .3, W2 * .04, H2 * .06); g.globalAlpha = 1; glowAt(g, W2 * .48, H2 * .33, 20, .35);
@@ -2383,16 +2548,24 @@ function duelFrame(T, dt) {
     for (let n = 0; n < 18; n++) { const f = n / 18; g.beginPath(); g.moveTo(x0, H2 * f); g.lineTo(x1, H2 * .12 + (gr - H2 * .12) * f); g.stroke(); }
   }
   g.fillStyle = '#0c0b0a'; g.fillRect(-10, H2 * .04, W2 + 20, H2 * .05); g.fillRect(W2 * .12, 0, 6, H2 * .09); g.fillRect(W2 * .86, 0, 6, H2 * .09);
-  const fl = g.createLinearGradient(0, gr, 0, H2); fl.addColorStop(0, '#2a2119'); fl.addColorStop(1, '#0d0b09'); g.fillStyle = fl; g.fillRect(-10, gr, W2 + 20, H2 - gr);
+  const fl = g.createLinearGradient(0, gr, 0, H2); fl.addColorStop(0, '#2a2119'); fl.addColorStop(1, '#0d0b09'); g.fillStyle = fl; g.fillRect(-10, gr, W2 + 20, H2 - gr + 10);
   const bx = W2 / 2 + Math.sin(T * 1.1) * 8, by = H2 * .2;
   g.strokeStyle = '#0b0908'; g.lineWidth = .8; g.beginPath(); g.moveTo(W2 / 2, H2 * .09); g.lineTo(bx, by); g.stroke();
   g.fillStyle = '#ffeec4'; g.beginPath(); g.arc(bx, by + 3, 4, 0, 7); g.fill(); glowAt(g, bx, by + 3, 90, .45); glowAt(g, bx, by + 3, 18, .8);
+  // бойцы: позы плавно перетекают, отдача и отброс — импульсами
   const outs = [{}, {}];
   for (const i of [0, 1]) {
+    const o = i ? d.opp.outfit : state.outfit, tgt = poseOf(poses[i], T + i * 1.7, o);
+    if (!d.fp[i]) d.fp[i] = JSON.parse(JSON.stringify(tgt));
+    blendPose(d.fp[i], tgt, dt * (poses[i] === 'hit' || poses[i] === 'dodge' ? 26 : 13));
+    const im = d.imp[i], f = d.fp[i];
+    const P = { ...f, front: [f.front[0] + im.arm, f.front[1] + im.arm * 1.4], back: [...f.back], lean: f.lean + im.lean, bob: tgt.bob };
     g.save(); g.translate(d.pos[i] * W2, gr + 8); g.scale(k, k);
-    const o = i ? d.opp.outfit : state.outfit;
-    drawGangster(g, o, poses[i], T + i * 1.7, Object.assign(outs[i], { flip: !!i, wounds: d.wounds[i], scared: d.scared[i], sweat: d.hp[i] < 35 }));
+    drawGangster(g, o, poses[i], T + i * 1.7, Object.assign(outs[i], { flip: !!i, P, squash: im.sq, wounds: d.wounds[i], scared: d.scared[i], sweat: d.hp[i] < 35, hatOff: !!d.hatFly[i] }));
     g.restore();
+    d.muz[i] = outs[i].muzzle ? { x: outs[i].muzzle.x / ddpr - shake, y: outs[i].muzzle.y / ddpr } : null;
+    const decay = Math.exp(-dt * 9); im.arm *= decay; im.lean *= decay; im.sq *= Math.exp(-dt * 12);
+    if (poses[i] === 'dazed') drawStars(g, d.pos[i] * W2 + (i ? -4 : 4) * k, gr + 8 - 108 * k, k, T);
   }
   for (const i of [0, 1]) {
     const cx2 = d.pos[i] * W2 + (i ? -34 : 34) * k;
@@ -2400,19 +2573,28 @@ function duelFrame(T, dt) {
     g.beginPath(); g.roundRect(-15, -30, 30, 30, 2); ink(g, vgrad(g, -30, 0, ['#8a6a40', '#5a4426']), 1.6);
     g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(-15, -15); g.lineTo(15, -15); g.moveTo(-15, -30); g.lineTo(15, 0); g.stroke();
     g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(-14, -29, 28, 1);
-    for (const s2 of d.stuck.filter(s3 => s3.side === i)) drawKnife(g, (i ? 1 : -1) * -6, -s2.oy - 4, s2.ang + (i ? Math.PI : 0), .9);
+    for (const s2 of d.stuck.filter(s3 => s3.side === i)) { const age = T - (s2.t || 0), wob = Math.sin(age * 45) * Math.exp(-age * 6) * .35; drawKnife(g, (i ? 1 : -1) * -6, -s2.oy - 4, s2.ang + wob + (i ? Math.PI : 0), .9); }
     g.restore();
+  }
+  // слетевшая шляпа
+  for (const i of [0, 1]) {
+    const h = d.hatFly[i]; if (!h) continue;
+    if (!h.rest) { h.vy += P_GRAV * dt; h.x += h.vx * dt; h.y += h.vy * dt; h.rot += h.vr * dt; if (h.y > gr + 4) { h.y = gr + 4; if (Math.abs(h.vy) > 60) { h.vy *= -.3; h.vr *= .5; } else { h.vy = 0; h.vx *= .9; h.vr *= .9; if (Math.abs(h.vx) < 4) { h.rest = true; h.rot = Math.round(h.rot / Math.PI) * Math.PI; } } } }
+    g.save(); g.translate(h.x, h.y); g.rotate(h.rot); g.scale(k, k); drawHat(g, h.id, -2, 6, T); g.restore();
   }
   if (d.phase === 'anim') {
     for (const e of d.anim.ev) {
       const i = e.from, j = 1 - i;
-      if (e.type === 'shot' && outs[i].muzzle && at >= e.t && at < e.t + .07 && d.hp[i] > 0) {
-        const m = outs[i].muzzle, mx = m.x / ddpr - shake, my = m.y / ddpr;
-        glowAt(g, mx, my, 38, .95); g.fillStyle = '#fff4d0'; g.beginPath(); g.arc(mx, my, 4, 0, 7); g.fill();
+      if (e.type === 'shot' && d.muz[i] && at >= e.t && at < e.t + .06 && d.hp[i] > 0) {
+        const mx = d.muz[i].x, my = d.muz[i].y;
+        muzzleFlash(g, mx, my, i ? -1 : 1, k * .9, CLS[i ? d.opp.cls : d.cls].bullets > 2);
         const tx = e.px ?? d.pos[j] * W2, ty = e.py ?? gr - 70 * k;
-        const tg = g.createLinearGradient(mx, my, tx, ty); tg.addColorStop(0, 'rgba(255,240,190,.9)'); tg.addColorStop(1, 'rgba(255,240,190,.2)');
-        g.strokeStyle = tg; g.lineWidth = 1.6; g.beginPath(); g.moveTo(mx, my); g.lineTo(tx, ty); g.stroke();
-        if (!e.hit && !e.blocked) { g.fillStyle = 'rgba(255,255,255,.5)'; g.font = font(600, 11); g.textAlign = 'center'; g.fillText('мимо', d.pos[j] * W2, gr - 150 * k); }
+        const tg = g.createLinearGradient(mx, my, tx, ty); tg.addColorStop(0, 'rgba(255,240,190,.95)'); tg.addColorStop(1, 'rgba(255,240,190,.15)');
+        g.strokeStyle = tg; g.lineWidth = 1.8; g.beginPath(); g.moveTo(mx, my); g.lineTo(tx, ty); g.stroke();
+      }
+      if (e.type === 'shot' && !e.hit && !e.blocked && at >= e.t && at < e.t + .5) {
+        g.globalAlpha = 1 - (at - e.t) / .5; g.fillStyle = '#efe6d0'; g.font = font(600, 12); g.textAlign = 'center';
+        g.strokeStyle = OL; g.lineWidth = 3; g.strokeText('вжух', d.pos[j] * W2 + (j ? 30 : -30) * k, gr - 150 * k); g.fillText('вжух', d.pos[j] * W2 + (j ? 30 : -30) * k, gr - 150 * k); g.globalAlpha = 1;
       }
       if (e.type === 'knife' && d.hp[i] > 0) {
         const t0 = e.t - KNIFE.flight;
@@ -2421,46 +2603,47 @@ function duelFrame(T, dt) {
           let tx = d.pos[j] * W2 + (i ? 10 : -10) * k, ty = gr - 72 * k;
           if (e.blocked) { tx = d.pos[j] * W2 + (j ? -34 : 34) * k; ty = gr - 20 * k; }
           if (!e.hit && !e.blocked) { tx += (i ? -1 : 1) * 80; ty -= 30; }
-          const x = sx + (tx - sx) * p, y = sy + (ty - sy) * p - Math.sin(p * Math.PI) * 30 * k;
-          g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2; g.beginPath(); g.moveTo(sx + (tx - sx) * Math.max(0, p - .2), sy + (ty - sy) * Math.max(0, p - .2) - Math.sin(Math.max(0, p - .2) * Math.PI) * 30 * k); g.lineTo(x, y); g.stroke();
-          drawKnife(g, x, y, (i ? -1 : 1) * T * 26, k * 1.1);
+          const pos = (q) => [sx + (tx - sx) * q, sy + (ty - sy) * q - Math.sin(q * Math.PI) * 30 * k];
+          g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 2.2; g.beginPath(); const [ax, ay] = pos(Math.max(0, p - .25)); g.moveTo(ax, ay);
+          for (let q = Math.max(0, p - .25); q <= p; q += .05) { const [qx, qy] = pos(q); g.lineTo(qx, qy); } g.stroke();
+          const [x, y] = pos(p); drawKnife(g, x, y, (i ? -1 : 1) * T * 26, k * 1.15);
         }
-      }
-      if (e.type !== 'shot' && at >= e.t && at < e.t + .35 && !e.hit && !e.blocked) {
-        g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5;
-        for (let n = 0; n < 3; n++) { const x = d.pos[j] * W2 + (j ? 18 : -18) * k, y = gr - (60 + n * 25) * k; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (j ? 26 : -26), y); g.stroke(); }
       }
     }
     for (const j of [0, 1]) if (at < d.anim.dodgeUntil[j]) {
       g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4;
       for (let n = 0; n < 4; n++) { const x = d.pos[j] * W2 + (j ? 22 : -22) * k, y = gr - (40 + n * 26) * k; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (j ? 30 : -30), y); g.stroke(); }
     }
+    for (const i of [0, 1]) if (d.anim.mv[i] === 'D' && at > .1 && at < .7) {
+      g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 1.3;
+      for (let n = 0; n < 5; n++) { const x = d.pos[i] * W2 - (i ? -1 : 1) * 26 * k, y = gr - (20 + n * 22) * k; g.beginPath(); g.moveTo(x, y); g.lineTo(x - (i ? -1 : 1) * (24 + n * 4), y); g.stroke(); }
+    }
   }
-  for (const p of d.parts) {
-    const a = (T - p.t); if (a > p.life) continue;
-    if (p.c === 'chip') { g.globalAlpha = 1 - a / p.life; glowAt(g, p.x, p.y, 16, .6); continue; }
-    const x = p.x + p.vx * a, y = p.y + p.vy * a + 260 * a * a;
-    g.globalAlpha = 1 - a / p.life; g.fillStyle = p.c; g.beginPath(); g.arc(x, y, p.r, 0, 7); g.fill();
-  }
-  g.globalAlpha = 1; d.parts = d.parts.filter(p => T - p.t < p.life);
+  drawParticles(g, T, dt, gr + 8);
   for (const b of d.bursts) {
-    const a = (T - b.t) / .7; if (a > 1) continue;
-    const x = d.pos[b.side] * W2 + (b.crate ? (b.side ? -34 : 34) * k : 0), y = b.crate ? gr - 40 * k : gr - 110 * k, sc = .7 + Math.min(1, a * 5) * .5;
-    g.save(); g.translate(x, y - a * 14); g.scale(sc, sc); g.rotate((b.side ? 1 : -1) * .12); g.globalAlpha = 1 - Math.max(0, a - .6) / .4;
-    g.beginPath(); for (let n = 0; n < 14; n++) { const ang = n / 14 * 6.283, r = n % 2 ? 16 : 28; g.lineTo(Math.cos(ang) * r * 1.3, Math.sin(ang) * r); } g.closePath(); ink(g, '#ffd23a', 2);
-    g.font = font(700, 13); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#b8202a'; g.fillText(b.text, 0, 1); g.textBaseline = 'alphabetic';
+    const a = (T - b.t) / .8; if (a > 1) continue;
+    const x = d.pos[b.side] * W2 + (b.crate ? (b.side ? -34 : 34) * k : 0), y = b.crate ? gr - 40 * k : gr - 110 * k;
+    const sc = a < .15 ? .3 + a / .15 * 1 : 1.3 - Math.min(.3, (a - .15) * 1.5);
+    g.save(); g.translate(x, y - a * 14); g.scale(sc, sc); g.rotate((b.side ? 1 : -1) * .12); g.globalAlpha = 1 - Math.max(0, a - .65) / .35;
+    g.beginPath(); for (let n = 0; n < 16; n++) { const ang = n / 16 * 6.283, r = n % 2 ? 15 : 27 + (n % 4 ? 0 : 5); g.lineTo(Math.cos(ang) * r * 1.35, Math.sin(ang) * r); } g.closePath(); ink(g, '#ffd23a', 2.2);
+    g.beginPath(); for (let n = 0; n < 16; n++) { const ang = n / 16 * 6.283, r = n % 2 ? 10 : 18; g.lineTo(Math.cos(ang) * r * 1.35, Math.sin(ang) * r); } g.closePath(); g.fillStyle = '#fff3a0'; g.fill();
+    g.font = font(700, b.text.length > 6 ? 11 : 13); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#b8202a'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.strokeText(b.text, 0, 1); g.fillText(b.text, 0, 1); g.textBaseline = 'alphabetic';
     g.restore();
   }
-  g.globalAlpha = 1; d.bursts = d.bursts.filter(b => T - b.t < .7);
+  g.globalAlpha = 1; d.bursts = d.bursts.filter(b => T - b.t < .8);
   for (const f of d.fx) {
     const a = (T - f.t) / 1.1; if (a > 1 || a < 0) continue;
-    g.globalAlpha = 1 - a; g.fillStyle = f.small ? '#d6cab0' : '#ff5a4a'; g.font = font(700, f.small ? 15 : 24); g.textAlign = 'center';
-    g.strokeStyle = OL; g.lineWidth = 3; g.strokeText(f.text, d.pos[f.side] * W2, gr - 170 * k - a * 30 + (f.small ? 22 : 0)); g.fillText(f.text, d.pos[f.side] * W2, gr - 170 * k - a * 30 + (f.small ? 22 : 0));
+    const sc = a < .1 ? .6 + a * 6 : 1.2 - Math.min(.2, a);
+    g.save(); g.globalAlpha = 1 - Math.max(0, a - .5) * 2; g.translate(d.pos[f.side] * W2, gr - 148 * k - a * 26 + (f.small ? 22 : 0)); g.scale(sc, sc);
+    g.fillStyle = f.small ? '#d6cab0' : '#ff5a4a'; g.font = font(700, f.small ? 15 : 24); g.textAlign = 'center';
+    g.strokeStyle = OL; g.lineWidth = 3.5; g.strokeText(f.text, 0, 0); g.fillText(f.text, 0, 0); g.restore();
   }
   g.globalAlpha = 1; d.fx = d.fx.filter(f => T - f.t < 1.1);
   g.strokeStyle = 'rgba(225,215,195,.12)'; g.lineWidth = .7; g.beginPath();
   for (let i = 0; i < 70; i++) { const x = (hs(i) * W2 + T * 60) % W2, y = (hs(i + 50) * H2 + T * 520) % H2; g.moveTo(x, y); g.lineTo(x - 3, y - 13); }
   g.stroke();
+  if (T < d.slowUntil) { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(-10, -10, W2 + 20, H2 + 20); }
+  if (T - d.flash < .22) { g.fillStyle = `rgba(255,255,255,${.55 * (1 - (T - d.flash) / .22)})`; g.fillRect(-10, -10, W2 + 20, H2 + 20); }
   g.font = font(600, 13); g.textAlign = 'center'; g.fillStyle = 'rgba(239,230,208,.85)';
   if (d.phase === 'pre') g.fillText('ВЫБЕРИ СТВОЛ И СЕКУНДАНТА', W2 / 2, H2 - 12);
   else if (d.phase === 'choose') g.fillText('ТВОЙ ХОД', W2 / 2, H2 - 12);
