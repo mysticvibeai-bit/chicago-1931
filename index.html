@@ -201,6 +201,30 @@ svg.i{width:16px;height:16px;flex:none}
 @media (max-width:360px){.items{grid-template-columns:1fr}}
 
 @media (prefers-reduced-motion: reduce){.toast,.stat.bump,.lot[data-s="busy"] b{animation:none}}
+.lb-rows,.bn-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+.lb-rows li{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.lb-rows li .k{color:var(--sepia);font-size:13px}
+.lb-rows li .v{color:var(--paper-dim)}
+.lb-rows li.me{background:var(--coal-2);border:1px solid var(--gold-dim);border-radius:8px;color:var(--gold-2)}
+.lb-rows li.me .v{color:var(--gold-2)}
+.lb-rows li.gap{display:block;text-align:center;color:var(--line-2);border:0;padding:2px}
+.lb-season{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:var(--gold);border-radius:4px;padding:2px 6px}
+.linkish{background:none;border:0;color:var(--gold);font-size:12px;letter-spacing:.06em;text-decoration:underline;text-underline-offset:3px;padding:6px 0}
+.bn-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bn-head .big{font-size:34px;font-weight:600;color:var(--gold-2);line-height:1}
+.bn-list li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--paper-dim)}
+.bn-list li.ok{color:var(--paper)}.bn-list li.ok b{color:var(--gold)}
+.bn-list li.fr{color:var(--paper-dim);font-style:normal}
+.bn-list li.none{font-family:var(--serif);font-style:italic;color:var(--sepia)}
+.bn-tiers li{display:grid;grid-template-columns:76px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--sepia)}
+.bn-tiers li b{font-weight:600;letter-spacing:.06em}
+.bn-tiers li.ok{color:var(--paper)}.bn-tiers li.ok b{color:var(--gold)}
+.seg5{grid-template-columns:repeat(5,1fr)}.seg5 button{font-size:12px;letter-spacing:.02em;padding:8px 2px}
+.move.locked{opacity:.45}.move.locked span{color:var(--sepia)}
+.nav button.locked{opacity:.45}
+.stubs{display:flex;gap:4px;margin-top:10px}
+.stubs i{flex:1;height:14px;border:1px dashed var(--line-2);border-radius:3px}
+.stubs i.on{background:var(--gold-dim);border:1px solid var(--gold)}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -214,6 +238,7 @@ svg.i{width:16px;height:16px;flex:none}
   <symbol id="i-jobs" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M9 7V5h6v2M3 12h18" fill="none" stroke="currentColor" stroke-width="1.75"/></symbol>
   <symbol id="i-raid" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5" stroke="currentColor" stroke-width="1.75"/></symbol>
   <symbol id="i-gang" viewBox="0 0 24 24"><path d="M6 10c.5-3 2.5-5 6-5s5.5 2 6 5M4 10.5h16M8 13.5c0 2 1.8 3.5 4 3.5s4-1.5 4-3.5M5 21c1-2.5 3.8-4 7-4s6 1.5 7 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 0 0 4v0a2 2 0 0 1 0 4v2h18v-2a2 2 0 0 1 0-4 2 2 0 0 1 0-4V6H3z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 6 6.3.6-4.8 4.2 1.4 6.4L12 17l-5.6 3.2 1.4-6.4L3 9.6 9.3 9z" fill="currentColor"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
   <symbol id="i-kiosk" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 9h8M8 12.5h8M8 16h5" stroke="currentColor" stroke-width="1.75"/></symbol>
@@ -307,6 +332,41 @@ svg.i{width:16px;height:16px;flex:none}
     <p class="foot-note">Скины не дают силы, только стиль. Сила — в Арсенале. Лучшие вещи нельзя купить: их выигрывают.</p>
   </section>
 
+  <section id="v-city" class="view" hidden style="flex-direction:column;gap:12px">
+    <div class="sec-h"><h2>Город</h2><span class="meta num">Сезон «Сухой закон» · ещё 21 день</span></div>
+    <div class="card soon" id="lb-soon" hidden><b>Кто держит город</b><span>Рейтинг откроется на 5-й день: сначала Редактор должен узнать твоё имя.</span></div>
+    <div class="card" id="lb-card">
+      <div class="sec-h"><h2>Кто держит город</h2><span class="lb-season" id="lb-season">в зачёт сезона</span></div>
+      <div class="seg seg5" id="lb-board" role="group" aria-label="Рейтинг" style="margin-top:10px"><button data-b="col">Колонка Р.</button><button data-b="power">Власть</button><button data-b="wealth">Богатство</button><button data-b="respect">Уважение</button><button data-b="gangs">Банды</button></div>
+      <div class="seg" id="lb-scope" role="group" aria-label="Где" style="margin-top:8px"><button data-s="div">Дивизион</button><button data-s="dist">Доки</button><button data-s="city">Весь город</button></div>
+      <ul class="lb-rows" id="lb-rows"></ul>
+      <p class="hint num" id="lb-me"></p>
+      <p class="hint" id="lb-note"></p>
+      <p class="voice">В последний вечер месяца Редактор печатает в своей колонке несколько имён. Наутро у этих людей под дверью находят конверт с пером на сургуче. Что внутри, никто не рассказывает, но улыбаются потом все.</p>
+      <button class="linkish" id="lb-rules">Мелкий шрифт: условия премии</button>
+    </div>
+    <div class="scene"><canvas id="bn-cv" role="img" aria-label="Кинотеатр «Орфей»: Банковская ночь"></canvas><span class="scene-hint" id="bn-left"></span></div>
+    <div class="card">
+      <div class="bn-head"><span class="big num" id="bn-tickets">0</span><span>билетиков на ночь</span><span class="meta num" style="margin-left:auto;color:var(--sepia);font-size:12px" id="bn-day"></span></div>
+      <p class="hint num" id="bn-chance"></p>
+      <ul class="bn-list" id="bn-src"></ul>
+      <div class="stubs" id="bn-stubs"></div>
+      <p class="hint" id="bn-stubs-t"></p>
+      <p class="hint">Билетики выдают за дела в городе. Купить, продать или передать их нельзя.</p>
+      <div class="row" style="margin-top:12px"><button class="btn gold" id="bn-draw">Показать Банковскую ночь</button></div>
+    </div>
+    <div class="card">
+      <div class="sec-h"><h2>Городская казна</h2><span class="meta num" id="bn-tr-t"></span></div>
+      <div class="prog"><i id="bn-tr"></i></div>
+      <ul class="bn-list bn-tiers" id="bn-tiers"></ul>
+      <p class="hint">Казну пополняет каждая покупка в городе. Покупателю шансов это не прибавляет — призовых мест становится больше у всех.</p>
+    </div>
+    <div class="card">
+      <div class="sec-h"><h2>Твои выигрыши</h2></div>
+      <ul class="bn-list" id="bn-won"></ul>
+    </div>
+  </section>
+
   <aside class="demo" aria-label="Пульт показа">
     <p class="demo-h">Пульт показа · в игре его не будет</p>
     <p class="d" id="speed-note">Время ускорено: секунда здесь — минута в игре. Стройка гаража на 39 минут пройдёт за 39 секунд.</p>
@@ -324,6 +384,12 @@ svg.i{width:16px;height:16px;flex:none}
       <button class="btn sm" id="d-cat">Чёрный кот</button>
       <button class="btn sm" id="d-chips">+1 000 фишек</button>
       <button class="btn sm" id="d-shame">Показать «Позор»</button>
+      <button class="btn sm" id="d-day">Новый день</button>
+      <button class="btn sm" id="d-buy">Покупка в казну</button>
+    </div>
+    <p class="d">Путь игрока: что видит человек в разные дни. Дуэль раскрывается ступенями по числу боёв.</p>
+    <div class="seg seg4" role="group" aria-label="Путь игрока">
+      <button data-life="1">День 1</button><button data-life="3">День 3</button><button data-life="10">День 10</button><button data-life="99" aria-pressed="true">Всё</button>
     </div>
     <div class="seg seg4" role="group" aria-label="Графика">
       <button data-q="auto" aria-pressed="true">Авто</button><button data-q="2">Высокая</button><button data-q="1">Средняя</button><button data-q="0">Эконом</button>
@@ -336,7 +402,7 @@ svg.i{width:16px;height:16px;flex:none}
     <button data-tab="jobs"><svg><use href="#i-jobs"/></svg>Дела</button>
     <button data-tab="alley"><svg><use href="#i-raid"/></svg>Дуэли</button>
     <button data-tab="gang"><svg><use href="#i-gang"/></svg>Банда</button>
-    <button disabled title="Спринт 5"><svg><use href="#i-star"/></svg>Магазин</button>
+    <button data-tab="city"><svg><use href="#i-ticket"/></svg>Город</button>
   </nav>
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -2399,6 +2465,7 @@ function chooseMove(a) {
   if (a === 'K' && d.knives[0] <= 0) return;
   let b = Math.random() < .65 ? o.plan[d.round - 1] : 'FCDK'[Math.floor(Math.random() * 4)];
   if (b === 'K' && d.knives[1] <= 0) b = 'F';
+  if (!oppMoves().includes(b)) b = oppMoves()[Math.floor(Math.random() * oppMoves().length)];
   const tr = [d.armed && !d.used[0] && d.grit[0] >= 2, !d.used[1] && d.grit[1] >= 2 && Math.random() < .5];
   const mv = [a, b];
   for (const i of [0, 1]) { d.streak[i] = mv[i] === 'C' ? d.streak[i] + 1 : 0; if (mv[i] === 'K') d.knives[i]--; if (tr[i]) { d.used[i] = true; d.grit[i] -= 2; } }
@@ -3105,11 +3172,12 @@ JOBS.forEach(j => {
 });
 
 function showTab(name) {
-  ['block', 'jobs', 'alley', 'gang'].forEach(v => { const el = $('v-' + v); el.hidden = v !== name; el.style.display = v === name ? 'flex' : 'none'; });
+  ['block', 'jobs', 'alley', 'gang', 'city'].forEach(v => { const el = $('v-' + v); el.hidden = v !== name; el.style.display = v === name ? 'flex' : 'none'; });
   document.querySelectorAll('.nav [data-tab]').forEach(x => x.dataset.tab === name ? x.setAttribute('aria-current', 'page') : x.removeAttribute('aria-current'));
   if (name === 'block') requestAnimationFrame(relayout);
   if (name === 'alley') duelEnter();
   if (name === 'gang') wardEnter();
+  if (name === 'city') cityEnter();
 }
 document.querySelectorAll('.nav [data-tab]').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
 const goLaundry = () => { showTab('block'); setTimeout(() => focusLot('laundry'), 60); };
@@ -3202,6 +3270,7 @@ function frame(ts) {
   if (sceneOn && (Q > 0 || frameN % 2 === 0)) { drawScene(T, Math.min(.1, drawDt)); drawDt = 0; }
   if (!$('v-alley').hidden) duelFrame(T, dt);
   if (!$('v-gang').hidden) wardFrame(T);
+  if (!$('v-city').hidden) cityFrame(T);
   updateUI(dt);
   requestAnimationFrame(frame);
 }
@@ -3215,6 +3284,346 @@ function start(data) {
   new ResizeObserver(relayout).observe(cv.parentElement);
   requestAnimationFrame(frame);
 }
+// ---------- Город: рейтинг города и «Банковская ночь» ----------
+// Банковская ночь — ежемесячный розыгрыш в кинотеатре «Орфей». Билетики только за активность,
+// купить или передать нельзя. Покупки в городе наполняют общую казну: призов становится больше
+// для всех, шансов покупателю не прибавляется.
+const BANK = {
+  dailyCap: 5,
+  sources: [
+    { id: 'visit', name: 'Заглянул в квартал', need: 1 },
+    { id: 'cash',  name: 'Собрал кассу', need: 1 },
+    { id: 'jobs',  name: 'Провернул 5 дел', need: 5 },
+    { id: 'duels', name: 'Сыграл 3 дуэли', need: 3 },
+    { id: 'gold',  name: 'Застал золотой час', need: 1 },
+  ],
+  friend: { tickets: 3, perMonth: 5 },      // друг открыл первый бизнес — не просто перешёл по ссылке
+  stubsForGift: 10,                         // корешки: 10 невыигравших ночей — гарантированный номерной приз
+  cityTickets: 48200,
+  baseWinners: 25,
+  tiers: [
+    [0,   'База', '25 номерных шляп «Орфей»', 'номерная шляпа «Орфей»'],
+    [.25, '+25 мест', 'ещё 25 номерных шляп', 'номерная шляпа «Орфей»'],
+    [.5,  'Машина', '3 кабриолета «Орфей» с номером', 'кабриолет «Орфей» с номером'],
+    [.75, 'Позор', '10 эксклюзивных «Под ковёр»', 'добивание «Под ковёр»'],
+    [1,   'Легенда', 'именной плащ «Премьера» № 1–5', 'именной плащ «Премьера»'],
+  ],
+  nightDay: 27, today: 9,                   // показ: 9 ноября, ночь — последняя пятница, 27-го
+};
+const BOARDS = {
+  col:     { name: 'Колонка Р.', season: true, unit: '', note: 'Единственная таблица в зачёт премии месяца: дуэли, дела и мастерство района. Купить или выиграть случаем нельзя.' },
+  power:   { name: 'Власть', season: false, unit: '',  note: 'Бизнесы, банда и победы вместе. Для статуса, в зачёт премии не идёт.' },
+  wealth:  { name: 'Богатство', season: false, unit: '$/ч', note: 'Доход бизнесов в час. Для понта, в зачёт сезона не идёт.' },
+  respect: { name: 'Уважение', season: false, unit: '', note: 'Победы и «Позор». Для понта и титулов.' },
+  gangs:   { name: 'Банды', season: false, unit: '', note: 'Сила семьи в сходках 3 на 3. Откроется вместе с ними.' },
+};
+const SCOPES = { div: ['Дивизион', 50], dist: ['Доки', 1240], city: ['Город', 12480] };
+const NPC = ['Сэл Тихоня', 'Фрэнки Два Ствола', 'Мадам Роуз', 'Лу Пароход', 'Джо Сквозняк', 'Ник Мокрый Зонт', 'Бетти Шпилька', 'Гас Полночь', 'Эдди Пуговица', 'Ви Сорока',
+  'Томми Рояль', 'Дотти Каблук', 'Мо Сигара', 'Ленни Дождь', 'Кит Монетка', 'Рита Вуаль', 'Бенни Портфель', 'Арчи Шёпот', 'Мэгги Гвоздика', 'Чарли Пенни', 'Вера Ночная', 'Хэнк Лом'];
+const GANGS = ['Семья с Канала', 'Портовые', 'Ребята с Холстед', 'Клуб Полумесяц', 'Мокрые зонты', 'Семья Шляпы'];
+
+function bankEnsure() {
+  ensureState();
+  state.bn ??= { tickets: 6, stubs: 3, treasury: .38, day: {}, friends: 1, won: [], draws: 0, demoWon: false };
+  state.bn.day.visit ??= 1;
+}
+function bankToday() { return BANK.sources.reduce((s, x) => s + ((state.bn.day[x.id] || 0) >= x.need ? 1 : 0), 0); }
+function bankEarn(id, n = 1) {
+  bankEnsure();
+  const src = BANK.sources.find(x => x.id === id), had = state.bn.day[id] || 0;
+  if (!src || had >= src.need) return;
+  state.bn.day[id] = had + n;
+  if (state.bn.day[id] >= src.need && bankToday() <= BANK.dailyCap) {
+    state.bn.tickets++;
+    toast('+1 билетик', `${src.name}. До Банковской ночи ${BANK.nightDay - BANK.today} дн.`);
+  }
+  if (!$('v-city').hidden) renderCity();
+}
+const cityStat = {
+  col: () => 300 + state.wins * 10 + state.jobsDone * 3 + Math.max(0, state.rating - 1000) * 2,
+  power: () => Math.round(totalIncome() / 3) + 400 + state.wins * 15 + state.jobsDone * 3 + Math.max(0, state.rating - 1000) * 2,
+  wealth: () => Math.round(totalIncome()),
+  respect: () => state.wins * 4 + (state.shames || 0) * 6 + 20,
+  gangs: () => 0,
+};
+function rankOf(v, scope, board) {
+  const n = SCOPES[scope][1], mid = { col: 800, power: 1500, wealth: 2600, respect: 90, gangs: 1 }[board];
+  return Math.max(1, Math.min(n, Math.round(n / (1 + Math.pow(v / mid, 2.2)))));
+}
+function boardRows(board, scope) {
+  const you = cityStat[board](), n = SCOPES[scope][1], r = rankOf(you, scope, board);
+  let seed = { col: 5, power: 3, wealth: 7, respect: 11, gangs: 13 }[board] + scope.length;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const top = Math.round(you * (2.2 + rnd()) + 400), name = (i) => NPC[(i * 7 + seed) % NPC.length];
+  const valAt = (k) => Math.round(top / (1 + (k - 1) * (top / Math.max(1, you) - 1) / Math.max(1, r - 1)));
+  const rows = [];
+  [1, 2, 3].forEach(k => k < r - 3 && rows.push({ k, n: name(k), v: valAt(k) }));
+  if (r > 7) rows.push({ gap: true });
+  for (let k = Math.max(1, r - 3); k <= Math.min(n, r + 3); k++) rows.push(k === r ? { k, n: 'Вилли Шляпа', v: you, me: true } : { k, n: name(k + 3), v: k < r ? you + (r - k) * Math.ceil(you * .018 + 2) : Math.max(0, you - (k - r) * Math.ceil(you * .015 + 1)) });
+  return { rows, r, n };
+}
+
+let cityBoard = 'col', cityScope = 'div', ccv, cctx, cW = 0, cH = 0, cdpr = 1, show = null;
+function cityEnter() {
+  bankEnsure();
+  ccv = $('bn-cv'); cctx = ccv.getContext('2d');
+  const w = ccv.parentElement.getBoundingClientRect().width;
+  if (w && w !== cW) { cW = w; cH = Math.round(Math.min(260, w * .62)); cdpr = Math.min(2, window.devicePixelRatio || 1); ccv.width = Math.round(cW * cdpr); ccv.height = Math.round(cH * cdpr); ccv.style.height = cH + 'px'; }
+  renderCity();
+}
+function renderCity() {
+  const bn = state.bn, b = BOARDS[cityBoard], today = bankToday();
+  $('bn-left').textContent = `${BANK.nightDay - BANK.today} дн. до ночи`;
+  $('bn-tickets').textContent = fmt(bn.tickets);
+  $('bn-chance').textContent = `шанс что-то унести ≈ ${(Math.min(1, bn.tickets * bankWinners() / BANK.cityTickets) * 100).toFixed(1)}%`;
+  $('bn-day').textContent = `сегодня ${Math.min(today, BANK.dailyCap)} из ${BANK.dailyCap}`;
+  $('bn-src').innerHTML = BANK.sources.map(x => { const h = Math.min(x.need, bn.day[x.id] || 0), ok = h >= x.need; return `<li class="${ok ? 'ok' : ''}"><span>${x.name}</span><b class="num">${ok ? '✓' : `${h}/${x.need}`}</b></li>`; }).join('')
+    + `<li class="fr"><span>Друг открыл первый бизнес</span><b class="num">+${BANK.friend.tickets} · ${bn.friends}/${BANK.friend.perMonth}</b></li>`;
+  $('bn-stubs').innerHTML = Array.from({ length: BANK.stubsForGift }, (_, i) => `<i class="${i < bn.stubs ? 'on' : ''}"></i>`).join('');
+  $('bn-stubs-t').textContent = `Корешки: ${bn.stubs} из ${BANK.stubsForGift}. Не повезло в ночь — получаешь корешок. Десять корешков — номерной приз без розыгрыша.`;
+  $('bn-tr').style.width = bn.treasury * 100 + '%';
+  $('bn-tr-t').textContent = `${Math.round(bn.treasury * 100)}% · призовых мест: ${bankWinners()}`;
+  $('bn-tiers').innerHTML = BANK.tiers.map(([at, n, d]) => `<li class="${bn.treasury >= at ? 'ok' : ''}"><b>${n}</b><span>${d}</span></li>`).join('');
+  $('bn-won').innerHTML = bn.won.length ? bn.won.map(w => `<li><b>${w.p}</b><span class="num">билет № ${w.no}</span></li>`).join('') : '<li class="none">Пока пусто. Первая ночь — в пятницу, 27-го.</li>';
+  document.querySelectorAll('#lb-board button').forEach(x => x.setAttribute('aria-pressed', x.dataset.b === cityBoard));
+  document.querySelectorAll('#lb-scope button').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === cityScope));
+  $('lb-note').textContent = b.note;
+  $('lb-season').hidden = !b.season;
+  if (cityBoard === 'gangs') {
+    $('lb-rows').innerHTML = GANGS.map((g, i) => `<li class="${i === 5 ? 'me' : ''}"><span class="k num">${i + 1}</span><span class="n">${g}</span><span class="v num">${i === 5 ? '—' : fmt(9200 - i * 1300)}</span></li>`).join('');
+    $('lb-me').textContent = 'Твоя семья ещё не выходила на сходку. Сходки 3 на 3 скоро.';
+    return;
+  }
+  const { rows, r, n } = boardRows(cityBoard, cityScope);
+  $('lb-rows').innerHTML = rows.map(x => x.gap ? '<li class="gap"><span>· · ·</span></li>' : `<li class="${x.me ? 'me' : ''}"><span class="k num">${fmt(x.k)}</span><span class="n">${x.n}</span><span class="v num">${fmt(x.v)}${b.unit ? ' ' + b.unit : ''}</span></li>`).join('');
+  const up = rows.find(x => !x.gap && x.k === r - 1);
+  $('lb-me').textContent = cityScope === 'div'
+    ? `Ты ${r}-й из ${n} в дивизионе «${leagueOf(state.rating)}». Первые 10 в конце недели поднимаются выше.${up ? ` Выше тебя — ${up.n}, разрыв ${fmt(up.v - cityStat[cityBoard]())}.` : ''}`
+    : `Ты ${fmt(r)}-й из ${fmt(n)} — ${SCOPES[cityScope][0] === 'Город' ? 'по всему городу' : 'в районе ' + SCOPES[cityScope][0]}.${up ? ` Выше тебя — ${up.n}, разрыв ${fmt(up.v - cityStat[cityBoard]())}.` : ''}`;
+}
+const bankWinners = () => BANK.baseWinners + (state.bn.treasury >= .25 ? 25 : 0) + (state.bn.treasury >= .5 ? 3 : 0) + (state.bn.treasury >= .75 ? 10 : 0) + (state.bn.treasury >= 1 ? 5 : 0);
+
+function bankDraw() {
+  bankEnsure();
+  if (show) return;
+  const bn = state.bn;
+  if (!bn.tickets) { toast('Нет билетиков', 'Их дают за дела, дуэли и кассу. Купить нельзя.', 'err'); return; }
+  const p = Math.min(1, bn.tickets * bankWinners() / BANK.cityTickets);
+  const win = !bn.demoWon || Math.random() < p;
+  const prizes = BANK.tiers.filter(([at]) => bn.treasury >= at).map(x => x[3]);
+  const prize = win ? prizes[Math.floor(Math.random() * prizes.length)] : null;
+  const no = String(100000 + Math.floor(Math.random() * 900000)).replace(/(\d{3})(\d{3})/, '$1 $2');
+  show = { t0: Tnow, win, prize, no, other: Array.from({ length: 3 }, () => String(100000 + Math.floor(Math.random() * 900000)).replace(/(\d{3})(\d{3})/, '$1 $2')), done: false };
+  $('bn-draw').disabled = true;
+  if (!bn.demoWon) toast('Показ', 'Первая ночь подстроена на выигрыш, дальше — честные шансы.');
+}
+function bankFinish() {
+  const bn = state.bn, s = show;
+  bn.draws++; bn.tickets = 0;
+  if (s.win) { bn.demoWon = true; bn.won.unshift({ p: s.prize, no: s.no }); toast('Твой билет выпал!', `${s.prize}. Газета уже набирает твоё имя.`); }
+  else {
+    bn.stubs++;
+    if (bn.stubs >= BANK.stubsForGift) { bn.stubs = 0; bn.won.unshift({ p: 'номерная шляпа «Орфей» (за корешки)', no: '—' }); toast('Десять корешков', 'Кассир выдаёт номерную шляпу без розыгрыша.'); }
+    else toast('Не в этот раз', `+1 корешок (${bn.stubs} из ${BANK.stubsForGift}). Билетики снова копятся с завтрашнего дня.`);
+  }
+  bn.day = { visit: 1 };
+  $('bn-draw').disabled = false; show = null; renderCity();
+}
+
+// Фасад кинотеатра: бегущие лампы, вертикальная вывеска, афиши; в ночь розыгрыша — экран над входом.
+function cityFrame(T) {
+  if (!cctx) return;
+  const g = cctx, W2 = cW, H2 = cH, k = H2 / 240;
+  g.setTransform(cdpr, 0, 0, cdpr, 0, 0);
+  const sky = g.createLinearGradient(0, 0, 0, H2); sky.addColorStop(0, '#0d0c10'); sky.addColorStop(1, '#1d1712');
+  g.fillStyle = sky; g.fillRect(0, 0, W2, H2);
+  const cx = W2 / 2, fw = Math.min(W2 * .86, 380 * k), fx = cx - fw / 2, top = 24 * k, base = H2 - 18 * k;
+  const st = show ? T - show.t0 : -1, dim = show ? clamp(1 - Math.abs(st - 4) / 4) * .55 : 0;
+  // фасад
+  const fg = g.createLinearGradient(0, top, 0, base); fg.addColorStop(0, '#3b2a20'); fg.addColorStop(1, '#241a14');
+  g.fillStyle = fg; g.fillRect(fx, top, fw, base - top);
+  g.strokeStyle = '#0a0908'; g.lineWidth = 2; g.strokeRect(fx, top, fw, base - top);
+  for (let y = top + 8 * k; y < base; y += 7 * k) { g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(fx, y, fw, 1); }
+  // вертикальная вывеска
+  const vw = 30 * k, vx = cx - vw / 2, vy = 2 * k, vh = 92 * k;
+  g.fillStyle = '#5a1c18'; g.fillRect(vx, vy, vw, vh); g.strokeStyle = '#0a0908'; g.strokeRect(vx, vy, vw, vh);
+  g.font = `600 ${13 * k}px Oswald, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  'ОРФЕЙ'.split('').forEach((ch, i) => {
+    const on = reduce || ((T * 3 + i) % 8) > 1 || show;
+    g.save(); if (on) { g.shadowColor = '#ffcf6a'; g.shadowBlur = Q ? 10 : 0; }
+    g.fillStyle = on ? '#ffe2a0' : '#7a5a3a'; g.fillText(ch, cx, vy + 12 * k + i * 16 * k); g.restore();
+  });
+  // козырёк-маркиза с лампами
+  const my = 96 * k, mh = 34 * k, mx = fx - 10 * k, mw = fw + 20 * k;
+  g.fillStyle = '#e9dfc6'; g.fillRect(mx, my, mw, mh); g.strokeStyle = '#0a0908'; g.lineWidth = 2; g.strokeRect(mx, my, mw, mh);
+  g.fillStyle = '#1a1612'; g.font = `700 ${12.5 * k}px Oswald, sans-serif`;
+  g.fillText(show ? 'ИДЁТ РОЗЫГРЫШ' : 'БАНКОВСКАЯ НОЧЬ', cx, my + 12 * k);
+  g.font = `500 ${9 * k}px Oswald, sans-serif`; g.fillStyle = '#5a1c18';
+  g.fillText(show ? 'ТИШИНА В ЗАЛЕ' : 'ПЯТНИЦА 27 НОЯБРЯ · 21:00 · ПО БИЛЕТИКАМ', cx, my + 25 * k);
+  const n = Math.floor((mw + 2 * mh) / (7 * k)), per = 2 * (mw + mh);
+  for (let i = 0; i < n * 2; i++) {
+    let d = i / (n * 2) * per, x, y;
+    if (d < mw) { x = mx + d; y = my; } else if ((d -= mw) < mh) { x = mx + mw; y = my + d; } else if ((d -= mh) < mw) { x = mx + mw - d; y = my + mh; } else { x = mx; y = my + mh - (d - mw); }
+    const on = reduce ? i % 2 : (Math.floor(T * (show ? 14 : 6)) + i) % 3 === 0;
+    g.fillStyle = on ? '#fff1c4' : '#7a6440'; g.beginPath(); g.arc(x, y, 1.7 * k, 0, 7); g.fill();
+    if (on && Q) glowAt(g, x, y, 6 * k, .35);
+  }
+  // двери и афиши
+  const dy = my + mh + 6 * k, dh = base - dy;
+  [-1, 1].forEach(sd => {
+    const px = cx + sd * fw * .33 - 22 * k;
+    g.fillStyle = '#0f0d0c'; g.fillRect(px, dy + 4 * k, 44 * k, dh - 10 * k);
+    g.strokeStyle = '#c9a24a'; g.lineWidth = 1.5; g.strokeRect(px + 3 * k, dy + 7 * k, 38 * k, dh - 16 * k);
+    g.fillStyle = '#c9a24a'; g.font = `600 ${7.5 * k}px Oswald, sans-serif`;
+    g.fillText(sd < 0 ? 'СЕГОДНЯ' : 'ПРИЗЫ', px + 22 * k, dy + 16 * k);
+    g.font = `italic ${7 * k}px "PT Serif", serif`; g.fillStyle = '#b8ad96';
+    g.fillText(sd < 0 ? 'Ночь' : `${bankWinners()} мест`, px + 22 * k, dy + 28 * k);
+    g.fillText(sd < 0 ? 'удачи' : 'для всех', px + 22 * k, dy + 38 * k);
+  });
+  const dg = g.createLinearGradient(0, dy, 0, base); dg.addColorStop(0, '#ffcf6a'); dg.addColorStop(1, '#a8701c');
+  g.globalAlpha = .85; g.fillStyle = dg; g.fillRect(cx - 26 * k, dy, 52 * k, dh); g.globalAlpha = 1;
+  g.strokeStyle = '#0a0908'; g.strokeRect(cx - 26 * k, dy, 52 * k, dh); g.beginPath(); g.moveTo(cx, dy); g.lineTo(cx, base); g.stroke();
+  if (Q) glowAt(g, cx, base - 10 * k, 70 * k, .35);
+  // мостовая и отражение огней
+  g.fillStyle = '#0e0c0b'; g.fillRect(0, base, W2, H2 - base);
+  g.globalAlpha = .18; g.fillStyle = '#ffcf6a'; g.fillRect(cx - 26 * k, base + 2, 52 * k, H2 - base); g.globalAlpha = 1;
+  if (dim) { g.fillStyle = `rgba(0,0,0,${dim})`; g.fillRect(0, 0, W2, H2); }
+  if (show) drawDrawShow(g, st, W2, H2, k, T);
+}
+function drawDrawShow(g, st, W2, H2, k, T) {
+  const s = show, cx = W2 / 2, sw = Math.min(W2 * .78, 330 * k), sh = 120 * k, sx = cx - sw / 2, sy = H2 / 2 - sh / 2 - 6 * k;
+  const a = clamp(st / .5);
+  g.globalAlpha = a;
+  g.fillStyle = '#efe6d0'; g.fillRect(sx, sy, sw, sh); g.strokeStyle = '#0a0908'; g.lineWidth = 3; g.strokeRect(sx, sy, sw, sh);
+  g.fillStyle = 'rgba(0,0,0,.06)'; for (let i = 0; i < 18; i++) g.fillRect(sx + ((i * 97 + Math.floor(T * 24) * 31) % sw), sy, 1, sh); // плёнка
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#1a1612';
+  const phase = st < 1.6 ? 0 : st < 6.2 ? 1 : 2;
+  if (phase === 0) {
+    g.font = `700 ${22 * k}px Oswald, sans-serif`; g.fillText('БАНКОВСКАЯ НОЧЬ', cx, sy + sh * .42);
+    g.font = `italic ${11 * k}px "PT Serif", serif`; g.fillText(`${fmt(BANK.cityTickets)} билетиков в барабане`, cx, sy + sh * .7);
+  } else {
+    const roll = st < 5.2, idx = Math.min(2, Math.floor((st - 1.6) / 1.2));
+    g.font = `500 ${10 * k}px Oswald, sans-serif`; g.fillStyle = '#5a1c18';
+    g.fillText(phase === 2 ? (s.win ? 'ВЫПАЛ БИЛЕТ' : 'ПОСЛЕДНИЙ ПРИЗ НОЧИ') : `ВЫПАДАЕТ · ${idx + 1} ИЗ ${bankWinners()}`, cx, sy + 18 * k);
+    g.fillStyle = '#1a1612'; g.font = `700 ${34 * k}px Oswald, sans-serif`;
+    const num = phase === 2 ? (s.win ? s.no : s.other[2]) : roll ? String(100000 + Math.floor(((T * 37) % 1) * 900000)).replace(/(\d{3})(\d{3})/, '$1 $2') : s.other[idx];
+    g.fillText('№ ' + num, cx, sy + sh * .5);
+    if (phase === 2) {
+      g.font = `italic ${12 * k}px "PT Serif", serif`;
+      g.fillText(s.win ? `Вилли Шляпа — ${s.prize}` : `${NPC[(s.no.charCodeAt(1) + 3) % NPC.length]} уносит приз`, cx, sy + sh * .8);
+      if (s.win) {
+        const sa = clamp((st - 6.3) / .25), sc = 1 + (1 - sa) * 1.4;
+        g.save(); g.translate(sx + sw - 30 * k, sy + 12 * k); g.rotate(.18); g.scale(sc, sc); g.globalAlpha = sa * a;
+        g.strokeStyle = '#a3322a'; g.lineWidth = 3; g.fillStyle = '#efe6d0'; g.fillRect(-36 * k, -12 * k, 72 * k, 24 * k); g.strokeRect(-36 * k, -12 * k, 72 * k, 24 * k);
+        g.fillStyle = '#a3322a'; g.font = `700 ${15 * k}px Oswald, sans-serif`; g.fillText('ЭТО ТЫ!', 0, 1); g.restore();
+        for (let i = 0; i < 26; i++) { // корешки билетов летят из зала
+          const u = (st - 6.2) * .9 + i * .037, x = cx + Math.sin(i * 2.3) * W2 * .45 * u, y = H2 - u * H2 * 1.1 + Math.pow(u, 2) * H2 * .6;
+          g.save(); g.translate(x, y); g.rotate(i + st * 3); g.fillStyle = i % 2 ? '#e2c47a' : '#ece3cc'; g.fillRect(-4 * k, -2.5 * k, 8 * k, 5 * k); g.restore();
+        }
+      }
+    }
+  }
+  g.globalAlpha = 1;
+  if (st > 9 && !s.done) { s.done = true; bankFinish(); }
+}
+
+// Учёт активности для билетиков: оборачиваем действия, уже существующие в прототипе.
+{
+  const _collect = collect; collect = function (id, quiet) { const r = _collect(id, quiet); bankEarn('cash'); return r; };
+  const _job = doJob; doJob = function (j) { const before = state.jobsDone; const r = _job(j); if (state.jobsDone > before) bankEarn('jobs'); return r; };
+  const _end = endDuel; endDuel = function (...a) { const r = _end.apply(this, a); bankEarn('duels'); return r; };
+  const _gold = startGolden; startGolden = function (...a) { const r = _gold.apply(this, a); bankEarn('gold'); return r; };
+}
+document.querySelectorAll('#lb-board button').forEach(x => x.addEventListener('click', () => { cityBoard = x.dataset.b; renderCity(); }));
+document.querySelectorAll('#lb-scope button').forEach(x => x.addEventListener('click', () => { cityScope = x.dataset.s; renderCity(); }));
+$('bn-draw').addEventListener('click', bankDraw);
+$('lb-rules').addEventListener('click', () => toast('Правила сезона', 'Премия месяца — только по «Колонке Р.»: дуэли, дела, мастерство. Без покупок и без случая. Полные условия — /rules в боте и закреп канала.'));
+$('d-buy').addEventListener('click', () => { bankEnsure(); state.bn.treasury = Math.min(1, state.bn.treasury + .12); toast('Покупка в городе', 'Казна +12%. Покупателю шансов не прибавилось — мест больше у всех.'); if (!$('v-city').hidden) renderCity(); });
+$('d-day').addEventListener('click', () => { bankEnsure(); state.bn.day = { visit: 1 }; state.bn.tickets++; toast('Новый день', '+1 билетик за вход. Остальные — за дела, кассу, дуэли и золотой час.'); if (!$('v-city').hidden) renderCity(); });
+
+// ---------- Путь игрока: ступени дуэли и день жизни (docs/design/RETENTION.md §4–5) ----------
+// Дуэль раскрывается по числу сыгранных боёв, а разделы — по дню жизни игрока. Уровнем и деньгами не ускоряется.
+const LADDER = [[0, 'FC'], [2, 'FCD'], [4, 'FCDK']];
+const UNLOCK = { second: 6, dodge: 9, fin: 11, spare: 10 };
+const LADDER_NEWS = { 2: ['Новый приём: Рывок', 'Рывок бьёт укрытие. Теперь у приёмов треугольник.'], 4: ['Новый приём: Нож', 'Два броска за бой. Сбивает прицел.'], 6: ['Секундант', 'Громила или Тень: свой козырь раз за бой.'], 9: ['Уворот по таймингу', 'Два уворота за бой. Второй — с окном поуже.'], 11: ['Свой «Позор»', 'Добивание теперь выбираешь сам: Банда → Позор.'] };
+const DODGE = { perFight: 2, shrink: .75, ghost: .25, ghostMax: 2, baseWindow: QTE.window };
+const LIFE_GATES = { alley: 3, board: 5 };
+const fightsDone = () => state.fights ?? 99;
+const lifeDay = () => state.life ?? 99;
+const movesOpen = () => LADDER.filter(([at]) => fightsDone() >= at).pop()[1];
+function oppMoves() { return movesOpen(); }
+
+{
+  const _render = renderDuelUI;
+  renderDuelUI = function () {
+    _render();
+    const open = movesOpen(), f = fightsDone();
+    document.querySelectorAll('#d-moves [data-m]').forEach(b => {
+      const at = LADDER.find(([, m]) => m.includes(b.dataset.m))[0], shut = !open.includes(b.dataset.m);
+      b.classList.toggle('locked', shut);
+      if (shut) { b.disabled = true; b.querySelector('span').textContent = `с ${at + 1}-го боя`; }
+    });
+    $('d-trump').hidden = f < UNLOCK.second;
+    $('d-sec').closest('.card') && ($('d-sec').previousElementSibling.hidden = $('d-sec').hidden = $('d-sec-h').hidden = f < UNLOCK.second);
+    document.querySelector('.qte-hint').hidden = f < UNLOCK.dodge;
+    if (duel && f < 99) $('d-left').textContent += ` · боёв сыграно ${f}`;
+  };
+  const _setup = setupQte;
+  setupQte = function () {
+    _setup();
+    const d = duel, n = d.dodgeN || 0;
+    if (fightsDone() < UNLOCK.dodge || n >= DODGE.perFight) { d.anim.qte = null; return; }
+    QTE.window = DODGE.baseWindow * Math.pow(DODGE.shrink, n);
+  };
+  const _tap = qteTap;
+  qteTap = function () { _tap(); const q = duel && duel.anim && duel.anim.qte; if (q && q.done && q.ok && !q.counted) { q.counted = true; duel.dodgeN = (duel.dodgeN || 0) + 1; } };
+  const _apply = applyEvent;
+  applyEvent = function (e, at, k, gr) {
+    const d = duel;
+    // соперник тоже умеет уворачиваться, когда уворот открыт и у игрока
+    if (fightsDone() >= UNLOCK.dodge && e.from === 0 && e.type === 'shot' && e.hit && !e.blocked && !e.ghostChecked) {
+      e.ghostChecked = true;
+      if ((d.ghostN || 0) < DODGE.ghostMax && d.anim.mv[1] !== 'C' && Math.random() < DODGE.ghost) {
+        d.ghostN = (d.ghostN || 0) + 1; e.hit = false; e.dmg = 0;
+        d.bursts.push({ t: Tnow, side: 1, text: 'УВЕРНУЛСЯ' });
+      }
+    }
+    return _apply(e, at, k, gr);
+  };
+  const _end = endDuel;
+  endDuel = function (...a) {
+    const r = _end.apply(this, a), d = duel;
+    if (state.fights != null) {
+      if (d.fin && d.fin.who === 1 && state.fights < UNLOCK.spare) { d.fin = null; d.paper.sub = `${d.opp.name}: «Живи пока, новичок». Сегодня обошлось без позора.`; showPaper(2400); }
+      if (d.fin && d.fin.who === 0 && state.fights < UNLOCK.fin) d.fin.id = 'fin_hat_eyes';
+      state.fights++; renderDuelUI();
+      const news = LADDER_NEWS[state.fights];
+      if (news) setTimeout(() => toast(news[0], news[1]), 3200);
+    }
+    return r;
+  };
+  const _show = showTab;
+  showTab = function (name) {
+    if (name === 'alley' && lifeDay() < LIFE_GATES.alley) { toast('Подворотня закрыта до 3-го дня', 'Газета пишет: «За Кларк-стрит снова стреляли». Ходят слухи, что тебя там ждут.'); return; }
+    _show(name);
+  };
+}
+function applyLife() {
+  const day = lifeDay();
+  document.querySelector('.nav [data-tab="alley"]').classList.toggle('locked', day < LIFE_GATES.alley);
+  $('lb-card').hidden = day < LIFE_GATES.board;
+  $('lb-soon').hidden = day >= LIFE_GATES.board;
+  document.querySelectorAll('.seg [data-life]').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.life === day)));
+}
+const LIFE_PRESET = { 1: [1, 0], 3: [3, 0], 10: [10, 9], 99: [99, null] };
+document.querySelectorAll('.seg [data-life]').forEach(btn => btn.addEventListener('click', () => {
+  const [life, fights] = LIFE_PRESET[btn.dataset.life];
+  state.life = life; state.fights = fights; duel = null;
+  applyLife(); showTab(life < LIFE_GATES.alley ? 'block' : 'alley');
+  toast(life === 99 ? 'Всё открыто' : `День ${life}`, life === 1 ? 'Квартал, дела, золотой час, «Орфей» с афишей. Подворотня под замком.' : life === 3 ? 'Подворотня открыта. Первые бои — два приёма, дальше ступени.' : life === 10 ? 'Сыграно 9 боёв: следующий откроет уворот.' : 'Показ без ограничений.');
+}));
+applyLife();
+
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot, boot);
