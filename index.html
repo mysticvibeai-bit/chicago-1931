@@ -54,6 +54,7 @@ svg.i{width:16px;height:16px;flex:none}
 
 /* Сцена */
 .scene{position:relative;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--ink)}
+html,body{overscroll-behavior:none}
 .scene canvas{display:block;width:100%;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .scene-hint{position:absolute;left:12px;top:10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-dim);background:rgba(14,12,11,.7);border-radius:6px;padding:3px 8px;pointer-events:none}
 .lots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -4048,6 +4049,15 @@ const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : 
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot, boot);
 })();
 </script><script>
-try { const tg = window.Telegram && Telegram.WebApp; if (tg && tg.initData !== undefined) { tg.ready(); tg.expand(); tg.setHeaderColor('#141210'); tg.setBackgroundColor('#141210'); } } catch (e) {}
+// Telegram: на весь экран и без сворачивания свайпом вниз — иначе листание улицы и прокрутка сворачивают игру (Bot API 7.7+)
+try {
+  const tg = window.Telegram && Telegram.WebApp;
+  if (tg && tg.initData !== undefined) {
+    tg.ready(); tg.expand();
+    if (tg.isVersionAtLeast && tg.isVersionAtLeast('7.7') && tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+    tg.setHeaderColor('#141210'); tg.setBackgroundColor('#141210');
+    if (tg.setBottomBarColor) tg.setBottomBarColor('#141210');
+  }
+} catch (e) {}
 </script>
 </html>
