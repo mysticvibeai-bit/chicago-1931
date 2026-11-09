@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#141210">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<title>Прототип Чикаго 1931</title>
+<title>Чикаго 1931</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap">
@@ -222,6 +222,45 @@ svg.i{width:16px;height:16px;flex:none}
 .seg5{grid-template-columns:repeat(5,1fr)}.seg5 button{font-size:12px;letter-spacing:.02em;padding:8px 2px}
 .move.locked{opacity:.45}.move.locked span{color:var(--sepia)}
 .nav button.locked{opacity:.45}
+[hidden]{display:none!important}
+.toasts{z-index:95!important}
+.intro{position:fixed;inset:0;z-index:90;background:rgba(10,9,8,.86);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.intro-in{background:var(--news);color:var(--news-ink);border-radius:6px;max-width:420px;width:100%;padding:18px 16px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px;margin:auto}
+.intro .np-top{font-size:11px;letter-spacing:.14em;border-bottom:2px solid var(--news-ink);padding-bottom:6px;text-align:center}
+.intro-in>.btn{flex:0 0 auto}
+.intro-h{margin:0;font-size:24px;line-height:1.1;text-align:center;letter-spacing:.02em}
+.intro-p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.5}
+.intro .seg{border-color:#8a7a60}.intro .seg button{color:#4a3e30}.intro .seg button+button{border-color:#8a7a60}.intro .seg button[aria-pressed="true"]{background:var(--news-ink);color:var(--news)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;color:var(--paper);border-radius:999px;padding:7px 11px;font-size:13px;font-family:var(--display);letter-spacing:.03em;min-height:36px}
+.intro .chip{border-color:#8a7a60;color:var(--news-ink)}
+.inp{flex:1 1 160px;min-width:0;min-height:44px;border-radius:10px;border:1px solid var(--line-2);background:var(--coal-2);color:var(--paper);padding:8px 12px;font-size:16px;font-family:var(--display)}
+.intro .inp{background:#fff8e6;color:var(--news-ink);border-color:#8a7a60}
+.hint.err{color:var(--blood);min-height:1em;margin:0}
+.intro .btn{color:var(--news-ink);border-color:#8a7a60}.intro .btn.gold{color:var(--ink);border-color:var(--gold)}
+.btn:disabled{opacity:.45}
+#coach .cz{position:fixed;z-index:80;background:rgba(10,9,8,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.c-ring{position:fixed;z-index:81;border:2px solid var(--gold-2);border-radius:12px;pointer-events:none;box-shadow:0 0 0 4px rgba(226,196,122,.18),0 0 24px rgba(226,196,122,.45);animation:ring 1.4s ease-in-out infinite}
+@keyframes ring{50%{box-shadow:0 0 0 8px rgba(226,196,122,.08),0 0 34px rgba(226,196,122,.6)}}
+.c-arrow{position:fixed;z-index:82;width:32px;height:40px;color:var(--gold-2);pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+.c-bub{position:fixed;z-index:83;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 32px));background:var(--news);color:var(--news-ink);border-radius:12px;padding:12px 14px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.c-bub b{display:block;font-size:16px;letter-spacing:.08em;text-transform:uppercase}
+.c-bub p{margin:6px 0 0;font-family:var(--serif);font-size:14px;line-height:1.45}
+.c-bub .btn{margin-top:10px;width:100%;color:var(--ink)}
+.c-bub .c-skip{display:block;margin:6px auto 0;color:#6b5a32;font-size:12px}
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(10,9,8,.7);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;justify-content:center;align-items:flex-end}
+.sheet-in{background:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:16px max(16px,env(safe-area-inset-left,0px)) calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.cab-me{display:flex;gap:12px;align-items:center}
+.cab-name{font-size:22px;font-weight:600;letter-spacing:.04em}
+.fams{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fams button{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line-2);background:transparent;color:var(--paper);border-radius:10px;padding:8px;font-size:13px;text-align:left}
+.fams button i{width:14px;height:14px;border-radius:50%;border:1px solid var(--line-2)}
+.fams button span{flex-basis:100%;font-family:var(--serif);font-style:italic;color:var(--sepia);font-size:12px}
+.fams button[aria-pressed="true"]{border-color:var(--gold);background:var(--coal-2)}
+.gang-h{display:flex;gap:12px;align-items:center}
+.gang-form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.crest{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:20px;background:var(--coal-2);border:3px solid var(--c);color:var(--gold-2);box-shadow:inset 0 0 0 2px var(--ink);flex:none}
+.who .ava{cursor:pointer}
 .stubs{display:flex;gap:4px;margin-top:10px}
 .stubs i{flex:1;height:14px;border:1px dashed var(--line-2);border-radius:3px}
 .stubs i.on{background:var(--gold-dim);border:1px solid var(--gold)}
@@ -253,7 +292,7 @@ svg.i{width:16px;height:16px;flex:none}
   <header class="who">
     <div class="ava"><svg><use href="#i-hat"/></svg></div>
     <div class="who-t">
-      <div class="name">Вилли Шляпа</div>
+      <div class="name" id="p-name">Новичок</div>
       <div class="lvl num"><span id="lvl">7</span>-й уровень · <span id="xp">230</span> из <span id="xpn">370</span> опыта</div>
       <div class="bar"><i id="xpbar"></i></div>
     </div>
@@ -281,13 +320,13 @@ svg.i{width:16px;height:16px;flex:none}
     </div>
     <div class="en num"><svg class="i"><use href="#i-bolt"/></svg><span id="en2">28 из 42</span><div class="bar"><i id="en-bar"></i></div><span class="s" id="en2-s">+1 через 3:12</span></div>
     <div class="jobs" id="jobs"></div>
-    <p class="foot-note">Выплата растёт с твоим уровнем. Три звезды района — автомат Томпсона.</p>
+    <p class="foot-note">Выплата растёт с твоим уровнем. Три звезды района — барабанный автомат.</p>
   </section>
 
   <section id="v-alley" class="view" hidden style="flex-direction:column;gap:12px">
     <div class="sec-h"><h2>Подворотня</h2><span class="meta num" id="al-league">Газетчики · 1 000</span></div>
     <div class="card duel-top num">
-      <div class="fighter"><b>Вилли Шляпа</b><div class="hp"><i id="d-hpA"></i></div><span class="grit" id="d-gritA" title="Выдержка"></span></div>
+      <div class="fighter"><b id="d-nameA">Новичок</b><div class="hp"><i id="d-hpA"></i></div><span class="grit" id="d-gritA" title="Выдержка"></span></div>
       <div class="mid"><span id="d-round">ДО БОЯ</span><span id="d-dist">ДАЛЬНЯЯ</span></div>
       <div class="fighter r"><b id="d-nameB">—</b><div class="hp"><i id="d-hpB"></i></div><span class="grit" id="d-gritB" title="Выдержка"></span></div>
     </div>
@@ -315,11 +354,12 @@ svg.i{width:16px;height:16px;flex:none}
       <button class="btn trump" id="d-trump">Козырь</button>
       <p class="hint qte-hint">Когда вокруг твоего бойца сжимается кольцо — тапни по сцене в момент, когда оно станет зелёным. Идеальный уворот: все пули и нож мимо.</p>
     </div>
-    <div class="card soon"><b>Банда на банду 3 на 3</b><span>Эстафета трёх бойцов твоей семьи. Откроется в части 4 — газета уже пишет о первых сходках.</span></div>
+    <div class="card soon"><b>Банда на банду 3 на 3</b><span>Эстафета трёх бойцов твоей семьи. Откроется на 21-й день — газета уже пишет о первых стычках у Причала № 9.</span></div>
   </section>
 
   <section id="v-gang" class="view" hidden style="flex-direction:column;gap:12px">
-    <div class="sec-h"><h2>Гардероб</h2><span class="meta num" id="w-chips"></span></div>
+    <div class="card" id="gang-card"></div>
+    <div class="sec-h"><h2>Образ</h2><span class="meta num" id="w-chips"></span></div>
     <div class="scene ward-scene"><canvas id="ward-cv" role="img" aria-label="Твой гангстер в выбранных вещах"></canvas>
       <div class="try" id="w-try" hidden><span id="w-try-n"></span><button class="btn sm" id="w-try-x">Снять</button></div>
     </div>
@@ -329,12 +369,12 @@ svg.i{width:16px;height:16px;flex:none}
     </div>
     <div class="slots" id="w-slots" role="group" aria-label="Слот"></div>
     <div class="items" id="w-items"></div>
-    <p class="foot-note">Скины не дают силы, только стиль. Сила — в Арсенале. Лучшие вещи нельзя купить: их выигрывают.</p>
+    <p class="foot-note">Вещи не дают силы, только стиль. Одно покупают, другое заслуживают — по метке видно, что откуда.</p>
   </section>
 
   <section id="v-city" class="view" hidden style="flex-direction:column;gap:12px">
     <div class="sec-h"><h2>Город</h2><span class="meta num">Сезон «Сухой закон» · ещё 21 день</span></div>
-    <div class="card soon" id="lb-soon" hidden><b>Кто держит город</b><span>Рейтинг откроется на 5-й день: сначала Редактор должен узнать твоё имя.</span></div>
+    <div class="card soon" id="lb-soon" hidden><b>Кто держит город</b><span>Рейтинг откроется на 3-й день: сначала Редактор должен узнать твоё имя.</span></div>
     <div class="card" id="lb-card">
       <div class="sec-h"><h2>Кто держит город</h2><span class="lb-season" id="lb-season">в зачёт сезона</span></div>
       <div class="seg seg5" id="lb-board" role="group" aria-label="Рейтинг" style="margin-top:10px"><button data-b="col">Колонка Р.</button><button data-b="power">Власть</button><button data-b="wealth">Богатство</button><button data-b="respect">Уважение</button><button data-b="gangs">Банды</button></div>
@@ -359,7 +399,7 @@ svg.i{width:16px;height:16px;flex:none}
       <div class="sec-h"><h2>Городская казна</h2><span class="meta num" id="bn-tr-t"></span></div>
       <div class="prog"><i id="bn-tr"></i></div>
       <ul class="bn-list bn-tiers" id="bn-tiers"></ul>
-      <p class="hint">Казну пополняет каждая покупка в городе. Покупателю шансов это не прибавляет — призовых мест становится больше у всех.</p>
+      <p class="hint">Казну пополняет доля с каждой покупки в городе. Призов в розыгрыше от этого не больше — их всегда 50. Казна дарит подарки всем, кто пришёл на ночь с билетиком, без розыгрыша.</p>
     </div>
     <div class="card">
       <div class="sec-h"><h2>Твои выигрыши</h2></div>
@@ -386,6 +426,7 @@ svg.i{width:16px;height:16px;flex:none}
       <button class="btn sm" id="d-shame">Показать «Позор»</button>
       <button class="btn sm" id="d-day">Новый день</button>
       <button class="btn sm" id="d-buy">Покупка в казну</button>
+      <button class="btn sm" id="d-friend">Друг пришёл</button>
     </div>
     <p class="d">Путь игрока: что видит человек в разные дни. Дуэль раскрывается ступенями по числу боёв.</p>
     <div class="seg seg4" role="group" aria-label="Путь игрока">
@@ -405,6 +446,44 @@ svg.i{width:16px;height:16px;flex:none}
     <button data-tab="city"><svg><use href="#i-ticket"/></svg>Город</button>
   </nav>
 </div>
+<div class="intro" id="intro" hidden role="dialog" aria-label="Начало игры"><div class="intro-in">
+  <div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · НОЯБРЬ 1931 · 2 ЦЕНТА</div>
+  <h1 class="intro-h">НОВИЧОК СОШЁЛ С ПОЕЗДА НА ЮНИОН-СТЕЙШН</h1>
+  <p class="intro-p">Два года после краха биржи. Сухой закон. Очередь за бесплатным супом тянется по Мэдисон-стрит, а в Доках по ночам разгружают ящики с «апельсинами». У тебя ни цента, ни семьи — только угол под газетный киоск. Под каким именем тебя напечатать?</p>
+  <div class="seg seg2" role="group" aria-label="Фигура"><button data-fig="he" type="button">Он</button><button data-fig="she" type="button">Она</button></div>
+  <div class="chips" data-np="chips"></div>
+  <div class="row"><input class="inp" data-np="input" maxlength="22" placeholder="Или своё имя" aria-label="Своё имя"><button class="btn sm" data-np="more" type="button">Ещё</button></div>
+  <p class="hint err" data-np="err"></p>
+  <button class="btn gold" id="intro-go" disabled>Сойти с поезда</button>
+</div></div>
+<div id="coach" hidden>
+  <div class="cz" id="cz-t"></div><div class="cz" id="cz-b"></div><div class="cz" id="cz-l"></div><div class="cz" id="cz-r"></div>
+  <div class="c-ring" id="c-ring"></div>
+  <svg class="c-arrow" id="c-arrow" viewBox="0 0 32 40" aria-hidden="true"><path d="M16 3v30M5 22l11 13 11-13" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="c-bub" id="c-bub" role="status"><b id="c-t"></b><p id="c-p"></p><button class="btn sm gold" id="c-next" hidden></button><button class="linkish c-skip" id="c-skip">Сам разберусь</button></div>
+</div>
+<div class="sheet" id="cab" hidden role="dialog" aria-label="Личный кабинет"><div class="sheet-in">
+  <div class="sec-h"><h2>Личный кабинет</h2><button class="btn sm" id="cab-close" style="flex:0 0 auto;margin-left:auto">Закрыть</button></div>
+  <div class="card cab-me"><div class="ava"><svg><use href="#i-hat"/></svg></div><div><div class="cab-name" id="cab-name"></div><div class="hint" id="cab-sub" style="margin:2px 0 0"></div></div></div>
+  <div class="card" id="cab-namebox">
+    <div class="sec-h"><h2>Имя в газете</h2></div>
+    <div class="seg seg2" role="group" aria-label="Фигура" style="margin-top:10px"><button data-fig="he" type="button">Он</button><button data-fig="she" type="button">Она</button></div>
+    <div class="chips" data-np="chips" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:8px"><input class="inp" data-np="input" maxlength="22" placeholder="Своё имя" aria-label="Своё имя" id="cab-input"><button class="btn sm" data-np="more" type="button">Ещё</button></div>
+    <p class="hint err" data-np="err" id="cab-err"></p>
+    <div class="row"><button class="btn gold" id="cab-save" disabled>Напечатать</button></div>
+  </div>
+  <div class="card">
+    <div class="sec-h"><h2>Друзья</h2><span class="meta num" id="cab-fr-n"></span></div>
+    <p class="hint">Друг дошёл до 5-го уровня и вернулся на 3-й день — тебе +3 билетика на Банковскую ночь и 5 слитков, ему — шляпа «Земляк». Засчитываем по делу, а не по клику.</p>
+    <ul class="bn-list" id="cab-friends"></ul>
+    <div class="row" style="margin-top:10px"><button class="btn gold" id="cab-invite">Позвать друга</button></div>
+    <p class="hint">В тестовой версии друзья не засчитываются: игра ещё не в боте. Ссылка зовёт поиграть в тест.</p>
+  </div>
+  <div class="card" id="cab-gang"></div>
+  <div class="card"><div class="sec-h"><h2>Послужной список</h2></div><ul class="bn-list" id="cab-stats"></ul></div>
+  <div class="row"><button class="btn sm" id="cab-demo">Пульт разработчика</button><button class="btn sm" id="cab-reset">Начать заново</button></div>
+</div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
@@ -420,13 +499,13 @@ const BIZ = [
 ];
 const RULES = { maxLevel:10, costGrowth:1.8, incomeGrowth:1.28, timeGrowth:1.4, maxUpMin:480, gateBase:2, capH:6 };
 const JOBS = [
-  { id:'d1', name:'Разгрузить контрабанду',     energy:2, cash:60,  xp:2 },
-  { id:'d2', name:'Собрать долги на пристани',  energy:3, cash:100, xp:3 },
-  { id:'d3', name:'Подкупить сторожа',          energy:4, cash:140, xp:4, drop:{ item:'Кастет', chance:.2 } },
+  { id:'d1', name:'Разгрузить контрабанду',     energy:2, cash:60,  xp:3 },
+  { id:'d2', name:'Собрать долги на пристани',  energy:3, cash:100, xp:5 },
+  { id:'d3', name:'Подкупить сторожа',          energy:4, cash:140, xp:6, drop:{ item:'Кастет', chance:.2 } },
   { id:'d4', name:'Перехватить грузовик',       energy:5, cash:190, xp:6, drop:{ item:'Револьвер', chance:.08 } },
-  { id:'d5', name:'Обчистить склад у причала',  energy:6, cash:250, xp:8, drop:{ item:'Томпсон', chance:.03 } },
+  { id:'d5', name:'Обчистить склад у причала',  energy:6, cash:300, xp:6, drop:{ item:'Барабанный автомат', chance:.03 } },
 ];
-const MASTERY = [25, 80, 200];
+const MASTERY = [50, 250, 1000];
 
 const income   = (b, l) => l < 1 ? 0 : b.income * Math.pow(RULES.incomeGrowth, l - 1);
 const cashCap  = (b, l) => income(b, l) * RULES.capH;
@@ -434,7 +513,7 @@ const upCost   = (b, l) => Math.round(b.baseCost * Math.pow(RULES.costGrowth, l)
 const upMin    = (b, l) => Math.round(Math.min(RULES.maxUpMin, Math.max(5, b.buildMin) * Math.pow(RULES.timeGrowth, l)));
 const gate     = (pl) => Math.min(RULES.maxLevel, RULES.gateBase + Math.floor(pl / 2));
 const speedGold = (left) => left <= 5 ? 0 : Math.ceil((left - 5) / 5);
-const xpToNext = (l) => Math.round(20 * Math.pow(l, 1.5));
+const xpToNext = (l) => l <= 4 ? [20, 35, 55, 90][l - 1] : Math.round(20 * Math.pow(l, 1.5));
 const maxEnergy = (l) => Math.min(80, 30 + 2 * (l - 1));
 const jobCash  = (j, l, roll) => Math.round(j.cash * (1 + 0.12 * (l - 1)) * (1 - .15 + .3 * roll));
 function regen(cur, max, lastAt, now, every) {
@@ -2254,9 +2333,9 @@ const MV = { F: 'Огонь', C: 'Укрытие', D: 'Рывок', K: 'Нож' 
 const CLS = {
   near: { n: 'Ближний', w: 'кастет и нож', bullets: 2, dmg: 11, hint: 'нож и рывок вблизи сильнее на 30%' },
   far: { n: 'Точный', w: 'револьвер', bullets: 2, dmg: 15, hint: 'меткость издалека +15%' },
-  burst: { n: 'Очередь', w: 'Томпсон', bullets: 4, dmg: 9, hint: '4 пули за выстрел, каждая чуть менее меткая' },
+  burst: { n: 'Очередь', w: 'Барабанный автомат', bullets: 4, dmg: 9, hint: '4 пули за выстрел, каждая чуть менее меткая' },
 };
-const ACC = { far: .62, near: .82, open: .15, burstPen: -.08, spoiled: -.35, scared: -.2, farBonus: .15 };
+const ACC = { far: .62, near: .82, open: .15, burstPen: -.08, spoiled: -.35, scared: -.2, farBonus: .08 };
 const KNIFE = { count: 2, dmg: 24, acc: .8, accVsKnife: .6, flight: .26 };
 const RUSH = { vsCover: 30, brawl: 18, vsKnife: 20, ram: 20, nearBonus: .3 };
 const FEAR = { hpBelow: 15, bigHit: 20, accPenalty: ACC.scared };
@@ -2266,10 +2345,17 @@ const SECONDS = {
 };
 const LEAGUES = [[0, 'Газетчики'], [1100, 'Бутлегеры'], [1250, 'Налётчики'], [1400, 'Лейтенанты'], [1600, 'Боссы'], [1800, 'Синдикат']];
 const leagueOf = (r) => LEAGUES.filter(l => r >= l[0]).pop()[1];
-const OPP_NAMES = ['Сэл Тихоня', 'Фрэнки Два Ствола', 'Мадам Роуз', 'Лу Пароход', 'Джо Сквозняк', 'Ник Мокрый Зонт', 'Бетти Шпилька', 'Гас Полночь', 'Эдди Пуговица', 'Ви Сорока'];
+// Прозвища — из событий 1929–1931: биржевой крах, очереди за хлебом, танцевальные марафоны, джин из ванны,
+// надземка, цеппелин над озером, стройка выставки на берегу. Реальных людей среди них нет.
+const ERA_M = ['Джимми Тикер', 'Фрэнки Крах', 'Сэл Пайка', 'Гас Марафон', 'Бенни Ванна', 'Хэнк Котировка', 'Вик Надземка', 'Чарли Сухарь', 'Моу Биржа', 'Эдди Цеппелин', 'Олли Чарльстон', 'Арчи Саксофон', 'Лу Радиола', 'Тедди Котелок', 'Ник Причал'];
+const ERA_F = ['Мэйбл Шимми', 'Дотти Флэппер', 'Рози Радиола', 'Пегги Ярмарка', 'Лил Монокль', 'Хэтти Танго', 'Вера Чарльстон', 'Бетти Тикер'];
+const OPP_NAMES = ERA_M;
+const PN = () => state.name || 'Новичок', PNU = () => PN().toUpperCase(), firstName = () => PN().split(' ')[0];
+const sheMe = () => state.outfit?.fig === 'she', oppShe = () => duel?.opp?.outfit?.fig === 'she';
+const gv = (she, m, f) => she ? f : m;
 const STYLE_W = { aggr: [.45, .12, .25, .18], caut: [.22, .48, .15, .15], sneak: [.2, .25, .35, .2] };
-const DUEL_LIMIT = 10;
-const DUEL = { winChips: 30, loseChips: 5, winRating: 16, loseRating: -10, dirtyIncomeShare: .25, dirtyMin: 200 };
+const DUEL_LIMIT = 8;
+const DUEL = { winChips: 6, loseChips: 1, winRating: 12, loseRating: -12, dirtyIncomeShare: .25, dirtyMin: 200 };
 const ROUND_LEN = 2.1;
 let duel = null, duelSeed = 1, dcv, dctx, dW = 0, dH = 0, ddpr = 1;
 const pickW = (w) => { let r = Math.random(); for (let i = 0; i < 4; i++) { if (r < w[i]) return 'FCDK'[i]; r -= w[i]; } return 'F'; };
@@ -2280,8 +2366,9 @@ function newOpponent() {
   const r1 = say(plan[0], Math.random() < .8), r2 = say(plan[4], Math.random() < .8);
   const first = { F: 'начинает с огня', C: 'сначала прячется за ящики', D: 'с порога бросается в рывок', K: 'первым делом метает нож' }[r1];
   const last = { F: 'под сирену палит без разбора', C: 'под сирену уходит в укрытие', D: 'под сирену идёт врукопашную', K: 'под сирену бросает последний нож' }[r2];
-  const name = OPP_NAMES[Math.floor(Math.random() * OPP_NAMES.length)];
-  return { name, rating: Math.max(900, state.rating + Math.round((Math.random() - .5) * 120)), plan, rumor: `Говорят, ${name} ${first}, а ${last}.`, cls: ['near', 'far', 'burst'][Math.floor(Math.random() * 3)], second: Math.random() < .5 ? 'brute' : 'shadow', outfit: randomOutfit(duelSeed) };
+  const outfit = randomOutfit(duelSeed), pool = outfit.fig === 'she' ? ERA_F : ERA_M;
+  const name = pool[Math.floor(Math.random() * pool.length)];
+  return { name, rating: Math.max(900, state.rating + Math.round((Math.random() - .5) * 120)), plan, rumor: `Говорят, ${name} ${first}, а ${last}.`, cls: ['near', 'far', 'burst'][Math.floor(Math.random() * 3)], second: Math.random() < .5 ? 'brute' : 'shadow', outfit };
 }
 function duelEnter() {
   ensureState();
@@ -2318,9 +2405,9 @@ function buildEvents(mv, tr) {
 }
 function scare(j) {
   const d = duel; d.scared[j] = true;
-  const who = j ? d.opp.name : 'Вилли Шляпа';
+  const who = j ? d.opp.name : PN(), she = j ? oppShe() : sheMe();
   d.fx.push({ t: Tnow + .3, side: j, text: 'ой…', small: true });
-  toast(`${who} дрогнул`, j ? 'Кажется, у него мокрые штаны. Меткость −20% до конца боя.' : 'Штаны подвели. Меткость −20% до конца боя — держись.', j ? 'gold' : 'err');
+  toast(`${who} ${gv(she, 'дрогнул', 'дрогнула')}`, j ? `Кажется, ${gv(she, 'у него', 'у неё')} мокрые штаны. Меткость −20% до конца боя.` : 'Штаны подвели. Меткость −20% до конца боя — держись.', j ? 'gold' : 'err');
 }
 function bodyPoint(j, wx, wy, k, gr) {
   const d = duel, dir = j ? -1 : 1, crouch = d.anim && d.anim.mv[j] === 'C' ? .9 : 0, hipY = -52 * (1 - crouch * .42);
@@ -2340,8 +2427,8 @@ function endDuel() {
   const streets = ['НА ЛЕЙК-СТРИТ', 'НА КЛАРК-СТРИТ', 'У ПРИЧАЛА № 9', 'ЗА СКОТОБОЙНЯМИ', 'ПОД НАДЗЕМКОЙ НА УЭЛЛС'];
   const where = streets[duelSeed % streets.length], opp = d.opp.name.toUpperCase();
   const wet = d.scared[loser] && !draw;
-  const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} УДИРАЛ ${where} В МОКРЫХ ШТАНАХ` : `ВИЛЛИ ШЛЯПА УЛОЖИЛ ${opp} ${where}`) : (wet ? `ВИЛЛИ ШЛЯПА ДРОГНУЛ ${where}` : `${opp} ВЗЯЛ ВЕРХ ${where}`);
-  const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, он даже не снял шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : 'Вилли ушёл дворами. Говорят, уже ищет реванш.');
+  const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} ${gv(oppShe(), 'УДИРАЛ', 'УДИРАЛА')} ${where} В МОКРЫХ ШТАНАХ` : `${PNU()} ${gv(sheMe(), 'УЛОЖИЛ', 'УЛОЖИЛА')} ${opp} ${where}`) : (wet ? `${PNU()} ${gv(sheMe(), 'ДРОГНУЛ', 'ДРОГНУЛА')} ${where}` : `${opp} ${gv(oppShe(), 'ВЗЯЛ', 'ВЗЯЛА')} ВЕРХ ${where}`);
+  const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, ${gv(sheMe(), 'он', 'она')} даже не ${gv(sheMe(), 'снял', 'сняла')} шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : `${firstName()} ${gv(sheMe(), 'ушёл', 'ушла')} дворами. Говорят, уже ищет реванш.`);
   const ex = $('d-extra');
   ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
   ex.querySelector('.np-h').textContent = head; ex.querySelector('.np-s').textContent = sub; ex.querySelector('.np-r').textContent = reward;
@@ -2353,7 +2440,7 @@ $('d-extra').addEventListener('click', (e) => {
   const b = e.target.closest('[data-d]'); if (!b) return;
   if (b.dataset.d === 'again') { duelReset(true); duelStart(); }
   if (b.dataset.d === 'next') { duelReset(false); renderDuelUI(); }
-  if (b.dataset.d === 'share') toast('В игре откроется выбор чата', 'Друг получит вырезку из газеты и ссылку на реванш.');
+  if (b.dataset.d === 'share') sharePaper();
 });
 function renderDuelUI() {
   if (!duel) return;
@@ -2363,7 +2450,7 @@ function renderDuelUI() {
   $('d-hpA').classList.toggle('low', d.hp[0] < 30); $('d-hpB').classList.toggle('low', d.hp[1] < 30);
   $('d-gritA').textContent = '◆'.repeat(d.grit[0]) + '◇'.repeat(3 - d.grit[0]) + `  нож ×${d.knives[0]}`;
   $('d-gritB').textContent = `нож ×${d.knives[1]}  ` + '◆'.repeat(d.grit[1]) + '◇'.repeat(3 - d.grit[1]);
-  $('d-round').textContent = d.phase === 'vs' ? 'СХОДКА' : d.phase === 'pre' ? 'ДО БОЯ' : d.phase === 'end' ? 'ИТОГ' : `РАУНД ${Math.min(5, d.round)}/5`;
+  $('d-round').textContent = d.phase === 'vs' ? 'ВЫХОДИ' : d.phase === 'pre' ? 'ДО БОЯ' : d.phase === 'end' ? 'ИТОГ' : `РАУНД ${Math.min(5, d.round)}/5`;
   $('d-dist').textContent = d.dist === 'far' ? 'ДАЛЬНЯЯ' : 'БЛИЖНЯЯ';
   $('d-rumor').textContent = '«' + o.rumor + '»';
   $('d-pre').hidden = d.phase !== 'pre'; $('d-moves').hidden = !(d.phase === 'choose' || d.phase === 'anim');
@@ -2815,8 +2902,8 @@ endDuel = function () {
   const streets = ['НА ЛЕЙК-СТРИТ', 'НА КЛАРК-СТРИТ', 'У ПРИЧАЛА № 9', 'ЗА СКОТОБОЙНЯМИ', 'ПОД НАДЗЕМКОЙ НА УЭЛЛС'];
   const where = streets[duelSeed % streets.length], opp = d.opp.name.toUpperCase();
   const wet = d.scared[loser] && !draw;
-  const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} УДИРАЛ ${where} В МОКРЫХ ШТАНАХ` : `ВИЛЛИ ШЛЯПА УЛОЖИЛ ${opp} ${where}`) : (wet ? `ВИЛЛИ ШЛЯПА ДРОГНУЛ ${where}` : `${opp} ВЗЯЛ ВЕРХ ${where}`);
-  const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, он даже не снял шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : 'Вилли ушёл дворами. Говорят, уже ищет реванш.');
+  const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} ${gv(oppShe(), 'УДИРАЛ', 'УДИРАЛА')} ${where} В МОКРЫХ ШТАНАХ` : `${PNU()} ${gv(sheMe(), 'УЛОЖИЛ', 'УЛОЖИЛА')} ${opp} ${where}`) : (wet ? `${PNU()} ${gv(sheMe(), 'ДРОГНУЛ', 'ДРОГНУЛА')} ${where}` : `${opp} ${gv(oppShe(), 'ВЗЯЛ', 'ВЗЯЛА')} ВЕРХ ${where}`);
+  const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, ${gv(sheMe(), 'он', 'она')} даже не ${gv(sheMe(), 'снял', 'сняла')} шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : `${firstName()} ${gv(sheMe(), 'ушёл', 'ушла')} дворами. Говорят, уже ищет реванш.`);
   d.paper = { head, sub, reward };
   if (shame) {
     const ids = Object.keys(FINS);
@@ -2844,9 +2931,9 @@ function recognize(pts) {
 }
 function finStart() { const d = duel; d.fin.play = Tnow; d.fin.mode = 'play'; d.hatFly[1 - d.fin.who] = null; dcv.style.touchAction = 'pan-y'; }
 function finEnd(success) {
-  const d = duel, f = d.fin, lose = 1 - f.who, name = lose ? d.opp.name.toUpperCase() : 'ВИЛЛИ ШЛЯПА';
-  if (success) { d.paper.head = `${name} ОПОЗОРЕН: ${FINS[f.id].head}`; d.paper.sub = lose ? 'Фото с места происшествия уже ходит по всем пивным Доков.' : 'Газета обещает напечатать реванш крупным шрифтом.'; }
-  else d.paper.sub = 'Вилли пощадил соперника. Газета назвала это благородством, улица — слабостью.';
+  const d = duel, f = d.fin, lose = 1 - f.who, name = lose ? d.opp.name.toUpperCase() : PNU(), loserShe = lose ? oppShe() : sheMe();
+  if (success) { d.paper.head = `${name} ${gv(loserShe, 'ОПОЗОРЕН', 'ОПОЗОРЕНА')}: ${FINS[f.id].head}`; d.paper.sub = lose ? 'Фото с места происшествия уже ходит по всем пивным Доков.' : 'Газета обещает напечатать реванш крупным шрифтом.'; }
+  else d.paper.sub = `${firstName()} ${gv(sheMe(), 'пощадил', 'пощадила')} соперника. Газета назвала это благородством, улица — слабостью.`;
   f.mode = 'done'; showPaper(success ? 400 : 900);
 }
 function finPoses(poses, T) {
@@ -2921,7 +3008,7 @@ function duelOverlays(g, T, dt, k, gr) {
       g.save(); g.clip();
       const o = i ? d.opp.outfit : state.outfit, P = poseOf(i ? 'crack' : 'stand', T, o); P.face = i ? 'angry' : 'smug';
       g.translate(W2 * (i ? .75 : .25), H2 * .98); g.scale(k * 1.35, k * 1.35); drawGangster(g, o, 'stand', T + i, { flip: !!i, P }); g.restore();
-      const nm = (i ? d.opp.name : 'Вилли Шляпа').toUpperCase(), lg = `${leagueOf(i ? d.opp.rating : state.rating)} · ${fmt(i ? d.opp.rating : state.rating)}`;
+      const nm = (i ? d.opp.name : PN()).toUpperCase(), lg = `${leagueOf(i ? d.opp.rating : state.rating)} · ${fmt(i ? d.opp.rating : state.rating)}`;
       g.textAlign = i ? 'right' : 'left'; const tx = i ? W2 - 12 : 12;
       g.font = font(700, 19); g.lineWidth = 4; g.strokeStyle = OL; g.fillStyle = '#efe6d0'; g.strokeText(nm, tx, 30); g.fillText(nm, tx, 30);
       g.font = font(600, 11); g.fillStyle = '#e2c47a'; g.lineWidth = 3; g.strokeText(lg, tx, 46); g.fillText(lg, tx, 46);
@@ -2938,7 +3025,7 @@ function duelOverlays(g, T, dt, k, gr) {
       const rp = clamp((t - 1.5) / .2);
       g.save(); g.globalAlpha = (1 - out) * rp; g.translate(W2 / 2, H2 - 26); g.scale(.8 + rp * .2, .8 + rp * .2);
       g.font = font(700, 17); g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = OL; g.fillStyle = '#efe6d0';
-      g.strokeText('РАУНД 1 · СХОДКА!', 0, 0); g.fillText('РАУНД 1 · СХОДКА!', 0, 0); g.restore();
+      g.strokeText('РАУНД 1 · ВЫХОДИ!', 0, 0); g.fillText('РАУНД 1 · ВЫХОДИ!', 0, 0); g.restore();
     }
     g.font = font(500, 10); g.textAlign = 'right'; g.fillStyle = 'rgba(239,230,208,.6)'; g.fillText('тап — пропустить', W2 - 10, H2 - 8);
     g.restore();
@@ -3300,27 +3387,26 @@ const BANK = {
   friend: { tickets: 3, perMonth: 5 },      // друг открыл первый бизнес — не просто перешёл по ссылке
   stubsForGift: 10,                         // корешки: 10 невыигравших ночей — гарантированный номерной приз
   cityTickets: 48200,
-  baseWinners: 25,
+  baseWinners: 50,                          // призовых мест всегда 50 — казна их не меняет
   tiers: [
-    [0,   'База', '25 номерных шляп «Орфей»', 'номерная шляпа «Орфей»'],
-    [.25, '+25 мест', 'ещё 25 номерных шляп', 'номерная шляпа «Орфей»'],
-    [.5,  'Машина', '3 кабриолета «Орфей» с номером', 'кабриолет «Орфей» с номером'],
-    [.75, 'Позор', '10 эксклюзивных «Под ковёр»', 'добивание «Под ковёр»'],
-    [1,   'Легенда', 'именной плащ «Премьера» № 1–5', 'именной плащ «Премьера»'],
+    [.25, 'Значок', 'значок «Премьера» каждому, кто пришёл с билетиком'],
+    [.5,  'Тост', 'поза «Тост» в гардероб каждому пришедшему'],
+    [.75, 'Касса', '+300 $ чистыми каждому пришедшему'],
+    [1,   'Премьера', 'в «Орфее» крутят новую картину — открывается глава газеты'],
   ],
+  prizes: ['номерная шляпа «Орфей»', 'номерной шарф «Орфей»', 'добивание «Под ковёр»'],
   nightDay: 27, today: 9,                   // показ: 9 ноября, ночь — последняя пятница, 27-го
 };
 const BOARDS = {
-  col:     { name: 'Колонка Р.', season: true, unit: '', note: 'Единственная таблица в зачёт премии месяца: дуэли, дела и мастерство района. Купить или выиграть случаем нельзя.' },
+  col:     { name: 'Колонка Р.', season: true, unit: '', note: 'Единственная таблица в зачёт премии месяца: засчитанные дни в городе (и очки «Сейфа», когда он откроется). Ни купить, ни выиграть случаем.' },
   power:   { name: 'Власть', season: false, unit: '',  note: 'Бизнесы, банда и победы вместе. Для статуса, в зачёт премии не идёт.' },
   wealth:  { name: 'Богатство', season: false, unit: '$/ч', note: 'Доход бизнесов в час. Для понта, в зачёт сезона не идёт.' },
   respect: { name: 'Уважение', season: false, unit: '', note: 'Победы и «Позор». Для понта и титулов.' },
-  gangs:   { name: 'Банды', season: false, unit: '', note: 'Сила семьи в сходках 3 на 3. Откроется вместе с ними.' },
+  gangs:   { name: 'Банды', season: false, unit: '', note: 'Очки банды на активного бойца в боях банда на банду. Купить нельзя.' },
 };
 const SCOPES = { div: ['Дивизион', 50], dist: ['Доки', 1240], city: ['Город', 12480] };
-const NPC = ['Сэл Тихоня', 'Фрэнки Два Ствола', 'Мадам Роуз', 'Лу Пароход', 'Джо Сквозняк', 'Ник Мокрый Зонт', 'Бетти Шпилька', 'Гас Полночь', 'Эдди Пуговица', 'Ви Сорока',
-  'Томми Рояль', 'Дотти Каблук', 'Мо Сигара', 'Ленни Дождь', 'Кит Монетка', 'Рита Вуаль', 'Бенни Портфель', 'Арчи Шёпот', 'Мэгги Гвоздика', 'Чарли Пенни', 'Вера Ночная', 'Хэнк Лом'];
-const GANGS = ['Семья с Канала', 'Портовые', 'Ребята с Холстед', 'Клуб Полумесяц', 'Мокрые зонты', 'Семья Шляпы'];
+const NPC = [...ERA_M, ...ERA_F, 'Томми Сакс', 'Ленни Дождь', 'Кит Монетка', 'Рита Вуаль', 'Мэгги Гвоздика', 'Хэнк Лом'];
+const GANGS = ['Ребята с Надземки', 'Портовые с Причала 9', 'Ночная смена Холстед', 'Клуб «Чарльстон»', 'Очередь на Мэдисон', 'Твоя банда'];
 
 function bankEnsure() {
   ensureState();
@@ -3340,7 +3426,7 @@ function bankEarn(id, n = 1) {
   if (!$('v-city').hidden) renderCity();
 }
 const cityStat = {
-  col: () => 300 + state.wins * 10 + state.jobsDone * 3 + Math.max(0, state.rating - 1000) * 2,
+  col: () => 300 + (state.days || 1) * 10,
   power: () => Math.round(totalIncome() / 3) + 400 + state.wins * 15 + state.jobsDone * 3 + Math.max(0, state.rating - 1000) * 2,
   wealth: () => Math.round(totalIncome()),
   respect: () => state.wins * 4 + (state.shames || 0) * 6 + 20,
@@ -3359,7 +3445,7 @@ function boardRows(board, scope) {
   const rows = [];
   [1, 2, 3].forEach(k => k < r - 3 && rows.push({ k, n: name(k), v: valAt(k) }));
   if (r > 7) rows.push({ gap: true });
-  for (let k = Math.max(1, r - 3); k <= Math.min(n, r + 3); k++) rows.push(k === r ? { k, n: 'Вилли Шляпа', v: you, me: true } : { k, n: name(k + 3), v: k < r ? you + (r - k) * Math.ceil(you * .018 + 2) : Math.max(0, you - (k - r) * Math.ceil(you * .015 + 1)) });
+  for (let k = Math.max(1, r - 3); k <= Math.min(n, r + 3); k++) rows.push(k === r ? { k, n: PN(), v: you, me: true } : { k, n: name(k + 3), v: k < r ? you + (r - k) * Math.ceil(you * .018 + 2) : Math.max(0, you - (k - r) * Math.ceil(you * .015 + 1)) });
   return { rows, r, n };
 }
 
@@ -3382,7 +3468,7 @@ function renderCity() {
   $('bn-stubs').innerHTML = Array.from({ length: BANK.stubsForGift }, (_, i) => `<i class="${i < bn.stubs ? 'on' : ''}"></i>`).join('');
   $('bn-stubs-t').textContent = `Корешки: ${bn.stubs} из ${BANK.stubsForGift}. Не повезло в ночь — получаешь корешок. Десять корешков — номерной приз без розыгрыша.`;
   $('bn-tr').style.width = bn.treasury * 100 + '%';
-  $('bn-tr-t').textContent = `${Math.round(bn.treasury * 100)}% · призовых мест: ${bankWinners()}`;
+  $('bn-tr-t').textContent = `${Math.round(bn.treasury * 100)}% · подарков всем: ${BANK.tiers.filter(([at]) => bn.treasury >= at).length}`;
   $('bn-tiers').innerHTML = BANK.tiers.map(([at, n, d]) => `<li class="${bn.treasury >= at ? 'ok' : ''}"><b>${n}</b><span>${d}</span></li>`).join('');
   $('bn-won').innerHTML = bn.won.length ? bn.won.map(w => `<li><b>${w.p}</b><span class="num">билет № ${w.no}</span></li>`).join('') : '<li class="none">Пока пусто. Первая ночь — в пятницу, 27-го.</li>';
   document.querySelectorAll('#lb-board button').forEach(x => x.setAttribute('aria-pressed', x.dataset.b === cityBoard));
@@ -3391,7 +3477,7 @@ function renderCity() {
   $('lb-season').hidden = !b.season;
   if (cityBoard === 'gangs') {
     $('lb-rows').innerHTML = GANGS.map((g, i) => `<li class="${i === 5 ? 'me' : ''}"><span class="k num">${i + 1}</span><span class="n">${g}</span><span class="v num">${i === 5 ? '—' : fmt(9200 - i * 1300)}</span></li>`).join('');
-    $('lb-me').textContent = 'Твоя семья ещё не выходила на сходку. Сходки 3 на 3 скоро.';
+    $('lb-me').textContent = state.gang ? 'Твоя банда ещё не выходила на бой. Бои банда на банду — с 21-го дня.' : 'У тебя пока нет банды: основать или вступить — в кабинете.';
     return;
   }
   const { rows, r, n } = boardRows(cityBoard, cityScope);
@@ -3401,7 +3487,7 @@ function renderCity() {
     ? `Ты ${r}-й из ${n} в дивизионе «${leagueOf(state.rating)}». Первые 10 в конце недели поднимаются выше.${up ? ` Выше тебя — ${up.n}, разрыв ${fmt(up.v - cityStat[cityBoard]())}.` : ''}`
     : `Ты ${fmt(r)}-й из ${fmt(n)} — ${SCOPES[cityScope][0] === 'Город' ? 'по всему городу' : 'в районе ' + SCOPES[cityScope][0]}.${up ? ` Выше тебя — ${up.n}, разрыв ${fmt(up.v - cityStat[cityBoard]())}.` : ''}`;
 }
-const bankWinners = () => BANK.baseWinners + (state.bn.treasury >= .25 ? 25 : 0) + (state.bn.treasury >= .5 ? 3 : 0) + (state.bn.treasury >= .75 ? 10 : 0) + (state.bn.treasury >= 1 ? 5 : 0);
+const bankWinners = () => BANK.baseWinners;
 
 function bankDraw() {
   bankEnsure();
@@ -3410,7 +3496,7 @@ function bankDraw() {
   if (!bn.tickets) { toast('Нет билетиков', 'Их дают за дела, дуэли и кассу. Купить нельзя.', 'err'); return; }
   const p = Math.min(1, bn.tickets * bankWinners() / BANK.cityTickets);
   const win = !bn.demoWon || Math.random() < p;
-  const prizes = BANK.tiers.filter(([at]) => bn.treasury >= at).map(x => x[3]);
+  const prizes = BANK.prizes;
   const prize = win ? prizes[Math.floor(Math.random() * prizes.length)] : null;
   const no = String(100000 + Math.floor(Math.random() * 900000)).replace(/(\d{3})(\d{3})/, '$1 $2');
   show = { t0: Tnow, win, prize, no, other: Array.from({ length: 3 }, () => String(100000 + Math.floor(Math.random() * 900000)).replace(/(\d{3})(\d{3})/, '$1 $2')), done: false };
@@ -3420,6 +3506,8 @@ function bankDraw() {
 function bankFinish() {
   const bn = state.bn, s = show;
   bn.draws++; bn.tickets = 0;
+  const gifts = BANK.tiers.filter(([at]) => bn.treasury >= at);
+  if (gifts.length) setTimeout(() => toast('Подарки казны всем пришедшим', gifts.map(x => x[1]).join(' · ')), 2800);
   if (s.win) { bn.demoWon = true; bn.won.unshift({ p: s.prize, no: s.no }); toast('Твой билет выпал!', `${s.prize}. Газета уже набирает твоё имя.`); }
   else {
     bn.stubs++;
@@ -3510,7 +3598,7 @@ function drawDrawShow(g, st, W2, H2, k, T) {
     g.fillText('№ ' + num, cx, sy + sh * .5);
     if (phase === 2) {
       g.font = `italic ${12 * k}px "PT Serif", serif`;
-      g.fillText(s.win ? `Вилли Шляпа — ${s.prize}` : `${NPC[(s.no.charCodeAt(1) + 3) % NPC.length]} уносит приз`, cx, sy + sh * .8);
+      g.fillText(s.win ? `${PN()} — ${s.prize}` : `${NPC[(s.no.charCodeAt(1) + 3) % NPC.length]} уносит приз`, cx, sy + sh * .8);
       if (s.win) {
         const sa = clamp((st - 6.3) / .25), sc = 1 + (1 - sa) * 1.4;
         g.save(); g.translate(sx + sw - 30 * k, sy + 12 * k); g.rotate(.18); g.scale(sc, sc); g.globalAlpha = sa * a;
@@ -3537,20 +3625,22 @@ function drawDrawShow(g, st, W2, H2, k, T) {
 document.querySelectorAll('#lb-board button').forEach(x => x.addEventListener('click', () => { cityBoard = x.dataset.b; renderCity(); }));
 document.querySelectorAll('#lb-scope button').forEach(x => x.addEventListener('click', () => { cityScope = x.dataset.s; renderCity(); }));
 $('bn-draw').addEventListener('click', bankDraw);
-$('lb-rules').addEventListener('click', () => toast('Правила сезона', 'Премия месяца — только по «Колонке Р.»: дуэли, дела, мастерство. Без покупок и без случая. Полные условия — /rules в боте и закреп канала.'));
-$('d-buy').addEventListener('click', () => { bankEnsure(); state.bn.treasury = Math.min(1, state.bn.treasury + .12); toast('Покупка в городе', 'Казна +12%. Покупателю шансов не прибавилось — мест больше у всех.'); if (!$('v-city').hidden) renderCity(); });
+$('lb-rules').addEventListener('click', () => toast('Правила сезона', 'Премия месяца — только по «Колонке Р.»: засчитанные дни и очки «Сейфа». Без покупок и без случая. Полные условия — /rules в боте и закреп канала.'));
+$('d-buy').addEventListener('click', () => { bankEnsure(); state.bn.treasury = Math.min(1, state.bn.treasury + .12); toast('Покупка в городе', 'Казна +12%. Подарки получат все, кто придёт на ночь. Шансы в розыгрыше не меняются.'); if (!$('v-city').hidden) renderCity(); });
 $('d-day').addEventListener('click', () => { bankEnsure(); state.bn.day = { visit: 1 }; state.bn.tickets++; toast('Новый день', '+1 билетик за вход. Остальные — за дела, кассу, дуэли и золотой час.'); if (!$('v-city').hidden) renderCity(); });
 
 // ---------- Путь игрока: ступени дуэли и день жизни (docs/design/RETENTION.md §4–5) ----------
 // Дуэль раскрывается по числу сыгранных боёв, а разделы — по дню жизни игрока. Уровнем и деньгами не ускоряется.
 const LADDER = [[0, 'FC'], [2, 'FCD'], [4, 'FCDK']];
 const UNLOCK = { second: 6, dodge: 9, fin: 11, spare: 10 };
+const UNLOCK_DAY = { K: 3, second: 5, dodge: 7, fin: 10 };
+const dayOk = (k) => lifeDay() >= UNLOCK_DAY[k];
 const LADDER_NEWS = { 2: ['Новый приём: Рывок', 'Рывок бьёт укрытие. Теперь у приёмов треугольник.'], 4: ['Новый приём: Нож', 'Два броска за бой. Сбивает прицел.'], 6: ['Секундант', 'Громила или Тень: свой козырь раз за бой.'], 9: ['Уворот по таймингу', 'Два уворота за бой. Второй — с окном поуже.'], 11: ['Свой «Позор»', 'Добивание теперь выбираешь сам: Банда → Позор.'] };
 const DODGE = { perFight: 2, shrink: .75, ghost: .25, ghostMax: 2, baseWindow: QTE.window };
-const LIFE_GATES = { alley: 3, board: 5 };
+const LIFE_GATES = { alley: 2, board: 3 };
 const fightsDone = () => state.fights ?? 99;
-const lifeDay = () => state.life ?? 99;
-const movesOpen = () => LADDER.filter(([at]) => fightsDone() >= at).pop()[1];
+const lifeDay = () => state.life ?? (state.born ? Math.floor((Date.now() - state.born) / 864e5) + 1 : 99);
+const movesOpen = () => { const m = LADDER.filter(([at]) => fightsDone() >= at).pop()[1]; return dayOk('K') ? m : m.replace('K', ''); };
 function oppMoves() { return movesOpen(); }
 
 {
@@ -3561,18 +3651,18 @@ function oppMoves() { return movesOpen(); }
     document.querySelectorAll('#d-moves [data-m]').forEach(b => {
       const at = LADDER.find(([, m]) => m.includes(b.dataset.m))[0], shut = !open.includes(b.dataset.m);
       b.classList.toggle('locked', shut);
-      if (shut) { b.disabled = true; b.querySelector('span').textContent = `с ${at + 1}-го боя`; }
+      if (shut) { b.disabled = true; b.querySelector('span').textContent = fightsDone() >= at ? `с ${UNLOCK_DAY.K}-го дня` : `с ${at + 1}-го боя`; }
     });
-    $('d-trump').hidden = f < UNLOCK.second;
-    $('d-sec').closest('.card') && ($('d-sec').previousElementSibling.hidden = $('d-sec').hidden = $('d-sec-h').hidden = f < UNLOCK.second);
-    document.querySelector('.qte-hint').hidden = f < UNLOCK.dodge;
+    $('d-trump').hidden = f < UNLOCK.second || !dayOk('second');
+    $('d-sec').closest('.card') && ($('d-sec').previousElementSibling.hidden = $('d-sec').hidden = $('d-sec-h').hidden = f < UNLOCK.second || !dayOk('second'));
+    document.querySelector('.qte-hint').hidden = f < UNLOCK.dodge || !dayOk('dodge');
     if (duel && f < 99) $('d-left').textContent += ` · боёв сыграно ${f}`;
   };
   const _setup = setupQte;
   setupQte = function () {
     _setup();
     const d = duel, n = d.dodgeN || 0;
-    if (fightsDone() < UNLOCK.dodge || n >= DODGE.perFight) { d.anim.qte = null; return; }
+    if (fightsDone() < UNLOCK.dodge || !dayOk('dodge') || n >= DODGE.perFight) { d.anim.qte = null; return; }
     QTE.window = DODGE.baseWindow * Math.pow(DODGE.shrink, n);
   };
   const _tap = qteTap;
@@ -3581,7 +3671,7 @@ function oppMoves() { return movesOpen(); }
   applyEvent = function (e, at, k, gr) {
     const d = duel;
     // соперник тоже умеет уворачиваться, когда уворот открыт и у игрока
-    if (fightsDone() >= UNLOCK.dodge && e.from === 0 && e.type === 'shot' && e.hit && !e.blocked && !e.ghostChecked) {
+    if (fightsDone() >= UNLOCK.dodge && dayOk('dodge') && e.from === 0 && e.type === 'shot' && e.hit && !e.blocked && !e.ghostChecked) {
       e.ghostChecked = true;
       if ((d.ghostN || 0) < DODGE.ghostMax && d.anim.mv[1] !== 'C' && Math.random() < DODGE.ghost) {
         d.ghostN = (d.ghostN || 0) + 1; e.hit = false; e.dmg = 0;
@@ -3595,16 +3685,17 @@ function oppMoves() { return movesOpen(); }
     const r = _end.apply(this, a), d = duel;
     if (state.fights != null) {
       if (d.fin && d.fin.who === 1 && state.fights < UNLOCK.spare) { d.fin = null; d.paper.sub = `${d.opp.name}: «Живи пока, новичок». Сегодня обошлось без позора.`; showPaper(2400); }
-      if (d.fin && d.fin.who === 0 && state.fights < UNLOCK.fin) d.fin.id = 'fin_hat_eyes';
+      if (d.fin && d.fin.who === 0 && (state.fights < UNLOCK.fin || !dayOk('fin'))) d.fin.id = 'fin_hat_eyes';
       state.fights++; renderDuelUI();
-      const news = LADDER_NEWS[state.fights];
+      const gateOf = { 4: 'K', 6: 'second', 9: 'dodge', 11: 'fin' }[state.fights];
+      const news = gateOf && !dayOk(gateOf) ? [LADDER_NEWS[state.fights][0] + ` — с ${UNLOCK_DAY[gateOf]}-го дня`, 'Боёв уже хватает. Осталось дождаться дня.'] : LADDER_NEWS[state.fights];
       if (news) setTimeout(() => toast(news[0], news[1]), 3200);
     }
     return r;
   };
   const _show = showTab;
   showTab = function (name) {
-    if (name === 'alley' && lifeDay() < LIFE_GATES.alley) { toast('Подворотня закрыта до 3-го дня', 'Газета пишет: «За Кларк-стрит снова стреляли». Ходят слухи, что тебя там ждут.'); return; }
+    if (name === 'alley' && lifeDay() < LIFE_GATES.alley && !tutAllowsAlley()) { toast('Подворотня откроется завтра', 'Сэл Пайка слышал про шляпу и ждёт тебя в переулке. А пока — кассы и дела.'); return; }
     _show(name);
   };
 }
@@ -3615,13 +3706,341 @@ function applyLife() {
   $('lb-soon').hidden = day >= LIFE_GATES.board;
   document.querySelectorAll('.seg [data-life]').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.life === day)));
 }
-const LIFE_PRESET = { 1: [1, 0], 3: [3, 0], 10: [10, 9], 99: [99, null] };
+const LIFE_PRESET = { 1: [1, 0], 3: [3, 0], 10: [10, 9], 99: [99, 99] };
 document.querySelectorAll('.seg [data-life]').forEach(btn => btn.addEventListener('click', () => {
   const [life, fights] = LIFE_PRESET[btn.dataset.life];
   state.life = life; state.fights = fights; duel = null;
   applyLife(); showTab(life < LIFE_GATES.alley ? 'block' : 'alley');
   toast(life === 99 ? 'Всё открыто' : `День ${life}`, life === 1 ? 'Квартал, дела, золотой час, «Орфей» с афишей. Подворотня под замком.' : life === 3 ? 'Подворотня открыта. Первые бои — два приёма, дальше ступени.' : life === 10 ? 'Сыграно 9 боёв: следующий откроет уворот.' : 'Показ без ограничений.');
 }));
+applyLife();
+
+// ---------- Тестовая сборка: сохранение, новичок с нуля, обучение, кабинет, друзья, банда ----------
+// Без ?demo в адресе игра идёт в реальном времени, с нуля и с сохранением в браузере. С ?demo — показ с пультом.
+const DEMO = /[?&]demo\b/.test(location.search);
+const SAVE_KEY = 'chicago1931.save.v1';
+const REAL_SPEED = 1 / 60;                     // игровых минут за реальную секунду
+const GANG = { level: 8, stars: 250, cofounders: 2 };  // основать: уровень + взнос звёздами или бесплатно с двумя сооснователями; платный клуб отличается только видом
+const FRIEND_REWARD = { tickets: 3, gold: 5 };  // за друга, который дошёл до 5-го уровня и вернулся на 3-й день (твинк за 30 секунд не проходит)
+const FAMILIES = [
+  { id: 'red', n: 'Красные шляпы', sign: 'гвоздика', c: '#a3322a' },
+  { id: 'white', n: 'Белые шляпы', sign: 'белая роза', c: '#efe6d0' },
+  { id: 'black', n: 'Чёрные плащи', sign: 'ворон', c: '#141210' },
+  { id: 'grey', n: 'Серые кепки', sign: 'молот', c: '#8a7358' },
+];
+const FIRST_M = ['Джимми', 'Фрэнки', 'Томми', 'Эдди', 'Гас', 'Сэл', 'Бенни', 'Арчи', 'Вик', 'Хэнк', 'Лу', 'Чарли', 'Ник', 'Олли', 'Тедди', 'Рэй'];
+const FIRST_F = ['Мэйбл', 'Дотти', 'Рози', 'Пегги', 'Лил', 'Бетти', 'Хэтти', 'Вера', 'Мэгги', 'Рита', 'Джун', 'Кэт'];
+const NICKS = ['Тикер', 'Чарльстон', 'Крах', 'Пайка', 'Марафон', 'Цеппелин', 'Ванна', 'Радиола', 'Котировка', 'Надземка', 'Биржа', 'Ярмарка', 'Сухарь', 'Шимми', 'Саксофон', 'Монокль', 'Котелок', 'Фонарь', 'Туман', 'Причал', 'Сирена', 'Пятак', 'Дайм', 'Трамвай'];
+const GANG_NAMES = ['Ребята с Мэдисон', 'Ночная смена', 'Клуб «Шимми»', 'Портовые с Причала 9', 'Очередь за хлебом', 'Надземка', 'Дети Биржи', 'Танцмарафон', 'Сухари с Холстед', 'Цеппелин'];
+const BANNED = /капон|нитти|торрио|моран|дилинджер|лучиано|лански|сигел|гитлер|сталин|хуй|пизд|бля|ёб|еба|fuck|shit|nazi|admin|админ/i;
+const BULLY = 'Бутч Сухарь';
+const q = (sel) => document.querySelector(sel);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+function freshState() {
+  const s = initialState();
+  Object.assign(s, { cash: 150, gold: 5, level: 1, xp: 0, energy: 30, energyAt: 0, ammo: 5, ammoAt: 0, jobsDone: 0 });
+  BIZ.forEach(b => s.biz[b.id] = { level: 0, cash: 0, cashAt: 0, busyUntil: null, busyFrom: null });
+  Object.assign(s, { name: '', born: Date.now(), dayKey: new Date().toDateString(), tut: 0, fights: 0, chips: 0, rating: 1000, friends: [], gang: null, ref: Math.random().toString(36).slice(2, 8), days: 1 });
+  s.bn = { tickets: 1, stubs: 0, treasury: .12, day: { visit: 1 }, friends: 0, won: [], draws: 0, demoWon: true };
+  return s;
+}
+function saveGame() { if (DEMO) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), state, sel })); } catch (e) { /* приватный режим — играем без сохранения */ } }
+function loadGame() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return d && d.state ? d : null; } catch (e) { return null; } }
+function dailyReset() {
+  const key = new Date().toDateString();
+  if (state.dayKey === key) return;
+  state.dayKey = key; state.duels = 0; state.days = (state.days || 1) + 1;
+  bankEnsure(); state.bn.day = { visit: 1 }; state.bn.tickets++;
+  toast('Новый день в Чикаго', '+1 билетик за то, что заглянул. Энергия и кассы ждали тебя.', 'gold');
+}
+if (!DEMO) {
+  const sv = loadGame();
+  if (sv) {
+    state = sv.state; sel = sv.sel || 'kiosk';
+    state.t += Math.max(0, (Date.now() - sv.at) / 1000) * REAL_SPEED;   // кассы копились, пока игрока не было
+  } else { state = freshState(); sel = 'kiosk'; }
+  speed = REAL_SPEED; shownCash = state.cash;
+  q('.demo').hidden = true;
+  if (location.search.includes('ref=') && !state.refBy) state.refBy = new URLSearchParams(location.search).get('ref');
+  setInterval(() => { dailyReset(); saveGame(); }, 4000);
+  addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
+  addEventListener('pagehide', saveGame);
+}
+
+// --- Имя ---
+function suggestNames(she, n = 6) {
+  const out = new Set();
+  while (out.size < n) out.add(`${pick(she ? FIRST_F : FIRST_M)} ${pick(NICKS)}`);
+  return [...out];
+}
+function nameError(raw) {
+  const n = raw.trim().replace(/\s+/g, ' ');
+  if (n.length < 3) return 'Короче трёх букв газета не напечатает.';
+  if (n.length > 22) return 'Длинновато для заголовка: до 22 знаков.';
+  if (!/^[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё' .-]*$/.test(n)) return 'Только буквы, пробел, дефис и апостроф.';
+  if (BANNED.test(n)) return 'Это имя редакция печатать не станет.';
+  return '';
+}
+function namePicker(root, onChange) {
+  const chips = root.querySelector('[data-np="chips"]'), input = root.querySelector('[data-np="input"]'), err = root.querySelector('[data-np="err"]');
+  const fill = () => { chips.innerHTML = suggestNames(sheMe()).map(n => `<button class="chip" type="button">${n}</button>`).join(''); };
+  chips.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; input.value = b.textContent; check(); });
+  root.querySelector('[data-np="more"]').addEventListener('click', fill);
+  const check = () => { const e = input.value ? nameError(input.value) : ''; err.textContent = e; onChange(!e && input.value.trim() ? input.value.trim().replace(/\s+/g, ' ') : ''); };
+  input.addEventListener('input', check);
+  root.querySelectorAll('[data-fig]').forEach(b => b.addEventListener('click', () => {
+    ensureState(); state.outfit.fig = b.dataset.fig;
+    root.querySelectorAll('[data-fig]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    fill(); input.value = ''; check(); syncName();
+  }));
+  root.querySelectorAll('[data-fig]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.fig === (state.outfit?.fig || 'he'))));
+  fill();
+}
+function syncName() {
+  $('p-name').textContent = PN();
+  $('d-nameA').textContent = PN();
+}
+
+// --- Вступление: газета и выбор имени ---
+function showIntro() {
+  ensureState();
+  const el = $('intro'); el.hidden = false;
+  let chosen = '';
+  namePicker(el, (n) => { chosen = n; $('intro-go').disabled = !n; });
+  $('intro-go').onclick = () => {
+    if (!chosen) return;
+    state.name = chosen; syncName(); el.hidden = true; state.tut = 1; saveGame(); tutGo();
+  };
+}
+
+// --- Обучение: стрелка, затемнение с размытием вокруг цели ---
+const TUT = [
+  null,
+  { tab: 'block', on() { sel = 'kiosk'; panelKey = ''; focusLot('kiosk'); }, el: () => q('#panel [data-act="build"]'), t: 'Твой первый бизнес', p: 'Угол на Доках свободен. Ставь газетный киоск — первый за счёт города.', done: () => state.biz.kiosk.level >= 1 },
+  { tab: 'block', on() { state.biz.kiosk.cash = Math.max(state.biz.kiosk.cash, 90); panelKey = ''; }, el: () => q('#panel [data-act="collect"]'), t: 'Выручка', p: 'Утренний выпуск разошёлся за час. Забери деньги из кассы — сами в карман они не прыгнут.', done: () => state.biz.kiosk.cash < 1 },
+  { el: () => q('.nav [data-tab="jobs"]'), t: 'Дела', p: 'Киоск копит сам. А быстрые деньги делают на делах.', done: () => !$('v-jobs').hidden },
+  { tab: 'jobs', el: () => q('#jobs .job button'), t: 'Первое дело', p: 'Разгрузи ящики с «апельсинами». Дело тратит энергию — она копится сама, +1 за 4 минуты. Сделай два раза.', done: () => state.jobsDone >= 2,
+    off() { if (state.level < 2) { state.xp = xpToNext(state.level); levelUp(); } } },
+  { tab: 'block', on() { focusLot('kiosk', false); setTimeout(startGolden, 600); }, el: () => q('#v-block .scene'), t: 'Золотой час!', p: 'Над Доками цеппелин сыплет монеты. Води пальцем по монетам, пока не улетел.', done: () => tutAge() > 3 && !goldenActive() },
+  { free: true, t: 'Эй, новичок!', p: `${BULLY} сорвал с тебя шляпу и ушёл в переулок, посмеиваясь. Так это оставлять нельзя.`, next: 'Вернуть шляпу' },
+  { el: () => q('.nav [data-tab="alley"]'), t: 'Подворотня', p: 'Здесь решают споры. Один на один.', done: () => !$('v-alley').hidden },
+  { tab: 'alley', el: () => $('d-go'), t: 'В переулок', p: 'Он ждёт. Посмотри ему в глаза.', done: () => duel && duel.phase !== 'pre' },
+  { tab: 'alley', el: () => [q('#v-alley .duel-top'), q('#v-alley .duel-scene'), duel && duel.phase === 'choose' ? $('d-moves') : null], t: 'Огонь или Укрытие', p: 'Огонь бьёт того, кто бежит. Укрытие спасает от пуль. Угадай его ход и жми.', done: () => duel && duel.phase === 'end', bubbleTop: true },
+  { tab: 'alley', on() { FIN_TIME.prompt = 20; }, el: () => q('#v-alley .duel-scene'), t: 'ПОЗОР!', p: 'Проведи пальцем по сцене сверху вниз — натяни ему шляпу на глаза.', done: () => !duel.fin || duel.fin.mode === 'done', off() { FIN_TIME.prompt = 3.2; }, bubbleTop: true },
+  { tab: 'alley', el: () => $('d-extra').hidden ? null : $('d-extra'), t: 'Ты в газете', p: 'Шляпа снова твоя. Такие вырезки отправляют друзьям в чат — кнопка внизу заметки.', next: 'Дальше', bubbleTop: true },
+  { el: () => q('.who .ava'), t: 'Твой кабинет', p: 'Имя, друзья, своя банда — всё здесь.', done: () => cabOpen },
+  { el: () => q('#cab-invite'), t: 'Позови своих', p: `За друга, который дойдёт до 5-го уровня и вернётся на 3-й день, — +${FRIEND_REWARD.tickets} билетика на Банковскую ночь и ${FRIEND_REWARD.gold} слитков.`, next: 'Понял', inCab: true },
+  { on() { closeCab(); }, el: () => q('.nav [data-tab="city"]'), t: 'Город', p: 'Кто держит город и Банковская ночь в «Орфее».', done: () => !$('v-city').hidden },
+  { tab: 'city', el: () => q('#bn-tickets').closest('.card'), t: 'Билетики', p: 'Копятся за дела, кассу, дуэли и золотой час. В последнюю пятницу месяца их разыгрывают в «Орфее». Купить их нельзя.', next: 'Дальше' },
+  { free: true, t: 'Дальше — сам', p: 'Касса киоска наполнится к вечеру. Энергия копится — загляни в Дела. А завтра в переулке тебя ждёт Сэл Пайка: он слышал про шляпу.', next: 'По рукам' },
+];
+let tutAt = 0, tutScrolled = 0;
+const tutAge = () => Tnow - tutAt;
+const tutStep = () => (state.tut > 0 && state.tut < TUT.length) ? TUT[state.tut] : null;
+const tutAllowsAlley = () => { const s = tutStep(); return !!s && (s.tab === 'alley' || s.el?.toString().includes('alley')); };
+function tutGo() {
+  const s = tutStep();
+  if (!s) { $('coach').hidden = true; return; }
+  tutAt = Tnow; tutScrolled = 0;
+  if (s.tab && $('v-' + s.tab).hidden) showTab(s.tab);
+  if (s.on) s.on();
+  $('coach').hidden = false;
+  $('c-t').textContent = s.t; $('c-p').textContent = s.p;
+  $('c-next').hidden = !s.next; $('c-next').textContent = s.next || '';
+  $('coach').classList.toggle('in-cab', !!s.inCab);
+}
+function tutAdvance() {
+  const s = tutStep(); if (!s) return;
+  if (s.off) s.off();
+  state.tut++;
+  if (state.tut >= TUT.length) { state.tut = -1; $('coach').hidden = true; saveGame(); return; }
+  saveGame(); tutGo();
+}
+$('c-next').addEventListener('click', tutAdvance);
+$('c-skip').addEventListener('click', () => { const s = tutStep(); if (s && s.off) s.off(); FIN_TIME.prompt = 3.2; state.tut = -1; $('coach').hidden = true; if (cabOpen) closeCab(); if (state.level < 2) { state.xp = xpToNext(1); levelUp(); } saveGame(); toast('Обучение выключено', 'Вернуть его можно в кабинете: «Начать заново».'); });
+function unionRect(els) {
+  const rs = els.filter(Boolean).map(e => e.getBoundingClientRect()).filter(r => r.width || r.height);
+  if (!rs.length) return null;
+  return { left: Math.min(...rs.map(r => r.left)), top: Math.min(...rs.map(r => r.top)), right: Math.max(...rs.map(r => r.right)), bottom: Math.max(...rs.map(r => r.bottom)) };
+}
+function coachTick() {
+  requestAnimationFrame(coachTick);
+  const s = tutStep(); if (!s || $('coach').hidden) return;
+  if (s.done && s.done()) { tutAdvance(); return; }
+  const vw = innerWidth, vh = innerHeight, pad = 6;
+  const target = s.free ? null : s.el && s.el();
+  let r = target ? unionRect(Array.isArray(target) ? target : [target]) : null;
+  if (r && (r.top < 0 || r.bottom > vh) && Tnow - tutScrolled > .9) {
+    tutScrolled = Tnow;
+    const el = Array.isArray(target) ? target.filter(Boolean)[0] : target;
+    el.scrollIntoView({ block: r.bottom - r.top > vh * .6 ? 'start' : 'center', behavior: reduce ? 'auto' : 'smooth' });
+  }
+  const Z = { t: $('cz-t'), b: $('cz-b'), l: $('cz-l'), r: $('cz-r') };
+  const box = (el, x, y, w, h) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.width = Math.max(0, w) + 'px'; el.style.height = Math.max(0, h) + 'px'; };
+  const ring = $('c-ring'), arrow = $('c-arrow'), bub = $('c-bub');
+  if (!r) {
+    box(Z.t, 0, 0, vw, vh); box(Z.b, 0, 0, 0, 0); box(Z.l, 0, 0, 0, 0); box(Z.r, 0, 0, 0, 0);
+    ring.hidden = arrow.hidden = true;
+    bub.style.top = Math.max(16, vh / 2 - bub.offsetHeight / 2) + 'px';
+    return;
+  }
+  const x0 = Math.max(0, r.left - pad), y0 = Math.max(0, r.top - pad), x1 = Math.min(vw, r.right + pad), y1 = Math.min(vh, r.bottom + pad);
+  box(Z.t, 0, 0, vw, y0); box(Z.b, 0, y1, vw, vh - y1); box(Z.l, 0, y0, x0, y1 - y0); box(Z.r, x1, y0, vw - x1, y1 - y0);
+  ring.hidden = false; box(ring, x0, y0, x1 - x0, y1 - y0);
+  const bh = bub.offsetHeight, below = !s.bubbleTop && vh - y1 > bh + 70, above = y0 > bh + 70;
+  let by;
+  if (below) by = y1 + 56; else if (above) by = y0 - 56 - bh; else by = s.bubbleTop ? 12 : vh - bh - 12;
+  bub.style.top = by + 'px';
+  arrow.hidden = !(below || above);
+  const ax = (x0 + x1) / 2, bob = reduce ? 0 : Math.sin(Tnow * 6) * 5;
+  arrow.style.left = (ax - 16) + 'px';
+  arrow.style.top = (below ? y1 + 8 + bob : y0 - 48 - bob) + 'px';
+  arrow.style.transform = below ? 'rotate(180deg)' : 'none';
+}
+requestAnimationFrame(coachTick);
+
+// Первый бой обучения: соперник — громила, который увёл шляпу. Слабоват — первый бой должен остаться за игроком.
+{
+  const _start = duelStart;
+  duelStart = function () {
+    const s = tutStep();
+    if (s && s.tab === 'alley') {
+      if (!duel) duelEnter();
+      const o = newOpponent(); o.name = BULLY; o.outfit.fig = 'he'; o.outfit.top = 'top_vest'; o.rating = 990;
+      o.rumor = `Говорят, ${BULLY} силён только с теми, кто молчит.`;
+      duel.opp = o; duel.hp[1] = 34;
+    }
+    return _start.apply(this, arguments);
+  };
+}
+
+// --- Личный кабинет ---
+let cabOpen = false;
+function openCab() {
+  ensureState(); cabOpen = true; $('cab').hidden = false; document.body.style.overflow = 'hidden';
+  $('cab-input').value = ''; $('cab-err').textContent = '';
+  renderCab();
+}
+function closeCab() { cabOpen = false; $('cab').hidden = true; document.body.style.overflow = ''; }
+function renderCab() {
+  const day = lifeDay(), bn = state.bn || {};
+  $('cab-name').textContent = PN();
+  $('cab-sub').textContent = `${state.level}-й уровень · ${state.gang ? 'банда «' + state.gang.name + '»' : 'без банды'} · день ${day > 90 ? '—' : day} в Чикаго`;
+  const fr = state.friends || [];
+  $('cab-fr-n').textContent = `${fr.length} позвано`;
+  $('cab-friends').innerHTML = fr.length ? fr.map(f => `<li class="${f.biz ? 'ok' : ''}"><span>${f.n}</span><b>${f.biz ? `+${FRIEND_REWARD.tickets} билетика · +${FRIEND_REWARD.gold} сл.` : 'пришёл, ещё не 5-й уровень и не 3-й день'}</b></li>`).join('') : '<li class="none">Пока никого. Позови — вместе веселее держать квартал.</li>';
+  $('cab-stats').innerHTML = [
+    ['Уровень', state.level], ['Дел провёрнуто', state.jobsDone], ['Побед в переулке', state.wins || 0], ['Рейтинг', `${leagueOf(state.rating)} · ${fmt(state.rating)}`],
+    ['Билетики на ночь', bn.tickets || 0], ['Доход', `${money(totalIncome())}/ч`], ['Позвал тебя', state.refBy ? `друг по ссылке ${state.refBy}` : '—'],
+  ].map(([a, b]) => `<li><span>${a}</span><b class="num">${b}</b></li>`).join('');
+  renderGang($('cab-gang'));
+}
+function shareLink() { return `${location.origin}${location.pathname}?ref=${state.ref || 'test'}`; }
+function shareText(text) {
+  const url = shareLink();
+  try {
+    const tg = window.Telegram && Telegram.WebApp;
+    if (tg && tg.initData !== undefined && tg.openTelegramLink) { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`); return; }
+  } catch (e) { /* не в Телеграме */ }
+  if (navigator.share) { navigator.share({ title: 'Чикаго 1931', text, url }).catch(() => {}); return; }
+  try { navigator.clipboard.writeText(`${text} ${url}`); toast('Ссылка скопирована', 'Вставь её другу в чат.'); } catch (e) { toast('Ссылка', url); }
+}
+function sharePaper() { const p = duel && duel.paper; shareText(p ? `«${p.head}» — Вечерний Чикаго. Реванш?` : `${PN()} зовёт тебя в Чикаго 1931.`); }
+$('cab-invite').addEventListener('click', () => shareText(`${PN()} зовёт тебя в Чикаго 1931: свой квартал, дуэли в переулке и Банковская ночь.`));
+$('cab-close').addEventListener('click', closeCab);
+$('cab').addEventListener('click', (e) => { if (e.target === $('cab')) closeCab(); });
+q('.who .ava').addEventListener('click', openCab);
+q('.who .ava').setAttribute('role', 'button'); q('.who .ava').setAttribute('tabindex', '0'); q('.who .ava').setAttribute('aria-label', 'Личный кабинет');
+namePicker($('cab-namebox'), (n) => { $('cab-save').disabled = !n || n === state.name; $('cab-save').dataset.n = n; });
+$('cab-save').addEventListener('click', () => { const n = $('cab-save').dataset.n; if (!n) return; state.name = n; syncName(); renderCab(); toast('Имя в газете обновлено', n); $('cab-save').disabled = true; saveGame(); });
+$('cab-demo').addEventListener('click', () => { const d = q('.demo'); d.hidden = !d.hidden; closeCab(); if (!d.hidden) d.scrollIntoView({ block: 'start' }); });
+$('cab-reset').addEventListener('click', () => {
+  if (!confirm('Начать заново? Прогресс в этом браузере сотрётся.')) return;
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* нечего стирать */ }
+  location.reload();
+});
+
+// --- Банда ---
+function renderGang(root) {
+  const g = state.gang;
+  if (!g) {
+    const ok = state.level >= GANG.level, co = (state.friends || []).filter(f => f.biz).length, free = ok && co >= GANG.cofounders;
+    root.innerHTML = `<div class="sec-h"><h2>Своя банда</h2></div>
+      <p class="voice">В 1931-м банды регистрировались в мэрии как «атлетические клубы»: устав, герб, вывеска над дверью. Банда встаёт под цвет одной из четырёх семей. Силы она не даёт — даёт людей рядом, общий счёт и бои банда на банду.</p>
+      <ul class="bn-list"><li class="${ok ? 'ok' : ''}"><span>Уровень ${GANG.level}+</span><b class="num">${ok ? '✓' : state.level + '-й'}</b></li>
+      <li class="${co >= GANG.cofounders ? 'ok' : ''}"><span>Сооснователи: засчитанные друзья</span><b class="num">${Math.min(co, GANG.cofounders)}/${GANG.cofounders}</b></li></ul>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" data-g="found" data-way="free" ${free ? '' : 'disabled'}>Устав бесплатно</button>
+        <button class="btn gold" data-g="found" data-way="paid" ${ok ? '' : 'disabled'}>Клуб · ${GANG.stars} ⭐</button>
+      </div>
+      <p class="hint">Бесплатно — с двумя сооснователями. За звёзды — сразу и с вывеской клуба и именным гербом: только вид, силы и мест не больше. Вступить в банду друга по ссылке — бесплатно.</p>
+      <div class="gang-form" hidden>
+        <p class="pre-h">Название</p><div class="chips" data-g="names">${GANG_NAMES.map(n => `<button class="chip" type="button">${n}</button>`).join('')}</div>
+        <input class="inp" data-g="name" maxlength="24" placeholder="Своё название">
+        <p class="pre-h">Под чей цвет</p><div class="fams">${FAMILIES.map((f, i) => `<button type="button" data-fam="${f.id}" aria-pressed="${i === 0}"><i style="background:${f.c}"></i>${f.n}<span>${f.sign}</span></button>`).join('')}</div>
+        <p class="hint" data-g="err"></p>
+        <div class="row"><button class="btn gold" data-g="pay"></button></div>
+        <p class="hint" data-g="paynote"></p>
+      </div>`;
+    const form = root.querySelector('.gang-form');
+    let way = 'free';
+    root.querySelectorAll('[data-g="found"]').forEach(b => b.onclick = () => {
+      way = b.dataset.way; form.hidden = false; b.closest('.row').hidden = true;
+      root.querySelector('[data-g="pay"]').textContent = way === 'paid' ? `Внести ${GANG.stars} ⭐ и открыть клуб` : 'Подписать устав';
+      root.querySelector('[data-g="paynote"]').textContent = way === 'paid' ? 'В тестовой версии звёзды не списываются.' : 'Сооснователи станут Правой рукой и Вербовщиком.';
+    });
+    root.querySelector('[data-g="names"]').onclick = (e) => { const b = e.target.closest('.chip'); if (b) root.querySelector('[data-g="name"]').value = b.textContent; };
+    root.querySelectorAll('[data-fam]').forEach(b => b.onclick = () => root.querySelectorAll('[data-fam]').forEach(x => x.setAttribute('aria-pressed', String(x === b))));
+    root.querySelector('[data-g="pay"]').onclick = () => {
+      const name = root.querySelector('[data-g="name"]').value.trim().replace(/\s+/g, ' '), fam = root.querySelector('[data-fam][aria-pressed="true"]').dataset.fam;
+      const err = name.length < 3 ? 'Название от трёх знаков.' : BANNED.test(name) ? 'Такое название газета не напечатает.' : '';
+      root.querySelector('[data-g="err"]').textContent = err; if (err) return;
+      const roles = ['Правая рука', 'Вербовщик', 'Боец', 'Боец'];
+      state.gang = { name, fam, club: way === 'paid', at: Date.now(), members: [{ n: PN(), role: 'Глава' }, ...(state.friends || []).filter(f => f.biz).slice(0, 4).map((f, i) => ({ n: f.n, role: roles[i] }))] };
+      toast(`Банда «${name}» основана`, `Газета: «В Доках новая банда под цветом ${FAMILIES.find(f => f.id === fam).n}». Зови своих.`, 'gold');
+      saveGame(); renderGangAll();
+    };
+    return;
+  }
+  const fam = FAMILIES.find(f => f.id === g.fam);
+  root.innerHTML = `<div class="gang-h"><span class="crest" style="--c:${fam.c}">${g.name.slice(0, 1)}</span><div><div class="p-name">${g.name}</div><div class="p-sub">${g.club ? 'атлетический клуб · ' : ''}${fam.n} · знак — ${fam.sign}</div></div></div>
+    <ul class="bn-list">${g.members.map(m => `<li><span>${m.n}</span><b>${m.role}</b></li>`).join('')}${g.members.length < 3 ? `<li class="none">Для боя банда на банду нужно трое. Позови ещё ${3 - g.members.length}.</li>` : ''}</ul>
+    <div class="row" style="margin-top:10px"><button class="btn gold" data-g="invite">Позвать в банду</button></div>
+    <p class="hint">${g.club ? 'Клуб с вывеской. ' : 'Банда по уставу. '}Бои банда на банду 3 на 3 откроются на 21-й день. Счёт банды — в Городе, вкладка «Банды».</p>`;
+  root.querySelector('[data-g="invite"]').onclick = () => shareText(`Вступай в банду «${g.name}» в Чикаго 1931 — нужен третий на бой банда на банду.`);
+}
+function renderGangAll() { renderGang($('gang-card')); if (cabOpen) renderCab(); }
+{
+  const _ward = wardEnter;
+  wardEnter = function () { renderGang($('gang-card')); return _ward.apply(this, arguments); };
+  const _city = renderCity;
+  renderCity = function () {
+    _city();
+    if (cityBoard === 'gangs' && state.gang) { const li = q('#lb-rows li.me .n'); if (li) li.textContent = state.gang.name; }
+  };
+}
+
+// --- Пульт: друг для проверки рефералки ---
+$('d-friend').addEventListener('click', () => {
+  ensureState(); state.friends ??= [];
+  const f = { n: `${pick(Math.random() < .35 ? FIRST_F : FIRST_M)} ${pick(NICKS)}`, biz: Math.random() < .7 };
+  state.friends.push(f);
+  if (f.biz) { bankEnsure(); state.bn.tickets += FRIEND_REWARD.tickets; state.gold += FRIEND_REWARD.gold; toast(`${f.n}: 5-й уровень и 3-й день`, `+${FRIEND_REWARD.tickets} билетика и +${FRIEND_REWARD.gold} слитков.`, 'gold'); }
+  else toast(`${f.n} зашёл по твоей ссылке`, 'Награда — когда дойдёт до 5-го уровня и вернётся на 3-й день.');
+  if (cabOpen) renderCab();
+});
+
+{
+  const _rd = renderDuelUI;
+  renderDuelUI = function () { _rd(); $('d-nameA').textContent = PN(); };
+}
+if (DEMO && !state.name) state.name = 'Джимми Тикер';
+syncName();
+if (!DEMO) {
+  if (!state.name) setTimeout(showIntro, 300);
+  else if (state.tut > 0) setTimeout(tutGo, 600);
+}
 applyLife();
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
