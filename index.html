@@ -3805,7 +3805,11 @@ if (!DEMO) {
   } else { state = freshState(); sel = 'kiosk'; }
   speed = REAL_SPEED; shownCash = state.cash;
   q('.demo').hidden = true;
-  if (location.search.includes('ref=') && !state.refBy) state.refBy = new URLSearchParams(location.search).get('ref');
+  {
+    let sp = ''; try { sp = (window.Telegram && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) || ''; } catch (e) { /* не в Телеграме */ }
+    const ref = sp.startsWith('ref_') ? sp.slice(4) : new URLSearchParams(location.search).get('ref');
+    if (ref && !state.refBy && ref !== state.ref) state.refBy = ref;
+  }
   state.sessions = (state.sessions || 0) + 1; state.playSec ??= 0;
   setInterval(() => { if (!document.hidden) state.playSec = (state.playSec || 0) + 1; }, 1000);
   setInterval(() => { dailyReset(); saveGame(); }, 4000);
@@ -3993,7 +3997,10 @@ function devReport() {
     `Билетики ${state.bn?.tickets ?? 0} · дел дня всего ${state.goalsDone || 0} · сегодня: ${dg}`,
     `Банда: ${state.gang ? state.gang.name : 'нет'} · друзей ${(state.friends || []).length} · обучение ${state.tut === -1 ? 'пройдено' : 'шаг ' + state.tut}`].join('\n');
 }
-function shareLink() { return `${location.origin}${location.pathname}?ref=${state.ref || 'test'}`; }
+// ссылка на игру внутри Telegram (Main Mini App бота): открывается в приложении, а не в браузере.
+// Метку друга Telegram передаёт в игру как start_param (только латиница, цифры, _ и -).
+const TG_APP = 'https://t.me/testgamesappbot';
+function shareLink() { return `${TG_APP}?startapp=ref_${state.ref || 'test'}`; }
 function shareText(text) {
   const url = shareLink();
   try {
@@ -5331,7 +5338,7 @@ drawClubLot = function (cx, T) {
 }
 
 // ---------- Номер сборки: видно, какую версию открыл тестер (Telegram любит показывать старую) ----------
-const BUILD = '10.11 · 16';
+const BUILD = '10.11 · 17';
 {
   const row = $('cab-report').parentElement, p = document.createElement('p');
   p.className = 'hint'; p.id = 'cab-build'; p.style.margin = '0'; row.after(p);
