@@ -262,6 +262,10 @@ html,body{overscroll-behavior:none}
 .gang-form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .crest{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:20px;background:var(--coal-2);border:3px solid var(--c);color:var(--gold-2);box-shadow:inset 0 0 0 2px var(--ink);flex:none}
 .who .ava{cursor:pointer}
+.snd{margin-left:auto;flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);background:var(--coal);color:var(--gold);display:grid;place-items:center;padding:0}
+.snd svg{width:22px;height:22px}.snd .x{display:none}.snd[aria-pressed="false"]{color:var(--sepia)}.snd[aria-pressed="false"] .w{display:none}.snd[aria-pressed="false"] .x{display:inline}
+.vols label{display:grid;grid-template-columns:80px 1fr;align-items:center;gap:10px;margin-top:10px;font-size:14px;color:var(--paper-dim)}
+.vols input[type=range]{width:100%;accent-color:var(--gold);min-height:32px}
 .stubs{display:flex;gap:4px;margin-top:10px}
 .stubs i{flex:1;height:14px;border:1px dashed var(--line-2);border-radius:3px}
 .stubs i.on{background:var(--gold-dim);border:1px solid var(--gold)}
@@ -297,6 +301,7 @@ html,body{overscroll-behavior:none}
       <div class="lvl num"><span id="lvl">7</span>-й уровень · <span id="xp">230</span> из <span id="xpn">370</span> опыта</div>
       <div class="bar"><i id="xpbar"></i></div>
     </div>
+    <button class="snd" id="snd" type="button" aria-label="Звук" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path class="x" d="m15.5 9.5 5 5m0-5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></button>
   </header>
 
   <div class="stats">
@@ -484,6 +489,14 @@ html,body{overscroll-behavior:none}
   </div>
   <div class="card" id="cab-gang"></div>
   <div class="card"><div class="sec-h"><h2>Послужной список</h2></div><ul class="bn-list" id="cab-stats"></ul></div>
+  <div class="card vols">
+    <div class="sec-h"><h2>Звук</h2></div>
+    <label>Музыка<input type="range" min="0" max="100" id="vol-music"></label>
+    <label>Звуки<input type="range" min="0" max="100" id="vol-sfx"></label>
+    <label>Голоса<input type="range" min="0" max="100" id="vol-voice"></label>
+    <p class="hint">Голоса — на американском английском, как в кино тридцатых.</p>
+    <div class="row"><button class="btn sm" id="vol-mute"></button></div>
+  </div>
   <div class="row"><button class="btn sm" id="cab-demo">Пульт разработчика</button><button class="btn sm" id="cab-reset">Начать заново</button></div>
 </div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -3070,7 +3083,7 @@ function duelPointer(type, e) {
   if (type === 'down') {
     if (d.phase === 'vs') { vsDone(); return; }
     if (d.phase === 'anim') { qteTap(); return; }
-    if (d.phase === 'end' && d.fin && d.fin.mode === 'prompt' && d.fin.shown) { d.fin.drawing = true; d.fin.pts = [[x, y]]; dcv.setPointerCapture?.(e.pointerId); e.preventDefault(); }
+    if (d.phase === 'end' && d.fin && d.fin.mode === 'prompt' && d.fin.shown) { d.fin.drawing = true; d.fin.pts = [[x, y]]; try { dcv.setPointerCapture(e.pointerId); } catch (err) { /* указатель уже отпущен */ } e.preventDefault(); }
   } else if (type === 'move') {
     if (d.fin && d.fin.drawing) { d.fin.pts.push([x, y]); e.preventDefault(); }
   } else if (type === 'up') {
@@ -3626,7 +3639,7 @@ function drawDrawShow(g, st, W2, H2, k, T) {
 }
 document.querySelectorAll('#lb-board button').forEach(x => x.addEventListener('click', () => { cityBoard = x.dataset.b; renderCity(); }));
 document.querySelectorAll('#lb-scope button').forEach(x => x.addEventListener('click', () => { cityScope = x.dataset.s; renderCity(); }));
-$('bn-draw').addEventListener('click', bankDraw);
+$('bn-draw').addEventListener('click', () => bankDraw());
 $('lb-rules').addEventListener('click', () => toast('Правила сезона', 'Премия месяца — только по «Колонке Р.»: засчитанные дни и очки «Сейфа». Без покупок и без случая. Полные условия — /rules в боте и закреп канала.'));
 $('d-buy').addEventListener('click', () => { bankEnsure(); state.bn.treasury = Math.min(1, state.bn.treasury + .12); toast('Покупка в городе', 'Казна +12%. Подарки получат все, кто придёт на ночь. Шансы в розыгрыше не меняются.'); if (!$('v-city').hidden) renderCity(); });
 $('d-day').addEventListener('click', () => { bankEnsure(); state.bn.day = { visit: 1 }; state.bn.tickets++; toast('Новый день', '+1 билетик за вход. Остальные — за дела, кассу, дуэли и золотой час.'); if (!$('v-city').hidden) renderCity(); });
@@ -4124,6 +4137,194 @@ function goalsActive() { return goldenActive(); }
 }
 goalsEnsure(); renderGoals();
 setInterval(() => { goalsEnsure(); goalCheck(); }, 5000);
+
+// ---------- Звук: эффекты синтезом, голоса на американском английском, джаз ----------
+// Эффекты собираются из шума и синусов прямо в WebAudio — без файлов. Голоса и музыка — mp3 в audio/,
+// грузятся после первого касания (iOS и Telegram не дают играть звук без жеста).
+const SND = {
+  music: { street: 'audio/music/street.mp3', duel: 'audio/music/duel.mp3', bank: 'audio/music/bank.mp3' },
+  vo: 'audio/vo/',
+  gap: 2.4,            // сек между репликами, чтобы бой не превращался в болтовню
+  defaults: { music: .35, sfx: .8, voice: .9, mute: false },
+};
+// Реплики по ролям. m_ — игрок-мужчина, f_ — женщина (игрок или соперница), o_ — соперник, n_ — газетчик, r_ — рассказчик.
+const LINES = {
+  m_out: 'Step outside, pal.', m_comeon: 'Come on, wise guy.', m_miss: 'Missed me by a mile, see?', m_hit: 'That one\'s gonna leave a mark.',
+  m_dodge: 'Too slow, palooka!', m_knife: 'Catch!', m_scared: 'Not the good trousers…', m_win: 'That\'s how we do it on Clark Street.',
+  m_lose: 'This ain\'t over!', m_blind: 'Who turned off the lights?', m_slap: 'Right in the kisser!', m_hatback: 'Give me back my hat!',
+  o_hat: 'Nice hat, greenhorn.', o_out: 'Lookin\' for trouble?', o_taunt: 'Is that all you got?', o_hit: 'Lucky shot!', o_lose: 'Okay, I give up!', o_win: 'Go home, kid.',
+  f_out: 'Don\'t make me ruin my nails.', f_hit: 'This dress cost twelve bucks!', f_win: 'Better luck next time, darling.', f_lose: 'You win this round.', f_dodge: 'Missed me, sugar!',
+  n_extra: 'Extra! Extra!', n_paper: 'Evening Chicago! Two cents!', n_hot: 'Big fight on Clark Street!',
+  r_intro: 'Chicago. November, 1931…', r_bank: 'Welcome to Bank Night!', r_drum: 'And the winning ticket is…', r_level: 'Moving up in the world.', r_golden: 'The zeppelin! Grab those coins!',
+};
+let actx = null, bus = null, noiseBuf = null, lastVo = -9, curMusic = null, musicKey = '', rainNode = null;
+const vobuf = {}, mbuf = {};
+function sndCfg() { ensureState(); state.audio ??= { ...SND.defaults }; return state.audio; }
+function audioUnlock() {
+  if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  actx = new AC();
+  bus = { master: actx.createGain(), sfx: actx.createGain(), music: actx.createGain(), voice: actx.createGain() };
+  bus.sfx.connect(bus.master); bus.music.connect(bus.master); bus.voice.connect(bus.master); bus.master.connect(actx.destination);
+  noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+  const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  applyVolumes(); syncMusic();
+}
+function applyVolumes() {
+  if (!bus) return;
+  const c = sndCfg(), t = actx.currentTime;
+  bus.master.gain.setTargetAtTime(c.mute ? 0 : 1, t, .05);
+  bus.sfx.gain.setTargetAtTime(c.sfx, t, .05); bus.music.gain.setTargetAtTime(c.music, t, .1); bus.voice.gain.setTargetAtTime(c.voice, t, .05);
+  $('snd').setAttribute('aria-pressed', String(!c.mute)); $('snd').title = c.mute ? 'Звук выключен' : 'Звук включён';
+}
+['pointerdown', 'keydown'].forEach(t => addEventListener(t, audioUnlock, { capture: true, passive: true }));
+document.addEventListener('visibilitychange', () => { if (!actx) return; document.hidden ? actx.suspend() : actx.resume(); });
+
+// --- синтез эффектов ---
+function env(g, t, a, peak, dec) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec); }
+function noise(t, dur, type, f0, f1, peak, q = 1) {
+  const s = actx.createBufferSource(); s.buffer = noiseBuf; s.playbackRate.value = .7 + Math.random() * .6;
+  const f = actx.createBiquadFilter(); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = actx.createGain(); env(g, t, .004, peak, dur);
+  s.connect(f); f.connect(g); g.connect(bus.sfx); s.start(t, Math.random() * .5); s.stop(t + dur + .05);
+}
+function tone(t, type, f0, f1, dur, peak, a = .005) {
+  const o = actx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = actx.createGain(); env(g, t, a, peak, dur);
+  o.connect(g); g.connect(bus.sfx); o.start(t); o.stop(t + a + dur + .05);
+}
+const SFX = {
+  shot() { const t = actx.currentTime; noise(t, .22, 'lowpass', 3200, 500, .9); tone(t, 'sine', 120, 45, .18, .7); },
+  burst() { for (let i = 0; i < 4; i++) { const t = actx.currentTime + i * .07; noise(t, .12, 'lowpass', 2600, 600, .6); tone(t, 'sine', 110, 50, .1, .4); } },
+  hit() { const t = actx.currentTime; noise(t, .1, 'lowpass', 600, 200, .8); tone(t, 'sine', 90, 50, .1, .5); },
+  ricochet() { const t = actx.currentTime + .05; tone(t, 'sine', 2600 + Math.random() * 800, 700, .35, .18); noise(t, .05, 'highpass', 3000, 0, .2); },
+  whiz() { const t = actx.currentTime + .03; noise(t, .18, 'bandpass', 4000, 1200, .25, 6); },
+  knife() { const t = actx.currentTime; noise(t, .26, 'bandpass', 700, 3200, .35, 3); },
+  thunk() { const t = actx.currentTime; tone(t, 'triangle', 260, 140, .08, .5); noise(t, .06, 'bandpass', 1800, 0, .3, 2); },
+  punch() { const t = actx.currentTime; noise(t, .09, 'lowpass', 900, 250, .9); tone(t, 'sine', 80, 40, .12, .6); },
+  slap() { const t = actx.currentTime; noise(t, .07, 'bandpass', 1700, 900, 1, 1.5); noise(t + .01, .05, 'highpass', 3000, 0, .4); },
+  coin() { const t = actx.currentTime, f = 1250 + Math.random() * 300; tone(t, 'sine', f, 0, .18, .22); tone(t + .05, 'sine', f * 1.5, 0, .25, .18); },
+  register() { const t = actx.currentTime; noise(t, .04, 'highpass', 2500, 0, .5); tone(t + .05, 'sine', 2093, 0, .7, .22); tone(t + .05, 'sine', 2637, 0, .6, .15); },
+  hammer() { for (let i = 0; i < 3; i++) { const t = actx.currentTime + i * .16; tone(t, 'triangle', 420, 300, .06, .35); noise(t, .04, 'bandpass', 2200, 0, .35, 4); } },
+  type(n = 9) { for (let i = 0; i < n; i++) { const t = actx.currentTime + i * (.06 + Math.random() * .04); noise(t, .025, 'highpass', 2500 + Math.random() * 1500, 0, .45); } tone(actx.currentTime + n * .08 + .05, 'sine', 2400, 0, .4, .2); },
+  chime() { const t = actx.currentTime; [523, 659, 784].forEach((f, i) => tone(t + i * .07, 'triangle', f, 0, .35, .16)); },
+  fanfare() { const t = actx.currentTime; [392, 523, 659, 784].forEach((f, i) => { tone(t + i * .11, 'sawtooth', f, 0, i === 3 ? .6 : .14, .09); tone(t + i * .11, 'square', f / 2, 0, i === 3 ? .5 : .12, .04); }); },
+  whoosh() { const t = actx.currentTime; noise(t, .35, 'bandpass', 400, 2400, .35, 2); },
+  stamp() { const t = actx.currentTime; tone(t, 'sine', 70, 40, .2, .9); noise(t, .08, 'lowpass', 500, 0, .6); },
+  drumroll(dur = 2.2) { const t0 = actx.currentTime; for (let x = 0; x < dur; x += .035) noise(t0 + x, .05, 'bandpass', 1800, 0, .08 + .35 * (x / dur), 1.2); noise(t0 + dur, 1.2, 'highpass', 5000, 3000, .5); tone(t0 + dur, 'sine', 70, 40, .3, .8); },
+  tick() { const t = actx.currentTime; noise(t, .02, 'highpass', 3500, 0, .12); },
+};
+function sfx(name, ...a) { if (!actx || sndCfg().mute) return; try { SFX[name](...a); } catch (e) { /* звук не критичен */ } }
+// дождь на улице — тихая петля из фильтрованного шума
+function rain(on) {
+  if (!actx) return;
+  if (on && !rainNode) {
+    const s = actx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+    const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1400;
+    const g = actx.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(.05, actx.currentTime, .8);
+    s.connect(f); f.connect(g); g.connect(bus.sfx); s.start(); rainNode = { s, g };
+  } else if (!on && rainNode) { const r = rainNode; rainNode = null; r.g.gain.setTargetAtTime(0, actx.currentTime, .4); setTimeout(() => r.s.stop(), 1500); }
+}
+
+// --- файлы: голоса и музыка ---
+async function loadBuf(url, cache) {
+  if (cache[url]) return cache[url];
+  cache[url] = fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(b => new Promise((ok, no) => actx.decodeAudioData(b, ok, no))).catch(() => null);
+  return cache[url];
+}
+async function say(ids, force) {
+  if (!actx || sndCfg().mute || !sndCfg().voice) return;
+  const id = Array.isArray(ids) ? pick(ids) : ids;
+  if (!force && actx.currentTime - lastVo < SND.gap) return;
+  lastVo = actx.currentTime;
+  const b = await loadBuf(SND.vo + id + '.mp3', vobuf); if (!b) return;
+  const s = actx.createBufferSource(); s.buffer = b; s.connect(bus.voice); s.start();
+  if (curMusic) { curMusic.duck.gain.setTargetAtTime(.45, actx.currentTime, .05); curMusic.duck.gain.setTargetAtTime(1, actx.currentTime + b.duration, .3); }
+}
+async function playMusic(key) {
+  if (!actx || musicKey === key) return;
+  musicKey = key;
+  const old = curMusic; curMusic = null;
+  if (old) { old.g.gain.setTargetAtTime(0, actx.currentTime, .4); setTimeout(() => old.s.stop(), 2000); }
+  if (!key) return;
+  const b = await loadBuf(SND.music[key], mbuf); if (!b || musicKey !== key) return;
+  const s = actx.createBufferSource(); s.buffer = b; s.loop = true;
+  const g = actx.createGain(), duck = actx.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(1, actx.currentTime, .8);
+  s.connect(g); g.connect(duck); duck.connect(bus.music); s.start(); curMusic = { s, g, duck };
+}
+function syncMusic() {
+  if (!actx) return;
+  const tab = ['block', 'jobs', 'alley', 'gang', 'city'].find(v => !$('v-' + v).hidden);
+  playMusic(show ? 'bank' : tab === 'alley' ? 'duel' : 'street');
+  rain(tab === 'block');
+}
+const meVo = (m, f) => sheMe() ? f : m, oppVo = (m, f) => oppShe() ? f : m;
+
+// --- привязка к событиям игры ---
+{
+  const _st = showTab; showTab = function (n) { const r = _st.apply(this, arguments); syncMusic(); return r; };
+  const _ap = applyEvent;
+  applyEvent = function (e, at, k, gr) {
+    const r = _ap.apply(this, arguments);
+    if (!actx || !duel) return r;
+    if (e.type === 'shot') {
+      sfx(duel.cls === 'burst' && e.from === 0 ? 'burst' : 'shot');
+      if (e.hit) { sfx('hit'); if (e.dmg >= 14) say(e.from === 1 ? meVo('m_hit', 'f_hit') : oppVo('o_hit', 'f_hit')); }
+      else if (e.blocked) sfx('ricochet'); else sfx('whiz');
+    } else if (e.type === 'knife') { sfx('knife'); if (e.hit) setTimeout(() => sfx('thunk'), 160); if (e.from === 0 && !sheMe()) say('m_knife'); }
+    else if (e.type === 'punch') sfx('punch');
+    else if (e.type === 'crumble') sfx('hammer');
+    return r;
+  };
+  const _q = qteTap; qteTap = function () { const r = _q.apply(this, arguments); const q = duel && duel.anim && duel.anim.qte; if (q && q.done && q.ok && !q.voiced) { q.voiced = true; sfx('whoosh'); say(meVo(['m_dodge', 'm_miss'], 'f_dodge'), true); } return r; };
+  const _vs = vsDone; vsDone = function () { const r = _vs.apply(this, arguments); sfx('stamp'); say(duel.opp.name === BULLY ? 'o_out' : oppVo(['o_out', 'o_taunt'], 'f_out'), true); return r; };
+  const _sc = scare; scare = function (j) { const r = _sc.apply(this, arguments); if (!j && !sheMe()) say('m_scared', true); return r; };
+  const _end = endDuel;
+  endDuel = function () {
+    const r = _end.apply(this, arguments), d = duel;
+    if (d && !d.draw) setTimeout(() => say(d.win ? meVo('m_win', 'f_win') : oppVo('o_win', 'f_win'), true), 700);
+    return r;
+  };
+  const _fs = finStart;
+  finStart = function () {
+    const r = _fs.apply(this, arguments), f = duel.fin, victimShe = f.who === 0 ? oppShe() : sheMe();
+    sfx(f.id === 'fin_slap' ? 'slap' : 'whoosh');
+    if (f.id === 'fin_trash') setTimeout(() => sfx('hammer'), 900);
+    setTimeout(() => say(f.id === 'fin_hat_eyes' ? (victimShe ? 'f_lose' : 'm_blind') : f.id === 'fin_slap' ? (victimShe ? 'f_hit' : 'm_slap') : victimShe ? 'f_lose' : 'o_lose', true), 900);
+    if (f.id === 'fin_slap') setTimeout(() => sfx('slap'), 650);
+    return r;
+  };
+  const _sp = showPaper; showPaper = function (delay) { const r = _sp.apply(this, arguments); setTimeout(() => { sfx('type'); say(['n_extra', 'n_paper', 'n_hot'], true); }, reduce ? 0 : delay); return r; };
+  const _cl = collect; collect = function (id, quiet) { const r = _cl.apply(this, arguments); if (r > 0) sfx('register'); return r; };
+  const _ca = collectAt; collectAt = function (e) { const g = ev.got; const r = _ca.apply(this, arguments); if (ev.got > g) sfx('coin'); return r; };
+  const _jb = doJob; doJob = function (j) { const n = state.jobsDone; const r = _jb.apply(this, arguments); if (state.jobsDone > n) sfx('coin'); return r; };
+  const _bd = build; build = function (id) { const b = state.biz[id].busyUntil; const r = _bd.apply(this, arguments); if (b == null && state.biz[id].busyUntil != null) sfx('hammer'); return r; };
+  const _up = upgrade; upgrade = function (id) { const b = state.biz[id].busyUntil; const r = _up.apply(this, arguments); if (b == null && state.biz[id].busyUntil != null) sfx('hammer'); return r; };
+  const _lv = levelUp; levelUp = function () { const l = state.level; const r = _lv.apply(this, arguments); if (state.level > l) { sfx('fanfare'); if (Math.random() < .5) say('r_level'); } return r; };
+  const _gd = startGolden; startGolden = function () { const was = goldenActive(); const r = _gd.apply(this, arguments); if (!was && goldenActive() && !$('v-block').hidden) say('r_golden', true); return r; };
+  const _bk = bankDraw; bankDraw = function () { const had = !!show; const r = _bk.apply(this, arguments); if (!had && show) { syncMusic(); say('r_bank', true); setTimeout(() => { say('r_drum', true); setTimeout(() => sfx('drumroll', 2.4), 1200); }, 2600); } return r; };
+  const _bf = bankFinish; bankFinish = function () { const r = _bf.apply(this, arguments); sfx('chime'); setTimeout(syncMusic, 400); return r; };
+  const _tg = tutGo; tutGo = function () { const r = _tg.apply(this, arguments); const s = tutStep(); if (s) { sfx('chime'); if (s.t === 'Эй, новичок!') say('o_hat', true); if (s.t === 'Подворотня' && !sheMe()) say('m_hatback', true); } return r; };
+}
+// вступление: рассказчик читает первую полосу, как только игрок коснётся экрана
+{
+  let introSaid = false;
+  addEventListener('pointerdown', () => { if (!introSaid && !$('intro').hidden) { introSaid = true; setTimeout(() => say('r_intro', true), 120); } }, { capture: true });
+}
+document.addEventListener('click', (e) => { if (e.target.closest('.btn,.chip,.seg button,.nav button')) sfx('tick'); }, true);
+
+// --- настройки звука: кнопка в шапке и ползунки в кабинете ---
+$('snd').addEventListener('click', () => { audioUnlock(); const c = sndCfg(); c.mute = !c.mute; applyVolumes(); renderSnd(); saveGame(); });
+function renderSnd() {
+  const c = sndCfg();
+  ['music', 'sfx', 'voice'].forEach(k => { const el = $('vol-' + k); if (el) el.value = Math.round(c[k] * 100); });
+  $('vol-mute').textContent = c.mute ? 'Включить звук' : 'Выключить всё';
+}
+['music', 'sfx', 'voice'].forEach(k => $('vol-' + k).addEventListener('input', (e) => { audioUnlock(); sndCfg()[k] = e.target.value / 100; sndCfg().mute = false; applyVolumes(); renderSnd(); if (k === 'voice') say('n_extra', true); if (k === 'sfx') sfx('coin'); }));
+$('vol-mute').addEventListener('click', () => { audioUnlock(); const c = sndCfg(); c.mute = !c.mute; applyVolumes(); renderSnd(); saveGame(); });
+{ const _oc = openCab; openCab = function () { const r = _oc.apply(this, arguments); renderSnd(); return r; }; }
+renderSnd();
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
