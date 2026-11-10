@@ -4951,6 +4951,7 @@ function drawAd(T) {
   const a = ev.ad; adBox = null; if (!a) return;
   const p = (T - a.t0) / a.dur; if (p > 1) { ev.ad = null; return; }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const K = AD.k || 1, ay = gy * .135; ctx.translate(W / 2, ay); ctx.scale(K, K); ctx.translate(-W / 2, -ay);
   ctx.font = font(700, 11); const tw = ctx.measureText(a.text).width + 26;
   const x = W + 90 - p * (W + tw + 260), y = gy * .135 + Math.sin(T * .5) * 3;
   // полотнище тянется за кормой и чуть колышется
@@ -4970,7 +4971,8 @@ function drawAd(T) {
   ctx.beginPath(); ctx.moveTo(x + 36, y + 4); ctx.lineTo(x + 54, y + 14); ctx.lineTo(x + 50, y + 2); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#15120f'; ctx.beginPath(); ctx.roundRect(x - 12, y + 10, 20, 6, 3); ctx.fill();
   if (Math.sin(T * 3) > 0) glow(x - 48, y, 10, .8);
-  adBox = { x0: x - 52, x1: bx + tw, y0: y - 18, y1: y + 20 };
+  const mx = (v) => W / 2 + (v - W / 2) * K, my = (v) => ay + (v - ay) * K;
+  adBox = { x0: mx(x - 52), x1: mx(bx + tw), y0: my(y - 18), y1: my(y + 20) };
 }
 {
   const _z = drawZeppelin; drawZeppelin = function (T) { const r = _z(T); ctx.save(); drawAd(T); ctx.restore(); return r; };
@@ -5338,13 +5340,208 @@ drawClubLot = function (cx, T) {
 }
 
 // ---------- Номер сборки: видно, какую версию открыл тестер (Telegram любит показывать старую) ----------
-const BUILD = '10.11 · 17';
+const BUILD = '10.11 · 18';
 {
   const row = $('cab-report').parentElement, p = document.createElement('p');
   p.className = 'hint'; p.id = 'cab-build'; p.style.margin = '0'; row.after(p);
   const upd = () => { p.textContent = `Сборка ${BUILD} · звук монет: ${recStatus()}`; };
   const _rc = renderCab; renderCab = function (...a) { const r = _rc.apply(this, a); upd(); return r; };
   const _dr = devReport; devReport = function () { return `${_dr()}\nСборка ${BUILD} · звук монет: ${recStatus()}`; };
+}
+
+// ---------- Первый отзыв тестера (10.11.2026): грязные деньги, дуэль, касса, позы, портрет, дирижабль, звук ----------
+
+// --- 1. Зачем отмывать: объяснение при первых грязных и в прачечной ---
+const DIRTY_WHY = 'Грязные — выигрыш из Подворотни. Тратить их нельзя: подрядчик и инспектор берут только чистые. Прачечная отмоет за 15%.';
+{
+  const _e = endDuel; endDuel = function (...a) {
+    const d0 = state.dirty || 0; const r = _e.apply(this, a);
+    if (!state.dirtyTold && (state.dirty || 0) > d0) { state.dirtyTold = true; setTimeout(() => toast('Грязные деньги', DIRTY_WHY, 'gold'), 3200); }
+    return r;
+  };
+  const _rp = renderPanel; renderPanel = function (...a) {
+    const r = _rp.apply(this, a);
+    const h = document.querySelector('[data-f="laundHint"]'); if (h && !h.dataset.why) { h.dataset.why = 1; }
+    return r;
+  };
+  // подсказка прачечной: сначала «зачем», потом цифры
+  setInterval(() => { const h = document.querySelector('[data-f="laundHint"]'); if (h && !h.textContent.startsWith('Грязные —')) h.textContent = `${DIRTY_WHY} ${h.textContent}`; }, 400);
+  $('st-dirty').addEventListener('click', () => { if (!(state.dirty > 0)) toast('Грязные деньги', DIRTY_WHY); });
+}
+
+// --- 2. Дуэль: всё на одном экране, кнопки 2×2 над меню, подсказки в первых боях ---
+{
+  const st = document.createElement('style');
+  st.textContent = `
+#d-moves{position:sticky;bottom:var(--navh,64px);z-index:4;background:linear-gradient(rgba(20,18,16,0),var(--ink) 14px);padding:14px 0 6px;margin-top:-6px}
+#d-moves .moves{grid-template-columns:repeat(2,1fr);gap:8px}
+#d-moves .move{min-height:58px;gap:2px}
+#d-moves .move b{font-size:16px}
+#d-moves .move span{font-size:11px}
+#d-moves .trump{margin-top:8px;min-height:40px}
+#d-moves .qte-hint{display:none}
+#dtip{position:absolute;left:10px;right:10px;top:10px;z-index:3;background:rgba(14,12,11,.94);border:1px solid var(--gold);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+#dtip p{margin:0;font-size:13px;line-height:1.4;color:var(--paper)}
+#dtip b{color:var(--gold-2)}
+#dtip .btn{flex:0 0 auto}`;
+  document.head.appendChild(st);
+  const setNav = () => { const n = q('.nav'); if (n) document.documentElement.style.setProperty('--navh', n.offsetHeight + 'px'); };
+  setNav(); addEventListener('resize', setNav);
+  const tip = document.createElement('div'); tip.id = 'dtip'; tip.hidden = true;
+  tip.innerHTML = '<p id="dtip-t"></p><button class="btn sm gold" id="dtip-ok" type="button">Понятно</button>';
+  q('#v-alley .duel-scene').appendChild(tip);
+  const TIPS = {
+    moves: '<b>Твой ход.</b> Выбери приём внизу — соперник выбирает в ту же секунду. <b>Огонь</b> бьёт Рывок, <b>Укрытие</b> бьёт Огонь и Нож, <b>Рывок</b> бьёт Укрытие. Строчка под сценой — слух о его привычках.',
+    qte: '<b>Кольцо!</b> Тапни по сцене, когда кольцо вокруг твоего бойца станет зелёным, — пули пройдут мимо.',
+    trump: '<b>Выдержка ◆ накопилась.</b> Под приёмами — козырь твоего секунданта. Раз за бой, стоит 2◆.',
+  };
+  let cur = null, lastPhase = null;
+  const show = (k) => { cur = k; $('dtip-t').innerHTML = TIPS[k]; tip.hidden = false; };
+  const hide = () => { if (cur) { state.dtips = state.dtips || {}; state.dtips[cur] = 1; } cur = null; tip.hidden = true; };
+  $('dtip-ok').addEventListener('click', hide);
+  setInterval(() => {
+    const d = duel; if (!d || $('v-alley').hidden) { if (!tip.hidden && cur !== 'qte') tip.hidden = true; lastPhase = null; return; }
+    // в начале хода прокручиваем так, чтобы бой и кнопки были на одном экране
+    if (d.phase === 'choose' && lastPhase !== 'choose' && lastPhase !== 'anim') q('#v-alley .duel-top').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    lastPhase = d.phase;
+    const learning = state.tut >= 0 && state.tut < TUT.length - 1, seen = state.dtips || {};
+    if (learning) return;
+    const qte = d.anim && d.anim.qte;
+    if (cur === 'qte' && (!qte || qte.done)) hide();
+    if (!cur && qte && !qte.done && !seen.qte) show('qte');
+    else if (!cur && d.phase === 'choose' && !seen.moves) show('moves');
+    else if (!cur && d.phase === 'choose' && seen.moves && d.grit && d.grit[0] >= 2 && !d.used[0] && !seen.trump) show('trump');
+    if (cur && cur !== 'qte' && d.phase === 'choose') d.deadline = Math.max(d.deadline, Tnow + 6.8);   // пока читаешь — время хода стоит
+  }, 200);
+  // сцена дуэли по высоте экрана, чтобы на маленьких телефонах кнопки не уезжали вниз
+  const _dr = duelEnter; duelEnter = function (...a) {
+    const r = _dr.apply(this, a);
+    const want = Math.round(Math.min(360, Math.max(220, Math.min(dW * .76, innerHeight - 390))));
+    if (want !== dH) { dH = want; dcv.height = Math.round(dH * ddpr); dcv.style.height = dH + 'px'; }
+    return r;
+  };
+}
+
+// --- 3. Касса: куда ушли деньги ---
+const LEDGER_MAX = 80;
+let ledSeen = null;
+function ledAdd(l, d) {
+  if (!d) return; state.ledger = state.ledger || [];
+  const last = state.ledger[state.ledger.length - 1], now = Date.now();
+  if (last && last.l === l && now - last.t < 120e3 && Math.sign(last.d) === Math.sign(d)) { last.d += d; last.n = (last.n || 1) + 1; last.t = now; }
+  else state.ledger.push({ t: now, l, d, n: 1 });
+  if (state.ledger.length > LEDGER_MAX) state.ledger.splice(0, state.ledger.length - LEDGER_MAX);
+}
+function ledWrap(name, label) {
+  const fn = { build, upgrade, collect, doJob, launder }[name];
+  const w = function (...a) { const c0 = state.cash; const r = fn.apply(this, a); const d = state.cash - c0; if (d) { ledAdd(label(...a), d); ledSeen = state.cash; } return r; };
+  if (name === 'build') build = w; else if (name === 'upgrade') upgrade = w; else if (name === 'collect') collect = w; else if (name === 'doJob') doJob = w; else launder = w;
+}
+const bizName = (id) => (BIZ.find(b => b.id === id) || {}).name || id;
+ledWrap('build', (id) => `Стройка: ${bizName(id)}`);
+ledWrap('upgrade', (id) => `Улучшение: ${bizName(id)}`);
+ledWrap('collect', (id) => `Касса: ${bizName(id)}`);
+ledWrap('doJob', (j) => `Дело: ${j.name}`);
+ledWrap('launder', () => 'Отмыл грязные (−15% прачечной)');
+setInterval(() => {   // всё, что пришло мимо обёрток: монеты цеппелина, шляпа, призы
+  if (ledSeen === null) { ledSeen = state.cash; return; }
+  const d = state.cash - ledSeen; if (d) { ledAdd(goldenActive() ? 'Золотой час: монеты с цеппелина' : 'Находки и призы', d); ledSeen = state.cash; }
+}, 1000);
+function openLedger() {
+  let el = $('ledger');
+  if (!el) {
+    el = document.createElement('div'); el.className = 'sheet'; el.id = 'ledger'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Касса');
+    document.body.appendChild(el);
+    el.addEventListener('click', (e) => { if (e.target === el || e.target.closest('[data-l="close"]')) el.hidden = true; });
+  }
+  const rows = (state.ledger || []).slice().reverse(), day = dayKeyOf(Date.now());
+  const today = rows.filter(r => dayKeyOf(r.t) === day), plus = today.filter(r => r.d > 0).reduce((s, r) => s + r.d, 0), minus = today.filter(r => r.d < 0).reduce((s, r) => s - r.d, 0);
+  const hm = (t) => new Date(t).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  el.innerHTML = `<div class="sheet-in">
+    <div class="sec-h"><h2>Касса</h2><button class="btn sm" data-l="close" style="flex:0 0 auto;margin-left:auto">Закрыть</button></div>
+    <div class="card"><ul class="bn-list" style="margin:0"><li class="ok"><span>Сегодня заработал</span><b class="num">+${money(plus)}</b></li><li><span>Сегодня потратил</span><b class="num">−${money(minus)}</b></li><li><span>В кармане</span><b class="num">${money(state.cash)}</b></li></ul></div>
+    <div class="card"><div class="sec-h"><h2>Последние движения</h2></div><ul class="bn-list">${rows.length ? rows.map(r => `<li class="${r.d > 0 ? 'ok' : ''}"><span><span class="num" style="color:var(--sepia)">${hm(r.t)}</span> ${r.l}${r.n > 1 ? ` <span style="color:var(--sepia)">×${r.n}</span>` : ''}</span><b class="num" style="${r.d < 0 ? 'color:var(--blood,#b0342a)' : ''}">${r.d > 0 ? '+' : '−'}${money(Math.abs(r.d))}</b></li>`).join('') : '<li class="none">Пока пусто. Собери кассу или проверни дело.</li>'}</ul></div>
+    <p class="hint" style="margin:0">Траты — это стройка и улучшения: деньги превращаются в здания, которые приносят больше в час.</p>
+  </div>`;
+  el.hidden = false;
+}
+{
+  const c = $('st-cash'); c.style.cursor = 'pointer'; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Касса — история денег');
+  const lab = c.querySelector('.s'); if (lab) lab.textContent = 'доллары · история';
+  c.addEventListener('click', () => { if (state.tut >= 0 && state.tut < TUT.length - 1) return; openLedger(); });
+}
+
+// --- 4. Позы: победа и «Позор» не должны выглядеть одинаково ---
+// стартовый жест победы — «Сдуть дым со ствола», а «Приподнять шляпу» уходит в награду за 10 побед
+{
+  const w = SKINS.win, tip = w.find(x => x[0] === 'win_tip_hat'), smoke = w.find(x => x[0] === 'win_smoke');
+  if (tip && smoke) { tip[3] = '10 побед в Подворотне'; tip[4] = 'duels10'; smoke[3] = 'Старт'; smoke[4] = 'free'; }
+  Object.values(skinById).forEach(k => { if (k.id === 'win_tip_hat') { k.how = 'duels10'; k.src = '10 побед в Подворотне'; } if (k.id === 'win_smoke') { k.how = 'free'; k.src = 'Старт'; } });
+  START_OUTFIT.win = 'win_smoke';
+  if (state.outfit && state.outfit.win === 'win_tip_hat' && !state.winSwap) { state.outfit.win = 'win_smoke'; state.winSwap = true; }
+}
+
+// --- 5. Портрет: выбор, как с именами ---
+const AVATARS = [
+  { id: 'mine', n: 'Мой образ' },
+  { id: 'a1', n: 'Федора', o: { fig: 'he', hat: 'hat_fedora_black', top: 'top_vest', coat: 'coat_trench', acc: 'acc_cigar' } },
+  { id: 'a2', n: 'Кепка', o: { fig: 'he', hat: 'hat_flatcap', top: 'top_suspenders', coat: 'coat_none', acc: 'acc_match' } },
+  { id: 'a3', n: 'Котелок', o: { fig: 'he', hat: 'hat_bowler_gold', top: 'top_tux', coat: 'coat_none', acc: 'acc_gloves' } },
+  { id: 'a4', n: 'Хомбург', o: { fig: 'he', hat: 'hat_homburg', top: 'top_threepiece', coat: 'coat_overcoat', acc: 'acc_watch' } },
+  { id: 'a5', n: 'Широкополая', o: { fig: 'he', hat: 'hat_wide_black', top: 'top_threepiece', coat: 'coat_long_black', acc: 'acc_cigar' } },
+  { id: 'a6', n: 'Красная лента', o: { fig: 'she', hat: 'hat_red_band', top: 'top_dress', coat: 'coat_none', acc: 'acc_gloves' } },
+  { id: 'a7', n: 'Белая федора', o: { fig: 'she', hat: 'hat_white', top: 'top_dress', coat: 'coat_fur', acc: 'acc_carnation' } },
+  { id: 'a8', n: 'Каре', o: { fig: 'she', hat: 'hat_none', top: 'top_dress', coat: 'coat_none', acc: 'acc_match' } },
+];
+const avCache = {};
+function avatarURL(o) {
+  const full = Object.assign({}, START_OUTFIT, o, { wpn: 'wpn_bare' }), key = JSON.stringify(full);
+  if (avCache[key]) return avCache[key];
+  const c = document.createElement('canvas'); c.width = c.height = 120; const g = c.getContext('2d');
+  const bg = g.createRadialGradient(60, 50, 10, 60, 60, 70); bg.addColorStop(0, '#3a3026'); bg.addColorStop(1, '#141210'); g.fillStyle = bg; g.fillRect(0, 0, 120, 120);
+  g.translate(52, 292); g.scale(2.05, 2.05);
+  try { drawGangster(g, full, 'stand', 0, {}); } catch (e) { /* без портрета — останется шляпа */ }
+  return (avCache[key] = c.toDataURL('image/png'));
+}
+const avOutfit = () => { const a = AVATARS.find(x => x.id === (state.avatar || 'mine')); return a && a.o ? a.o : state.outfit; };
+function syncAvatar() {
+  const url = avatarURL(avOutfit());
+  document.querySelectorAll('.who .ava, .cab-me .ava').forEach(el => {
+    let img = el.querySelector('img');
+    if (!img) { el.innerHTML = ''; img = document.createElement('img'); img.alt = ''; img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;display:block'; el.appendChild(img); }
+    if (img.src !== url) img.src = url;
+  });
+}
+{
+  const card = document.createElement('div'); card.className = 'card'; card.id = 'cab-avatar';
+  card.innerHTML = '<div class="sec-h"><h2>Портрет</h2></div><div id="av-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:10px;margin-top:10px"></div>';
+  $('cab-namebox').after(card);
+  const grid = card.querySelector('#av-grid');
+  const draw = () => {
+    grid.innerHTML = AVATARS.map(a => `<button type="button" data-av="${a.id}" aria-label="${a.n}" aria-pressed="${(state.avatar || 'mine') === a.id}" style="background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--sepia);font-size:10px;cursor:pointer">
+      <img src="${avatarURL(a.o || state.outfit)}" alt="" style="width:54px;height:54px;border-radius:50%;border:2px solid ${(state.avatar || 'mine') === a.id ? 'var(--gold)' : 'var(--line)'}">${a.n}</button>`).join('');
+  };
+  grid.addEventListener('click', (e) => { const b = e.target.closest('[data-av]'); if (!b) return; state.avatar = b.dataset.av; saveGame(); draw(); syncAvatar(); });
+  const _rc = renderCab; renderCab = function (...a) { const r = _rc.apply(this, a); draw(); syncAvatar(); return r; };
+  syncAvatar(); setInterval(syncAvatar, 2000);
+}
+
+// --- 6. Дирижабль с объявлением: заметнее и раньше ---
+{
+  AD.delay = [12, 25]; AD.dur = 36;
+  const _sa = startAd; startAd = function (...a) {
+    const had = !!ev.ad; const r = _sa.apply(this, a);
+    if (!had && ev.ad && !state.adToldOnce) { state.adToldOnce = true; setTimeout(() => toast('Смотри наверх', 'Над Доками дирижабль с объявлением. Тапни по нему.', 'gold'), 1500); }
+    return r;
+  };
+  AD.k = 1.3;   // крупнее: масштаб применяется внутри drawAd
+}
+
+// --- 7. Начало игры: включи звук ---
+{
+  const p = document.createElement('p'); p.className = 'hint'; p.style.cssText = 'margin:0;text-align:center;color:var(--gold-2)';
+  p.textContent = '🎷 Включи звук — почувствуй атмосферу 30-х: джаз, дождь и голоса Чикаго.';
+  $('intro-go').before(p);
 }
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
