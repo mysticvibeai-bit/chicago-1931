@@ -4921,6 +4921,70 @@ function openShop() {
   };
 }
 
+// ---------- Рекламный дирижабль: высоко над кварталом тянет полотнище с фразой эпохи ----------
+// Намёк на премию месяца: её даёт только «Колонка Р.» (засчитанные дни — ни купить, ни выиграть случаем).
+// Тап по дирижаблю открывает Город на этой таблице. Прямых обещаний денег нет.
+const AD = {
+  perDay: 2, delay: [35, 70], dur: 30,
+  lines: [
+    'ЛУЧШИМ В ГОРОДЕ — НАГРАДА · ЧИТАЙ «КОЛОНКУ Р.»',
+    'РЕДАКТОР Р. ПОМНИТ СВОИХ · ПРЕМИЯ МЕСЯЦА',
+    'КАЖДЫЙ ДЕНЬ В ГОРОДЕ НА СЧЕТУ · «КОЛОНКА Р.»',
+    'БАНКОВСКАЯ НОЧЬ · ПОСЛЕДНЯЯ ПЯТНИЦА · «ОРФЕЙ»',
+  ],
+};
+let adSession = null, adBox = null;
+function adDay() { const sk = skyDay(); sk.ad = sk.ad || 0; return sk; }
+function startAd() {
+  const sk = adDay(); if (ev.ad || sk.ad >= AD.perDay) return;
+  sk.ad++; state.adSeen = (state.adSeen || 0) + 1;
+  ev.ad = { t0: Tnow, dur: AD.dur, text: AD.lines[(state.adSeen - 1) % AD.lines.length] };
+}
+function drawAd(T) {
+  const a = ev.ad; adBox = null; if (!a) return;
+  const p = (T - a.t0) / a.dur; if (p > 1) { ev.ad = null; return; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.font = font(700, 11); const tw = ctx.measureText(a.text).width + 26;
+  const x = W + 90 - p * (W + tw + 260), y = gy * .135 + Math.sin(T * .5) * 3;
+  // полотнище тянется за кормой и чуть колышется
+  const bx = x + 64, bh = 20;
+  ctx.strokeStyle = 'rgba(30,26,22,.8)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + 46, y); ctx.lineTo(bx, y - bh / 2); ctx.moveTo(x + 46, y); ctx.lineTo(bx, y + bh / 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx, y - bh / 2);
+  for (let i = 0; i <= 12; i++) ctx.lineTo(bx + tw * i / 12, y - bh / 2 + Math.sin(T * 3 + i * .7) * 1.6);
+  for (let i = 12; i >= 0; i--) ctx.lineTo(bx + tw * i / 12, y + bh / 2 + Math.sin(T * 3 + i * .7) * 1.6);
+  ctx.closePath(); ctx.fillStyle = '#efe6d0'; ctx.fill(); ctx.strokeStyle = '#8a1f1a'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#8a1f1a'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(a.text, bx + 13, y + 1 + Math.sin(T * 3 + 6 * .7) * 1.2);
+  // маленький дирижабль, нос влево
+  const g = ctx.createLinearGradient(0, y - 12, 0, y + 12); g.addColorStop(0, '#8a7c68'); g.addColorStop(.5, '#4f463a'); g.addColorStop(1, '#221d18');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, 48, 12, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2a241e';
+  ctx.beginPath(); ctx.moveTo(x + 36, y - 4); ctx.lineTo(x + 54, y - 14); ctx.lineTo(x + 50, y - 2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 36, y + 4); ctx.lineTo(x + 54, y + 14); ctx.lineTo(x + 50, y + 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#15120f'; ctx.beginPath(); ctx.roundRect(x - 12, y + 10, 20, 6, 3); ctx.fill();
+  if (Math.sin(T * 3) > 0) glow(x - 48, y, 10, .8);
+  adBox = { x0: x - 52, x1: bx + tw, y0: y - 18, y1: y + 20 };
+}
+{
+  const _z = drawZeppelin; drawZeppelin = function (T) { const r = _z(T); ctx.save(); drawAd(T); ctx.restore(); return r; };
+  // по заходу — один дирижабль с полотнищем через 35–70 с, не во время золотого часа и обучения
+  let last = performance.now();
+  setInterval(() => {
+    const now = performance.now(), dt = (now - last) / 1000; last = now;
+    if (document.hidden || $('v-block').hidden || (state.tut >= 0 && state.tut < TUT.length - 1) || goldenActive()) return;
+    if (adSession === null) adSession = adDay().ad < AD.perDay ? AD.delay[0] + Math.random() * (AD.delay[1] - AD.delay[0]) : -1;
+    if (adSession > 0) { adSession -= dt; if (adSession <= 0) { adSession = -1; startAd(); } }
+  }, 500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && adSession === -1 && adDay().ad < AD.perDay) adSession = null; });
+  cv.addEventListener('pointerdown', (e) => {
+    if (!adBox || goldenActive()) return;
+    const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (x < adBox.x0 || x > adBox.x1 || y < adBox.y0 || y > adBox.y1) return;
+    toast('«Колонка Р.»', 'Редактор Р. каждый месяц отмечает лучших в городе. Говорят, отмеченным перепадает не только строчка в газете. Купить место нельзя — только приходить.', 'gold');
+    cityBoard = 'col'; showTab('city');
+  });
+}
+
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot, boot);
