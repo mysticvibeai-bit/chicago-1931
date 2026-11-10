@@ -764,12 +764,7 @@ function win(x, y, w, h, seed, T, onP = .6) {
     const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#f3d48c'); g.addColorStop(1, '#a8772c');
     ctx.globalAlpha = on; ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     if (hs(seed + .9) > .45) R(x, y, w, h * (.2 + .45 * hs(seed + .3)), 'rgba(92,60,24,.7)');
-    if (hs(seed + .13) > .86) {
-      const px = x + w * (.5 + .32 * Math.sin(T * .35 + seed));
-      ctx.fillStyle = 'rgba(20,14,8,.85)';
-      ctx.beginPath(); ctx.arc(px, y + h * .52, w * .14, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(px, y + h, w * .3, h * .3, 0, Math.PI, 0); ctx.fill();
-    }
+    // сценки в окнах (прохожий, кот, газета…) рисует модуль «Мелочи»
     ctx.globalAlpha = 1;
     glow(x + w / 2, y + h / 2, Math.max(w, h) * 1.5, .22 * on);
   } else {
@@ -4219,7 +4214,8 @@ function audioUnlock() {
   noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
   const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   applyVolumes(); syncMusic();
-  Object.entries(SND.rec).forEach(([k, u]) => loadBuf(u, recCache).then(b => { recBufs[k] = b; }));
+  Object.entries(recRaw).forEach(([k, p]) => p.then(ab => { if (!ab) { recFail[k] = true; return; }
+    actx.decodeAudioData(ab.slice(0), b => { recBufs[k] = b; const w = recWait[k]; if (w && performance.now() - w.at < 450) playRec(k, w.v, w.spread); recWait[k] = null; }, () => { recFail[k] = true; }); }));
 }
 function applyVolumes() {
   if (!bus) return;
@@ -4256,9 +4252,13 @@ function clink(t, f, v = .4, len = 1) {
   ring(t, f, [1, 1.59, 2.14, 2.65, 3.16], [.45, .3, .22, .16, .1].map(d => d * len * (.8 + Math.random() * .4)), [.16, .1, .08, .05, .03].map(p => p * v));
 }
 // запись, если уже загружена: высота чуть гуляет, чтобы частые монетки не звучали одинаково
-const recCache = {}, recBufs = {};
+// файлы качаем сразу при открытии, раскодируем после первого касания; пока не готово — ждём,
+// а синтез играет, только если запись не загрузилась совсем (иначе звучал «старый» звук)
+const recBufs = {}, recFail = {}, recWait = {}, recRaw = {};
+Object.entries(SND.rec).forEach(([k, u]) => { recRaw[k] = fetch(u).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); });
 function playRec(key, v = 1, spread = .08) {
-  const b = recBufs[key]; if (!b) return false;
+  const b = recBufs[key];
+  if (!b) { if (recFail[key]) return false; recWait[key] = { at: performance.now(), v, spread }; return true; }
   const s = actx.createBufferSource(); s.buffer = b; s.playbackRate.value = 1 + (Math.random() - .5) * 2 * spread;
   const g = actx.createGain(); g.gain.value = v; s.connect(g); g.connect(bus.sfx); s.start();
   return true;
@@ -4983,6 +4983,351 @@ function drawAd(T) {
     toast('«Колонка Р.»', 'Редактор Р. каждый месяц отмечает лучших в городе. Говорят, отмеченным перепадает не только строчка в газете. Купить место нельзя — только приходить.', 'gold');
     cityBoard = 'col'; showTab('city');
   });
+}
+
+// ---------- Мелочи, которые хочется разглядывать ----------
+// 1) Каждый уровень бизнеса добавляет к зданию новую деталь: кот на крыше, голуби, водонапорная башня,
+//    флаг, гирлянда, рекламный щит, на 12-м — прожекторы в небе. Стадии здания (1/4/8) остаются как были.
+// 2) В горящих окнах иногда идёт сценка: кот на подоконнике, читают газету, танцуют, играют в карты.
+// 3) Клуб «Полумесяц» стал кабаре: розовый неон, танцовщицы с веерами в окнах. Внутрь пока не пускают.
+const SIL = '#0d0907';
+const PINK = sprite([[0, 'rgba(255,150,200,1)'], [.2, 'rgba(240,90,160,.5)'], [.55, 'rgba(200,60,130,.12)'], [1, 'rgba(200,60,130,0)']]);
+function pinkGlow(x, y, r, a) {
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a);
+  ctx.drawImage(PINK, x - r, y - r, 2 * r, 2 * r); ctx.restore();
+}
+function ell(x, y, rx, ry, f, rot = 0) { ctx.fillStyle = f; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot, 0, 7); ctx.fill(); }
+
+// --- детали (локальные единицы здания: земля y=0, вверх — минус) ---
+const DECOR = {
+  crates(x) { R(x - 6, -8, 10, 8, '#5a4a30'); R(x - 6, -8, 10, .6, 'rgba(239,230,208,.3)'); R(x - 6, -4.2, 10, .4, 'rgba(0,0,0,.4)'); R(x - 4, -14, 7, 6, '#4a3d28'); R(x - 4, -14, 7, .5, 'rgba(239,230,208,.25)'); },
+  barrels(x) { for (const [dx, c] of [[-4, '#5c2a20'], [3, '#3d3a30']]) { R(x + dx - 3, -10, 6, 10, c); R(x + dx - 3, -7, 6, .6, 'rgba(0,0,0,.45)'); R(x + dx - 3, -3, 6, .6, 'rgba(0,0,0,.45)'); R(x + dx - 3, -10, .6, 10, 'rgba(239,230,208,.2)'); } },
+  rolls(x) { for (const [dx, dy] of [[-4, -3.5], [3, -3.5], [-.5, -10]]) { ell(x + dx, dy, 3.5, 3.5, '#d6cab0'); ell(x + dx, dy, 1.2, 1.2, '#6b5a40'); } },
+  hydrant(x) { R(x - 2, -9, 4, 9, '#7a2a20'); R(x - 3, -1.5, 6, 1.5, '#5a1f18'); ell(x, -9, 2.4, 1.6, '#8a3226'); R(x - 3.6, -6.5, 1.8, 2, '#5a1f18'); R(x + 1.8, -6.5, 1.8, 2, '#5a1f18'); R(x - 2, -9, .6, 9, 'rgba(239,230,208,.25)'); },
+  board(x, T, txt) { // раскладной щит на тротуаре
+    ctx.strokeStyle = '#2b241c'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, 0); ctx.lineTo(x - 3, -18); ctx.moveTo(x + 6, 0); ctx.lineTo(x + 3, -18); ctx.stroke();
+    R(x - 5, -17, 10, 13, '#1b1714'); R(x - 4.3, -16.3, 8.6, 11.6, '#2b241c');
+    ctx.fillStyle = '#e8dcc0'; ctx.font = font(700, 2.6); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    txt.forEach((t, k) => ctx.fillText(t, x, -14 + k * 3.4));
+  },
+  newsboy(x, T) { // мальчишка-газетчик машет газетой
+    const w = Math.sin(T * 4) * 3;
+    R(x - 1.6, -7, 1.3, 7, SIL); R(x + .4, -7, 1.3, 7, SIL);
+    ctx.fillStyle = '#3a2e22'; ctx.beginPath(); ctx.roundRect(x - 2.6, -15, 5.2, 8.5, 1.5); ctx.fill();
+    ell(x, -17.2, 2.1, 2.2, '#c9a27a'); R(x - 2.6, -19.6, 5.2, 1.4, '#2a231c'); R(x - 1, -19, 4.4, .8, '#2a231c');
+    ctx.strokeStyle = '#3a2e22'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x + 2, -13.5); ctx.lineTo(x + 4, -19 + w * .3); ctx.stroke();
+    ctx.save(); ctx.translate(x + 4.5, -20 + w * .3); ctx.rotate(-.3 + w * .06); R(-2.2, -3, 4.4, 5.5, '#ece3cc'); R(-1.6, -2.2, 3.2, .5, '#3a3229'); R(-1.6, -1.2, 3.2, .3, '#8a7358'); R(-1.6, -.4, 2.2, .3, '#8a7358'); ctx.restore();
+    R(x - 4.5, -12, 2.2, 6, '#ddd0b2');
+  },
+  dog(x, T) { // спит, иногда виляет хвостом и поднимает ухо
+    ell(x, -2.6, 5.5, 2.6, '#4a3a2a'); ell(x + 5, -3.2, 2.4, 2, '#4a3a2a'); ell(x + 6.8, -2.6, 1.3, .9, '#3a2e22');
+    const ear = Math.sin(T * .7) > .9 ? -1.4 : 0; ell(x + 4.2, -4.6 + ear * .4, .9, 1.6 + Math.abs(ear) * .4, '#33281d', -.6);
+    const wag = Math.sin(T * .9) > .6 ? Math.sin(T * 14) * .7 : 0;
+    ctx.strokeStyle = '#4a3a2a'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(x - 5, -2.5); ctx.quadraticCurveTo(x - 7.5, -3 + wag, x - 8, -5 + wag * 2); ctx.stroke();
+  },
+  bicycle(x) {
+    ctx.strokeStyle = '#1a1714'; ctx.lineWidth = .9;
+    for (const dx of [-5, 5]) { ctx.beginPath(); ctx.arc(x + dx, -4, 4, 0, 7); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(x - 5, -4); ctx.lineTo(x - 1, -10); ctx.lineTo(x + 4, -10); ctx.lineTo(x + 5, -4); ctx.moveTo(x - 1, -10); ctx.lineTo(x, -4); ctx.lineTo(x - 5, -4); ctx.moveTo(x + 4, -10); ctx.lineTo(x + 3.5, -12); ctx.lineTo(x + 5.5, -12.5); ctx.stroke();
+    R(x - 2.5, -11.2, 3, 1, '#3a2e22'); R(x + 1, -9, 5, 3, '#6b5a40');
+  },
+  bottles(x) { for (let k = 0; k < 3; k++) { R(x + k * 2.4 - 3, -4.5, 1.8, 4.5, '#efe6d0'); R(x + k * 2.4 - 2.8, -5.3, 1.4, .9, '#b8ad96'); } },
+  flowers(x) { for (let k = 0; k < 3; k++) { const px = x - 6 + k * 5; R(px - 1.8, -4, 3.6, 4, '#6b3a24'); ell(px, -5.5, 2.4, 2, '#3f5a2c'); ell(px - .8, -6.6, .9, .9, k === 1 ? '#e2c47a' : '#b0342a'); ell(px + 1, -6, .8, .8, '#b0342a'); } },
+  cat(x, y, T) { // сидит на краю крыши, хвост свисает, глаза моргают
+    ell(x, y - 3.2, 2.6, 3.4, SIL); ell(x + .3, y - 7.4, 1.9, 1.7, SIL);
+    ctx.fillStyle = SIL; ctx.beginPath(); ctx.moveTo(x - 1.5, y - 8.2); ctx.lineTo(x - 1, y - 10.3); ctx.lineTo(x - .1, y - 8.8); ctx.moveTo(x + .9, y - 8.8); ctx.lineTo(x + 1.8, y - 10.3); ctx.lineTo(x + 2.1, y - 8.2); ctx.fill();
+    const sw = Math.sin(T * 1.3) * 2;
+    ctx.strokeStyle = SIL; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 1.5, y - 1); ctx.quadraticCurveTo(x - 3, y + 4, x - 2 + sw, y + 7); ctx.stroke();
+    if (Math.sin(T * .8 + x) > -.95) { R(x - .7, y - 7.7, .7, .5, '#d8e05a'); R(x + .9, y - 7.7, .7, .5, '#d8e05a'); glow(x + .3, y - 7.5, 3, .3); }
+  },
+  pigeons(x, y, T) {
+    for (let k = 0; k < 3; k++) {
+      const px = x + k * 4.5, hop = Math.sin(T * 2 + k * 2.1) > .97 ? -1.2 : 0, peck = Math.sin(T * 3 + k * 1.7) > .8 ? 1 : 0;
+      ell(px, y - 1.6 + hop, 1.8, 1.2, '#4f4a44'); ell(px + 1.4, y - 2.6 + hop + peck * .8, .8, .8, '#5c5650'); R(px + 2, y - 2.6 + hop + peck * .8, .7, .3, '#8a7358');
+      R(px - 2.6, y - 1.8 + hop, 1.2, .6, '#3e3a35');
+    }
+  },
+  clothes(x0, x1, y, T) {
+    ctx.strokeStyle = 'rgba(200,190,170,.6)'; ctx.lineWidth = .4; ctx.beginPath(); ctx.moveTo(x0, y); ctx.quadraticCurveTo((x0 + x1) / 2, y + 3, x1, y); ctx.stroke();
+    R(x0 - .5, y - 1, 1, 9, '#2b241c'); R(x1 - .5, y - 1, 1, 9, '#2b241c');
+    const cols = ['#e8dcc0', '#7a2a20', '#b8ad96', '#3d4a5c'];
+    for (let k = 0; k < 4; k++) { const t = (k + .7) / 4.6, px = x0 + (x1 - x0) * t, py = y + 3 * 4 * t * (1 - t), sw = Math.sin(T * 1.6 + k) * .6;
+      ctx.fillStyle = cols[k]; ctx.beginPath(); ctx.moveTo(px - 2, py); ctx.lineTo(px + 2, py); ctx.lineTo(px + 2.2 + sw, py + 5); ctx.lineTo(px - 2.2 + sw, py + 5); ctx.fill(); }
+  },
+  tower(x, y) { // водонапорная башня на крыше
+    ctx.strokeStyle = '#1a1612'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, y); ctx.lineTo(x - 5, y - 9); ctx.moveTo(x + 6, y); ctx.lineTo(x + 5, y - 9); ctx.moveTo(x - 6, y); ctx.lineTo(x + 5, y - 9); ctx.stroke();
+    R(x - 7, y - 23, 14, 14, '#5a4632'); for (let k = 0; k < 3; k++) R(x - 7, y - 21 + k * 5, 14, .7, '#2a231c');
+    for (let k = 0; k < 5; k++) R(x - 6 + k * 3, y - 23, .3, 14, 'rgba(0,0,0,.25)');
+    ctx.fillStyle = '#3a2e22'; ctx.beginPath(); ctx.moveTo(x - 8, y - 23); ctx.lineTo(x, y - 30); ctx.lineTo(x + 8, y - 23); ctx.fill(); R(x - 7, y - 23, .7, 14, 'rgba(239,230,208,.2)');
+  },
+  antenna(x, y, T) {
+    ctx.strokeStyle = '#1a1612'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 30);
+    for (let k = 1; k < 4; k++) { ctx.moveTo(x - 6 + k, y - k * 7); ctx.lineTo(x + 6 - k, y - k * 7); } ctx.stroke();
+    if (Math.sin(T * 2.2) > 0) { ell(x, y - 31, 1.2, 1.2, '#ff5a40'); glow(x, y - 31, 7, .6); }
+  },
+  flag(x, y, T) {
+    R(x - .4, y - 26, .8, 26, '#2b241c');
+    for (let k = 0; k <= 8; k++) {
+      const fx = x + k * 1.5, wv = Math.sin(T * 4 - k * .7) * 1.1 * (k / 8);
+      for (let r = 0; r < 5; r++) R(fx, y - 26 + r * 1.6 + wv, 1.6, 1.6, r % 2 ? '#e8dcc0' : '#9a2a22');
+      if (k < 4) R(fx, y - 26 + wv, 1.6, 4.8, '#2e3a5c');
+    }
+  },
+  lights(x0, x1, y, T) { // гирлянда лампочек
+    ctx.strokeStyle = 'rgba(30,26,22,.9)'; ctx.lineWidth = .4; ctx.beginPath(); ctx.moveTo(x0, y); ctx.quadraticCurveTo((x0 + x1) / 2, y + 7, x1, y); ctx.stroke();
+    for (let k = 0; k <= 10; k++) { const t = k / 10, px = x0 + (x1 - x0) * t, py = y + 7 * 2 * t * (1 - t) + .6;
+      const on = Math.sin(T * 2.5 + k * 1.3) > -.3; ell(px, py, .9, .9, on ? ['#ffe6a8', '#ff9a8a', '#a8e0ff'][k % 3] : '#4a4034'); if (on) glow(px, py, 4, .35); }
+  },
+  billboard(x, y, T, txt) {
+    ctx.strokeStyle = '#1a1612'; ctx.lineWidth = .9; ctx.beginPath();
+    for (const dx of [-14, 14]) { ctx.moveTo(x + dx, y); ctx.lineTo(x + dx, y - 10); } ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y - 10); ctx.stroke();
+    R(x - 20, y - 26, 40, 16, '#1b1714'); R(x - 19, y - 25, 38, 14, '#e2d4b0');
+    R(x - 19, y - 25, 38, 4, '#9a2a22');
+    ctx.fillStyle = '#efe6d0'; ctx.font = font(700, 3); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt[0], x, y - 22.9);
+    ctx.fillStyle = '#2b241c'; ctx.font = font(700, 4.6); ctx.fillText(txt[1], x, y - 17.3);
+    ctx.fillStyle = '#5a3a14'; ctx.font = font(500, 2.4); ctx.fillText(txt[2], x, y - 13.3);
+    for (const dx of [-10, 10]) { R(x + dx - .3, y - 30, .6, 4, '#2b241c'); ell(x + dx, y - 30, 1.4, .8, '#3a3229'); glow(x + dx, y - 26, 16, .35); }
+  },
+  arrow(x, y, T) { // неоновая стрелка к двери: бегущие огни
+    const n = 6, k0 = Math.floor(T * 6) % (n + 2);
+    for (let k = 0; k < n; k++) { const on = k <= k0; ell(x, y + k * 3.4, 1, 1, on ? '#ff8ab0' : '#4a2a34'); if (on) pinkGlow(x, y + k * 3.4, 5, .5); }
+    ctx.fillStyle = k0 >= n ? '#ff8ab0' : '#4a2a34'; ctx.beginPath(); ctx.moveTo(x - 3.5, y + n * 3.4); ctx.lineTo(x + 3.5, y + n * 3.4); ctx.lineTo(x, y + n * 3.4 + 4); ctx.fill();
+    if (k0 >= n) pinkGlow(x, y + n * 3.4 + 2, 9, .7);
+  },
+  searchlight(x, y, T) { // 12-й уровень: два прожектора крест-накрест над крышей
+    R(x - 9, y - 3, 6, 3, '#2b241c'); R(x + 3, y - 3, 6, 3, '#2b241c');
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const [dx, ph] of [[-6, 0], [6, 2.4]]) {
+      const a = -Math.PI / 2 + Math.sin(T * .35 + ph) * .55, len = 260;
+      const g = ctx.createLinearGradient(x + dx, y - 3, x + dx + Math.cos(a) * len, y - 3 + Math.sin(a) * len);
+      g.addColorStop(0, 'rgba(255,236,190,.38)'); g.addColorStop(1, 'rgba(255,236,190,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x + dx, y - 3);
+      ctx.lineTo(x + dx + Math.cos(a - .06) * len, y - 3 + Math.sin(a - .06) * len); ctx.lineTo(x + dx + Math.cos(a + .06) * len, y - 3 + Math.sin(a + .06) * len); ctx.fill();
+    }
+    ctx.restore(); glow(x - 6, y - 3, 6, .8); glow(x + 6, y - 3, 6, .8);
+  },
+};
+
+// По уровням 2…12: что появляется у каждого бизнеса. a = { w, H, top, T }.
+const LEVEL_DECOR = {
+  kiosk: [
+    a => DECOR.board(a.w / 2 + 19, a.T, ['ЭКСТРА!', 'КРАХ', 'БАНКА', '2 ЦЕНТА']),
+    a => DECOR.hydrant(-a.w / 2 - 21),
+    a => DECOR.newsboy(a.w / 2 + 10, a.T),
+    a => DECOR.pigeons(-a.w / 2 + 2, a.top, a.T),
+    a => DECOR.dog(-a.w / 2 - 10, a.T),
+    a => DECOR.bicycle(a.w / 2 + 28),
+    a => DECOR.cat(a.w / 2 - 6, a.top, a.T),
+    a => DECOR.lights(-a.w / 2 - 4, a.w / 2 + 4, a.top - 4, a.T),
+    a => DECOR.flag(-a.w / 2 + 4, a.top, a.T),
+    a => DECOR.billboard(26, a.top, a.T, ['ЧИТАЙ', 'TRIBUNE', 'КАЖДОЕ УТРО']),
+    a => DECOR.searchlight(0, a.top - 2, a.T),
+  ],
+  laundry: [
+    a => DECOR.crates(-a.w / 2 - 7),
+    a => DECOR.clothes(-a.w / 2 + 4, 4, -a.H - 4, a.T),
+    a => DECOR.cat(-a.w / 2 + 8, -a.H, a.T),
+    a => DECOR.bottles(a.w / 2 - 34),
+    a => DECOR.board(a.w / 2 + 8, a.T, ['СТИРКА', 'ГЛАЖКА', 'ЗА ЧАС', '5 ЦЕНТОВ']),
+    a => DECOR.pigeons(-6, -a.H, a.T),
+    a => DECOR.tower(-a.w / 2 + 16, -a.H),
+    a => DECOR.bicycle(-a.w / 2 - 8),
+    a => DECOR.lights(-a.w / 2, a.w / 2, -a.H + 8, a.T),
+    a => DECOR.flag(8, -a.H, a.T),
+    a => DECOR.searchlight(-10, -a.H, a.T),
+  ],
+  garage: [
+    a => DECOR.barrels(-a.w / 2 - 7),
+    a => DECOR.hydrant(a.w / 2 + 8),
+    a => DECOR.dog(-a.w / 2 + 8, a.T),
+    a => DECOR.board(-a.w / 2 - 8, a.T, ['РЕМОНТ', 'МОТОРОВ', 'ДЁШЕВО', 'НОЧЬЮ']),
+    a => DECOR.pigeons(-a.w / 2 + 6, -a.H, a.T),
+    a => DECOR.antenna(-a.w / 2 + 36, -a.H, a.T),
+    a => DECOR.cat(-a.w / 2 + 22, -a.H, a.T),
+    a => DECOR.flag(-a.w / 2 + 4, -a.H, a.T),
+    a => DECOR.lights(-a.w / 2, a.w / 2, -a.H + 6, a.T),
+    a => DECOR.billboard(a.w / 2 - 22, -a.H, a.T, ['ЗАПРАВЬСЯ', 'RED CROWN', 'ГАЗОЛИН 18¢']),
+    a => DECOR.searchlight(-a.w / 2 + 14, -a.H, a.T),
+  ],
+  printing: [
+    a => DECOR.rolls(-a.w / 2 - 6),
+    a => DECOR.newsboy(a.w / 2 + 8, a.T),
+    a => DECOR.board(-a.w / 2 - 8, a.T, ['ГОРЯЧИЙ', 'ВЫПУСК', 'ЧИТАЙ', 'ПЕРВЫМ']),
+    a => DECOR.pigeons(-a.w / 2 + 4, -a.H, a.T),
+    a => DECOR.cat(a.w / 2 - 8, -a.H, a.T),
+    a => DECOR.tower(a.w / 2 - 12, -a.H),
+    a => DECOR.antenna(-a.w / 2 + 8, -a.H, a.T),
+    a => DECOR.flag(-a.w / 2 + 14, -a.H, a.T),
+    a => DECOR.lights(-a.w / 2, a.w / 2, -a.H + 8, a.T),
+    a => DECOR.dog(-a.w / 2 + 14, a.T),
+    a => DECOR.searchlight(0, -a.H, a.T),
+  ],
+  speakeasy: [
+    a => DECOR.barrels(a.w / 2 + 7),
+    a => DECOR.cat(a.w / 2 - 6, -a.H, a.T),
+    a => DECOR.bottles(-a.w / 2 - 6),
+    a => DECOR.board(-a.w / 2 - 9, a.T, ['ЧАЙНАЯ', 'КАК', 'У МАМЫ', 'ВХОД СЗАДИ']),
+    a => DECOR.pigeons(0, -a.H, a.T),
+    a => DECOR.arrow(a.w / 2 - 6, -a.H + 18, a.T),
+    a => DECOR.flowers(-a.w / 2 + 12),
+    a => DECOR.antenna(a.w / 2 - 16, -a.H, a.T),
+    a => DECOR.lights(-a.w / 2, a.w / 2, -a.H + 6, a.T),
+    a => DECOR.billboard(-a.w / 2 + 20, -a.H, a.T, ['ПЕЙТЕ', 'ЛИМОНАД', 'ЧЕСТНОЕ СЛОВО']),
+    a => DECOR.searchlight(0, -a.H - 26, a.T),
+  ],
+  tenement: [
+    a => DECOR.bottles(-a.w / 2 + 10),
+    a => DECOR.clothes(-a.w / 2 + 4, a.w / 2 - 4, -a.H - 4, a.T),
+    a => DECOR.flowers(a.w / 2 + 7),
+    a => DECOR.cat(a.w / 2 - 10, -a.H, a.T),
+    a => DECOR.pigeons(-a.w / 2 + 6, -a.H, a.T),
+    a => DECOR.bicycle(-a.w / 2 - 8),
+    a => DECOR.tower(-a.w / 2 + 16, -a.H),
+    a => DECOR.antenna(a.w / 2 - 14, -a.H, a.T),
+    a => DECOR.flag(4, -a.H, a.T),
+    a => DECOR.lights(-a.w / 2, a.w / 2, -a.H + 6, a.T),
+    a => DECOR.searchlight(0, -a.H, a.T),
+  ],
+};
+// крыша киоска — козырёк, а не верх рисунка
+const decorTop = (id, st) => id === 'kiosk' ? [0, -61, -76, -76][st] : -DEF[id].H[st];
+function drawDecor(i, b, T) {
+  const st = state.biz[b.id]; if (!st.level) return;
+  const list = LEVEL_DECOR[b.id]; if (!list) return;
+  const ls = lotState(b); if (ls.kind === 'rise') return;
+  const sg = ls.cur, a = { w: DEF[b.id].W[sg], H: DEF[b.id].H[sg], top: decorTop(b.id, sg), T };
+  ctx.save(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.translate(lotX(i), gy); ctx.scale(s, s);
+  const n = Math.min(list.length, st.level - 1);
+  for (let k = 0; k < n; k++) { try { list[k](a); } catch (e) { /* деталь не важнее кадра */ } }
+  ctx.restore();
+}
+{
+  const _dl = drawLot; drawLot = function (i, b, T, pass) {
+    const r = _dl(i, b, T, pass);
+    if (pass === 0) { const cx = lotX(i); if (cx > -L * .9 && cx < W + L * .9) drawDecor(i, b, T); }
+    return r;
+  };
+}
+
+// --- сценки в окнах: редко, чтобы было что искать ---
+function winScene(x, y, w, h, seed, T) {
+  const v = hs(seed + .13);
+  if (v < .62) return;
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  const ink = 'rgba(20,14,8,.88)';
+  if (v < .69) { // кот на подоконнике
+    const cx = x + w * .3; ell(cx, y + h - 2, w * .16, h * .14, ink); ell(cx + w * .05, y + h - 4.2, w * .11, w * .1, ink);
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.moveTo(cx - w * .04, y + h - 5.2); ctx.lineTo(cx - w * .01, y + h - 6.6); ctx.lineTo(cx + w * .04, y + h - 5.2); ctx.moveTo(cx + w * .06, y + h - 5.2); ctx.lineTo(cx + w * .11, y + h - 6.6); ctx.lineTo(cx + w * .14, y + h - 5.2); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(cx + w * .14, y + h - 1); ctx.quadraticCurveTo(cx + w * .35, y + h - 1, cx + w * .38, y + h - 3 + Math.sin(T * 1.5 + seed) * 1.2); ctx.stroke();
+  } else if (v < .76) { // читает газету, иногда переворачивает лист
+    const px = x + w * .5, flip = Math.sin(T * .4 + seed) > .95;
+    ell(px, y + h * .38, w * .13, w * .13, ink);
+    R(px - w * .32, y + h * .42, w * .64, h * .36, flip ? '#c9bc9c' : '#ddd0b2'); R(px - .3, y + h * .42, .6, h * .36, 'rgba(0,0,0,.4)');
+    R(px - w * .26, y + h * .48, w * .2, .5, '#6b5a40'); R(px + w * .06, y + h * .48, w * .2, .5, '#6b5a40');
+  } else if (v < .83) { // прохожий по комнате
+    const px = x + w * (.5 + .32 * Math.sin(T * .35 + seed));
+    ell(px, y + h * .52, w * .14, w * .14, ink); ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(px, y + h, w * .3, h * .3, 0, Math.PI, 0); ctx.fill();
+  } else if (v < .89) { // пара танцует под радио
+    const sw = Math.sin(T * 1.8 + seed) * w * .08, bob = Math.abs(Math.sin(T * 3.6 + seed)) * .8;
+    ell(x + w * .4 + sw, y + h * .45 - bob, w * .12, w * .12, ink); ell(x + w * .6 + sw, y + h * .42 - bob, w * .12, w * .13, ink);
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(x + w * .5 + sw, y + h, w * .36, h * .36, 0, Math.PI, 0); ctx.fill();
+  } else if (v < .94) { // карты под лампой: двое и абажур
+    ell(x + w * .5, y + h * .2, w * .2, h * .07, '#3a2a16'); glow(x + w * .5, y + h * .3, w, .25);
+    ell(x + w * .22, y + h * .6, w * .12, w * .12, ink); ell(x + w * .78, y + h * .6, w * .12, w * .12, ink);
+    R(x + w * .15, y + h * .78, w * .7, h * .22, ink);
+    if (Math.sin(T * .9 + seed) > .7) R(x + w * .32, y + h * .66, w * .1, h * .1, '#efe6d0');
+  } else { // курит у окна: огонёк разгорается
+    ell(x + w * .62, y + h * .4, w * .14, w * .15, ink); ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(x + w * .62, y + h, w * .3, h * .38, 0, Math.PI, 0); ctx.fill();
+    const em = .5 + .5 * Math.sin(T * .8 + seed); ell(x + w * .38, y + h * .44, .7, .7, `rgba(255,${140 + 80 * em},80,1)`); glow(x + w * .38, y + h * .44, 3, .5 * em);
+  }
+  ctx.restore();
+}
+{
+  const _win = win; win = function (x, y, w, h, seed, T, onP = .6) {
+    const h0 = hs(seed), yn = clamp(-(y + h / 2) / LITH), lit = h0 < onP && (LIT * 1.25 - yn) > hs(seed + .37) * .25;
+    const r = _win(x, y, w, h, seed, T, onP);
+    if (lit && w >= 7 && LIT > .5) { ctx.globalAlpha = 1; winScene(x, y, w, h * .96, seed, T); R(x + w / 2 - .4, y, .8, h, '#0b0908'); R(x, y + h * .5 - .4, w, .8, '#0b0908'); }
+    return r;
+  };
+}
+
+// --- кабаре «Полумесяц» ---
+function dancer(x, y, k, T, ph) {
+  const kick = Math.max(0, Math.sin(T * 2.4 + ph)), fan = Math.sin(T * 1.7 + ph) * .5, sway = Math.sin(T * 1.2 + ph) * .8;
+  ctx.save(); ctx.translate(x + sway, y); ctx.scale(k, k);
+  const sil = '#2a0d1e', skin = '#4a1f33';
+  // веер из перьев
+  ctx.save(); ctx.translate(5, -21); ctx.rotate(.75 + fan * .6);
+  for (let f = -3; f <= 3; f++) { ctx.strokeStyle = sil; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(f * 1.6, -5, f * 2.2, -9); ctx.stroke(); }
+  ctx.restore();
+  // ноги: одна в канкане
+  ctx.strokeStyle = sil; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-1, -10); ctx.lineTo(-1.6, 0); ctx.moveTo(1, -10); ctx.lineTo(1.5 + kick * 6, -kick * 9); ctx.stroke();
+  // платье в пол с разрезом, открытые плечи и глубокий вырез
+  ctx.fillStyle = sil; ctx.beginPath(); ctx.moveTo(-3, -24); ctx.lineTo(3, -24); ctx.lineTo(2, -16); ctx.lineTo(4.5, -9); ctx.lineTo(-4.5, -9); ctx.lineTo(-2, -16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.moveTo(-1.6, -24); ctx.lineTo(1.6, -24); ctx.lineTo(0, -20); ctx.closePath(); ctx.fill();
+  R(-3.4, -25.2, 6.8, 1.4, skin);
+  ctx.strokeStyle = skin; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-3.2, -24.4); ctx.lineTo(-6, -27 - fan * 2); ctx.moveTo(3.2, -24.4); ctx.lineTo(4, -21); ctx.stroke();
+  // голова с каре и перо в волосах
+  ell(0, -28, 2.1, 2.4, skin); ctx.fillStyle = sil; ctx.beginPath(); ctx.arc(0, -28.6, 2.5, Math.PI * .95, Math.PI * 2.05); ctx.fill(); R(-2.5, -28.6, 1.2, 2.6, sil); R(1.3, -28.6, 1.2, 2.6, sil);
+  ctx.strokeStyle = sil; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(1.5, -30.5); ctx.quadraticCurveTo(3, -34, 1, -36); ctx.stroke();
+  ctx.restore();
+}
+drawClubLot = function (cx, T) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.translate(cx, gy); ctx.scale(s, s);
+  LIT = 1; LITH = 150;
+  const w = 108, h = 146, neon = (seed) => hs(Math.floor(T * 9) + seed) > .03 ? 1 : .3;
+  facade(-w / 2, -h, w, h, '#24141c', '#341e26');
+  R(-w / 2 + 12, -h - 12, w - 24, 13, '#1e1218'); R(-w / 2 + 26, -h - 22, w - 52, 11, '#1e1218');
+  // розовый неоновый полумесяц
+  const on = neon(11);
+  ctx.strokeStyle = on > .5 ? '#ff9ac4' : '#5a2a3c'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(0, -h - 2, 13, Math.PI * .55, Math.PI * 1.85); ctx.stroke();
+  if (on > .5) { pinkGlow(-4, -h - 2, 40, .55); pinkGlow(-6, -h - 4, 14, .7); }
+  // окна второго этажа: розовый свет и танцовщицы
+  for (let k = 0; k < 4; k++) {
+    const wx = -w / 2 + 10 + k * 23, wy = -h + 30, ww = 18, wh = 30;
+    R(wx - 1.2, wy - 1.2, ww + 2.4, wh + 2.4, '#0b0908');
+    const g = ctx.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, '#ffb3d1'); g.addColorStop(1, '#c2457e');
+    ctx.fillStyle = g; ctx.fillRect(wx, wy, ww, wh);
+    ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
+    dancer(wx + ww / 2 - 1, wy + wh + 7, 1.05, T, k * 1.9);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(110,20,50,.85)'; // бархатные шторы
+    ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + 5, wy); ctx.quadraticCurveTo(wx + 2, wy + wh * .5, wx + 4, wy + wh); ctx.lineTo(wx, wy + wh); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(wx + ww, wy); ctx.lineTo(wx + ww - 5, wy); ctx.quadraticCurveTo(wx + ww - 2, wy + wh * .5, wx + ww - 4, wy + wh); ctx.lineTo(wx + ww, wy + wh); ctx.fill();
+    R(wx - 1.5, wy + wh + .5, ww + 3, 1.6, '#4a3040');
+    pinkGlow(wx + ww / 2, wy + wh / 2, 30, .35);
+  }
+  // вертикальная вывеска CABARET: буквы загораются по очереди
+  const vx = w / 2 + 6; R(vx - 5, -h + 18, 10, 64, '#16090f');
+  const lit = Math.floor(T * 3) % 10;
+  [...'CABARET'].forEach((ch, k) => {
+    const a = k <= lit ? neon(30 + k) : .2;
+    ctx.font = font(700, 7.2); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#3a1a28'; ctx.fillText(ch, vx, -h + 24 + k * 8.6);
+    if (a > .5) { ctx.fillStyle = '#ffc2dc'; ctx.fillText(ch, vx, -h + 24 + k * 8.6); pinkGlow(vx, -h + 24 + k * 8.6, 9, .45); }
+  });
+  // козырёк с лампами и афишей
+  R(-42, -82, 84, 14, '#16090f'); bulbFrame(-42, -82, 84, 14, T, 1);
+  sign('ПОЛУМЕСЯЦ · РЕВЮ', 0, -75, 6.2, T, 1, 507, false, '#ffc2dc');
+  pinkGlow(0, -75, 46, .4);
+  for (const px of [-38, 26]) { // афиши у входа
+    R(px, -46, 12, 22, '#1b1714'); R(px + 1, -45, 10, 20, '#e8c0d0');
+    ctx.save(); ctx.beginPath(); ctx.rect(px + 1, -45, 10, 20); ctx.clip(); dancer(px + 6, -24, .55, T * .0001, px); ctx.restore();
+    ctx.fillStyle = '#5a1030'; ctx.font = font(700, 2.4); ctx.textAlign = 'center'; ctx.fillText('ВЕЧЕРОМ', px + 6, -42.5);
+  }
+  // дверь, канаты, швейцар — как у клуба
+  R(-13, -36, 26, 36, '#0b0908'); R(-11.5, -34.5, 23, 34.5, '#2a1018'); R(-.5, -34.5, 1, 34.5, '#0b0908');
+  ctx.globalAlpha = .7; R(-11.5, -2, 23, 2, '#ff9ac4'); ctx.globalAlpha = 1; pinkGlow(0, -1, 24, .4);
+  R(-15, -27, 30, 10, '#d6cab0'); painted('ТОЛЬКО ДЛЯ СВОИХ', 0, -23.8, 3.4, .95, '#5a1030'); painted('СКОРО', 0, -19.6, 3.6, .95, '#141210');
+  for (const px of [-24, 24]) { R(px - 1, -14, 2, 14, '#c9a24a'); ctx.fillStyle = '#e2c47a'; ctx.beginPath(); ctx.arc(px, -15, 1.8, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = '#8a1f4a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-24, -12); ctx.quadraticCurveTo(-18, -6, -14, -10); ctx.moveTo(24, -12); ctx.quadraticCurveTo(18, -6, 14, -10); ctx.stroke();
+  // розовый отсвет на мокром тротуаре
+  pinkGlow(0, 4, 70, .22);
+  ctx.save(); ctx.translate(33, 0); ctx.scale(.52, .52); drawGangster(ctx, DOORMAN, 'stand', T, { flip: true }); ctx.restore();
+};
+{
+  const club = SPECIALS.find(x => x.id === 'club');
+  if (club) { club.name = 'Кабаре «Полумесяц»'; club.status = 'РЕВЮ · ОТКРОЕТСЯ СКОРО'; club.col = '#ff9ac4'; }
 }
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
