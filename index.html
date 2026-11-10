@@ -2285,6 +2285,8 @@ function randomOutfit(seed) {
 const DOORMAN = { fig: 'he', hat: 'hat_bowler_gold', top: 'top_tux', coat: 'coat_none', acc: 'acc_gloves', wpn: 'wpn_bare', win: 'win_tip_hat' };
 
 // ---------- Подворотня и клуб на улице ----------
+// люди на улице в масштабе зданий: фигура 149 ед., дверь 36–40, этаж ~25 → взрослый ≈ 38 ед.
+const PERSON = .26;
 function drawAlleyLot(cx, T) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.translate(cx, gy); ctx.scale(s, s);
   LIT = 1; LITH = 150;
@@ -2302,7 +2304,7 @@ function drawAlleyLot(cx, T) {
   ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(sw2 - 3, -92); ctx.lineTo(sw2 - 22, 0); ctx.lineTo(sw2 + 22, 0); ctx.closePath(); ctx.fill();
   R(-19, -14, 14, 14, '#5a4a30'); R(-19, -14, 14, .6, 'rgba(239,230,208,.3)'); R(-17, -26, 10, 12, '#4a3d28');
   ctx.fillStyle = '#2a2520'; ctx.fillRect(10, -16, 8, 16); ctx.fillStyle = '#3a3229'; ctx.fillRect(9, -17, 10, 2);
-  ctx.save(); ctx.translate(-2, 0); ctx.scale(.56, .56); drawGangster(ctx, state.outfit, 'stand', T, {}); ctx.restore();
+  ctx.save(); ctx.translate(-2, 0); ctx.scale(PERSON, PERSON); drawGangster(ctx, state.outfit, 'stand', T, {}); ctx.restore();
   smoke(4, -2, T, 4, 7, .25, 30, 10, .3);
   const pulse = .5 + .5 * Math.sin(T * 3);
   ctx.fillStyle = `rgba(226,196,122,${.5 + .5 * pulse})`; ctx.beginPath(); ctx.moveTo(-6, -h + 4 - pulse * 3); ctx.lineTo(6, -h + 4 - pulse * 3); ctx.lineTo(0, -h + 12 - pulse * 3); ctx.closePath(); ctx.fill();
@@ -2329,7 +2331,7 @@ function drawClubLot(cx, T) {
   ctx.strokeStyle = '#8a7358'; ctx.lineWidth = 1.4;
   for (const px of [-24, 24]) { R(px - 1, -14, 2, 14, '#c9a24a'); ctx.fillStyle = '#e2c47a'; ctx.beginPath(); ctx.arc(px, -15, 1.8, 0, 7); ctx.fill(); }
   ctx.strokeStyle = '#6b2420'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-24, -12); ctx.quadraticCurveTo(-18, -6, -14, -10); ctx.moveTo(24, -12); ctx.quadraticCurveTo(18, -6, 14, -10); ctx.stroke();
-  ctx.save(); ctx.translate(33, 0); ctx.scale(.52, .52); drawGangster(ctx, DOORMAN, 'stand', T, { flip: true }); ctx.restore();
+  ctx.save(); ctx.translate(31, 0); ctx.scale(PERSON, PERSON); drawGangster(ctx, DOORMAN, 'stand', T, { flip: true }); ctx.restore();
 }
 const SPECIALS = [
   { id: 'alley', slot: 0, name: 'Подворотня', status: 'ДУЭЛИ · ВХОДИ', col: '#e2c47a', top: 160 },
@@ -5323,7 +5325,7 @@ drawClubLot = function (cx, T) {
   ctx.strokeStyle = '#8a1f4a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-24, -12); ctx.quadraticCurveTo(-18, -6, -14, -10); ctx.moveTo(24, -12); ctx.quadraticCurveTo(18, -6, 14, -10); ctx.stroke();
   // розовый отсвет на мокром тротуаре
   pinkGlow(0, 4, 70, .22);
-  ctx.save(); ctx.translate(33, 0); ctx.scale(.52, .52); drawGangster(ctx, DOORMAN, 'stand', T, { flip: true }); ctx.restore();
+  ctx.save(); ctx.translate(31, 0); ctx.scale(PERSON, PERSON); drawGangster(ctx, DOORMAN, 'stand', T, { flip: true }); ctx.restore();
 };
 {
   const club = SPECIALS.find(x => x.id === 'club');
