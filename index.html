@@ -4813,11 +4813,90 @@ function takeChallenge() {
   };
 }
 
+// ---------- Магазин-витрина: лестница цен в звёздах из reviews/revenue5k.md ----------
+// В тесте звёзды не списываются: нажатие «Купить» записывается в журнал и уходит в «Отчёт разработчику».
+// Только вид и удобство: сила, фишки, рейтинг и шансы не продаются.
+const SHOP_ITEMS = [
+  { step: 'Мелочи', items: [
+    { id: 'shine',   n: 'Чистка ботинок', p: 1,   d: 'Лаковые ботинки на сутки, строка в газете «блестел на Доках». Раз в день.' },
+    { id: 'coffee',  n: 'Угостить кофе', p: 15,  d: 'Чашка на прилавке друга на сутки и подпись «тебя угостил…».' },
+    { id: 'ad',      n: 'Объявление в газете', p: 25, d: 'Одна строка из готовых: «Ищу людей в банду» и другие. На сутки.' },
+    { id: 'card',    n: 'Открытка другу', p: 49,  d: 'Живая открытка с приглашением в игру.' },
+  ] },
+  { step: 'Первая покупка', items: [
+    { id: 'starter', n: 'Стартовый набор', p: 99, d: '100 слитков, Счетовод и костюм в полоску. Один раз.' },
+    { id: 'rename',  n: 'Смена имени', p: 99, d: 'Первая бесплатно, дальше раз в 30 дней.' },
+    { id: 'gold150', n: 'Слитки ×150', p: 150, d: 'На ускорение стройки и пополнение энергии (не больше 3 в день).' },
+  ] },
+  { step: 'Для своих', items: [
+    { id: 'member',  n: 'Членская карта «Полумесяца»', p: 250, per: '30 дней', d: '+20% к запасу энергии, касса держит 10 ч, 5 слитков в день, рамка. В бою ничего не даёт.' },
+    { id: 'club',    n: 'Клуб для банды', p: 250, d: 'Вывеска и именной герб. Бесплатно — по уставу с двумя сооснователями.' },
+    { id: 'sedan',   n: 'Седан у тротуара', p: 400, d: 'Стоит у твоего квартала, виден соседям и на афише.' },
+    { id: 'pass',    n: 'Пропуск сезона', p: 500, per: 'сезон', d: '6–8 вещей, 300 слитков, титул. Уровни пропуска растут только от игры.' },
+    { id: 'treat',   n: 'Угостить банду', p: 500, d: 'Всем в банде — поза месяца «Тост» и заметка «закатил банкет».' },
+  ] },
+  { step: 'Хозяин района', items: [
+    { id: 'evening', n: 'Вечер в «Полумесяце»', p: 990, d: 'Час оркестра и фейерверка над районом, всем пришедшим — конфетти на сутки, твоё имя в газете.' },
+    { id: 'patron',  n: 'Покровитель', p: 1490, per: '30 дней', d: 'Карта и ложа, вещь месяца только для абонентов, табличка с именем, заметка в хронике раз в неделю.' },
+    { id: 'serial',  n: 'Номерная вещь «Первый тираж»', p: 1500, d: 'Легендарная вещь с номером. Продаётся 7 дней, потом в архив навсегда.' },
+    { id: 'pick',    n: '+ свой номер', p: 2500, d: '№ 1–9 по выбору вместо очередного. Номера 10–99 — 990 ★.' },
+    { id: 'cabrio',  n: 'Кабриолет', p: 2000, d: 'Самая заметная машина квартала.' },
+  ] },
+];
+const SHOP_ALL = SHOP_ITEMS.flatMap(s => s.items);
+function shopLog(kind, id) {
+  ensureState();
+  state.shop = state.shop || { opens: 0, wants: [] };
+  if (kind === 'open') state.shop.opens++;
+  else state.shop.wants.push({ id, d: lifeDay(), l: state.level });
+  saveGame();
+}
+function openShop() {
+  shopLog('open');
+  let el = $('shop');
+  if (!el) {
+    el = document.createElement('div'); el.className = 'sheet'; el.id = 'shop';
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Магазин');
+    document.body.appendChild(el);
+    el.addEventListener('click', (e) => {
+      if (e.target === el || e.target.closest('[data-shop="close"]')) { el.hidden = true; return; }
+      const b = e.target.closest('[data-buy]'); if (!b) return;
+      const it = SHOP_ALL.find(x => x.id === b.dataset.buy);
+      shopLog('want', it.id); b.textContent = 'Записано ✓'; b.disabled = true;
+      toast(`«${it.n}» — ${it.p} ★`, 'Тестовая сборка: звёзды не списываются. Записали, что ты бы купил. Это поможет выбрать цены.', 'gold');
+    });
+  }
+  const wanted = new Set((state.shop.wants || []).map(w => w.id));
+  el.innerHTML = `<div class="sheet-in">
+    <div class="sec-h"><h2>Магазин</h2><button class="btn sm" data-shop="close" style="flex:0 0 auto;margin-left:auto">Закрыть</button></div>
+    <p class="hint" style="margin:0">Здесь продают вид и удобство. Силу, фишки, рейтинг и удачу купить нельзя. Случайных ящиков нет.</p>
+    ${SHOP_ITEMS.map(s => `<div class="card"><div class="sec-h"><h2>${s.step}</h2></div><ul class="bn-list">${s.items.map(it => `
+      <li style="align-items:center"><span><span style="color:var(--paper)">${it.n}</span><br><span class="hint" style="margin:0">${it.d}</span></span>
+      <button class="btn sm gold" data-buy="${it.id}" ${wanted.has(it.id) ? 'disabled' : ''} style="white-space:nowrap">${wanted.has(it.id) ? 'Записано ✓' : `${fmt(it.p)} ★${it.per ? ' / ' + it.per : ''}`}</button></li>`).join('')}</ul></div>`).join('')}
+    <p class="hint" style="margin:0">Тестовая сборка: оплата выключена. Нажатия попадают в «Отчёт разработчику».</p>
+  </div>`;
+  el.hidden = false;
+}
+{
+  const g = $('st-gold'); g.style.cursor = 'pointer'; g.title = 'Магазин';
+  g.addEventListener('click', () => { if (state.tut >= 0 && state.tut < TUT.length - 1) return; openShop(); });
+  const row = $('cab-report').parentElement, b = document.createElement('button');
+  b.className = 'btn sm gold'; b.id = 'cab-shop'; b.textContent = 'Магазин';
+  row.insertBefore(b, $('cab-report'));
+  b.addEventListener('click', () => { closeCab(); openShop(); });
+  const _r = devReport; devReport = function () {
+    const s = state.shop || { opens: 0, wants: [] };
+    const w = s.wants.map(x => { const it = SHOP_ALL.find(i => i.id === x.id); return `${it ? it.n : x.id} ${it ? it.p : '?'}★ (д${x.d}, ур${x.l})`; }).join('; ');
+    return `${_r()}\nМагазин: открыт ${s.opens} раз · хотел купить: ${w || 'ничего'}`;
+  };
+}
+
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot, boot);
 })();
-</script><script>
+</script>
+<script>
 // Telegram: на весь экран и без сворачивания свайпом вниз — иначе листание улицы и прокрутка сворачивают игру (Bot API 7.7+)
 try {
   const tg = window.Telegram && Telegram.WebApp;
