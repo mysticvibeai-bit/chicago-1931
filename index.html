@@ -266,6 +266,12 @@ html,body{overscroll-behavior:none}
 .snd svg{width:22px;height:22px}.snd .x{display:none}.snd[aria-pressed="false"]{color:var(--sepia)}.snd[aria-pressed="false"] .w{display:none}.snd[aria-pressed="false"] .x{display:inline}
 .vols label{display:grid;grid-template-columns:80px 1fr;align-items:center;gap:10px;margin-top:10px;font-size:14px;color:var(--paper-dim)}
 .vols input[type=range]{width:100%;accent-color:var(--gold);min-height:32px}
+.today{display:flex;flex-direction:column;gap:2px;border-left:3px solid var(--gold);background:var(--coal);border-radius:0 10px 10px 0;padding:8px 12px}
+.today b{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.today span{font-family:var(--serif);font-size:13.5px;color:var(--paper-dim)}
+#jobs-bulk{flex:0 0 auto}
+.away .sheet-in{max-width:440px;margin-bottom:auto;margin-top:auto;border-radius:18px;border-bottom:1px solid var(--line)}
+.away{align-items:center;padding:16px}
 .stubs{display:flex;gap:4px;margin-top:10px}
 .stubs i{flex:1;height:14px;border:1px dashed var(--line-2);border-radius:3px}
 .stubs i.on{background:var(--gold-dim);border:1px solid var(--gold)}
@@ -312,6 +318,7 @@ html,body{overscroll-behavior:none}
   </div>
 
   <section id="v-block" class="view" style="display:flex;flex-direction:column;gap:12px">
+    <div class="today" id="today" hidden></div>
     <div class="card" id="goals" hidden><div class="sec-h"><h2>Дела на сегодня</h2><span class="meta num" id="goals-n"></span></div><ul class="bn-list" id="goals-list"></ul><p class="hint" id="goals-foot"></p></div>
     <div class="sec-h"><h2>Бизнесы</h2><span class="meta num" id="inc">доход $0/ч</span><button class="btn sm gold" id="collectAll">Собрать всё</button></div>
     <div class="scene"><canvas id="street" role="img" aria-label="Улица в Доках: шесть участков, на них бизнесы игрока"></canvas><span class="scene-hint">Доки · листай улицу</span><span class="golden" id="golden" hidden>Золотой час · проведи пальцем по монетам</span></div>
@@ -326,6 +333,7 @@ html,body{overscroll-behavior:none}
       <div class="row2 num"><span id="mast-t">64 из 80 до второй звезды</span><div class="bar"><i id="mast-bar"></i></div><span class="g">+10 слитков</span></div>
     </div>
     <div class="en num"><svg class="i"><use href="#i-bolt"/></svg><span id="en2">28 из 42</span><div class="bar"><i id="en-bar"></i></div><span class="s" id="en2-s">+1 через 3:12</span></div>
+    <button class="btn gold" id="jobs-bulk" hidden></button>
     <div class="jobs" id="jobs"></div>
     <p class="foot-note">Выплата растёт с твоим уровнем. Три звезды района — барабанный автомат.</p>
   </section>
@@ -469,6 +477,12 @@ html,body{overscroll-behavior:none}
   <svg class="c-arrow" id="c-arrow" viewBox="0 0 32 40" aria-hidden="true"><path d="M16 3v30M5 22l11 13 11-13" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
   <div class="c-bub" id="c-bub" role="status"><b id="c-t"></b><p id="c-p"></p><button class="btn sm gold" id="c-next" hidden></button><button class="linkish c-skip" id="c-skip">Сам разберусь</button></div>
 </div>
+<div class="sheet away" id="away" hidden role="dialog" aria-label="Пока тебя не было"><div class="sheet-in">
+  <div class="sec-h"><h2 id="away-t">Пока тебя не было</h2></div>
+  <ul class="bn-list" id="away-list"></ul>
+  <p class="hint" id="away-hint"></p>
+  <div class="row"><button class="btn gold" id="away-go">Забрать всё</button><button class="btn" id="away-x">Позже</button></div>
+</div></div>
 <div class="sheet" id="cab" hidden role="dialog" aria-label="Личный кабинет"><div class="sheet-in">
   <div class="sec-h"><h2>Личный кабинет</h2><button class="btn sm" id="cab-close" style="flex:0 0 auto;margin-left:auto">Закрыть</button></div>
   <div class="card cab-me"><div class="ava"><svg><use href="#i-hat"/></svg></div><div><div class="cab-name" id="cab-name"></div><div class="hint" id="cab-sub" style="margin:2px 0 0"></div></div></div>
@@ -513,7 +527,7 @@ const BIZ = [
   { id:'speakeasy', name:'Подпольный бар', unlock:10, buildCost:25000, baseCost:25000, income:2000, buildMin:90 },
   { id:'tenement',  name:'Доходный дом',   unlock:14, buildCost:70000, baseCost:70000, income:4500, buildMin:180 },
 ];
-const RULES = { maxLevel:10, costGrowth:1.8, incomeGrowth:1.28, timeGrowth:1.4, maxUpMin:480, gateBase:2, capH:6 };
+const RULES = { maxLevel:10, costGrowth:1.8, incomeGrowth:1.28, timeGrowth:1.4, maxUpMin:480, gateBase:2, capH:10 };
 const JOBS = [
   { id:'d1', name:'Разгрузить контрабанду',     energy:2, cash:60,  xp:3 },
   { id:'d2', name:'Собрать долги на пристани',  energy:3, cash:100, xp:5 },
@@ -625,7 +639,7 @@ function levelUp() {
   while (state.xp >= xpToNext(state.level) && state.level < 40) {
     state.xp -= xpToNext(state.level); state.level++;
     state.energy = maxEnergy(state.level); state.energyAt = state.t; state.ammo = 5; state.ammoAt = state.t;
-    toast(`Новый уровень: ${state.level}`, 'Энергия и патроны снова полные.', 'gold');
+    toast(`Новый уровень: ${state.level}`, 'Энергия снова полная.', 'gold');
     bump('st-en');
   }
 }
@@ -3437,7 +3451,7 @@ function bankEarn(id, n = 1) {
   state.bn.day[id] = had + n;
   if (state.bn.day[id] >= src.need && bankToday() <= BANK.dailyCap) {
     state.bn.tickets++;
-    toast('+1 билетик', `${src.name}. До Банковской ночи ${BANK.nightDay - BANK.today} дн.`);
+    toast('+1 билетик', `${src.name}. До Банковской ночи ${BANK.daysLeft ? BANK.daysLeft() : BANK.nightDay - BANK.today} дн.`);
   }
   if (!$('v-city').hidden) renderCity();
 }
@@ -3563,7 +3577,7 @@ function cityFrame(T) {
   g.fillStyle = '#1a1612'; g.font = `700 ${12.5 * k}px Oswald, sans-serif`;
   g.fillText(show ? 'ИДЁТ РОЗЫГРЫШ' : 'БАНКОВСКАЯ НОЧЬ', cx, my + 12 * k);
   g.font = `500 ${9 * k}px Oswald, sans-serif`; g.fillStyle = '#5a1c18';
-  g.fillText(show ? 'ТИШИНА В ЗАЛЕ' : 'ПЯТНИЦА 27 НОЯБРЯ · 21:00 · ПО БИЛЕТИКАМ', cx, my + 25 * k);
+  g.fillText(show ? 'ТИШИНА В ЗАЛЕ' : (BANK.nightLabel ? BANK.nightLabel() : 'ПЯТНИЦА 27 НОЯБРЯ · 21:00 · ПО БИЛЕТИКАМ'), cx, my + 25 * k);
   const n = Math.floor((mw + 2 * mh) / (7 * k)), per = 2 * (mw + mh);
   for (let i = 0; i < n * 2; i++) {
     let d = i / (n * 2) * per, x, y;
@@ -3636,7 +3650,7 @@ function drawDrawShow(g, st, W2, H2, k, T) {
   const _collect = collect; collect = function (id, quiet) { const r = _collect(id, quiet); bankEarn('cash'); return r; };
   const _job = doJob; doJob = function (j) { const before = state.jobsDone; const r = _job(j); if (state.jobsDone > before) bankEarn('jobs'); return r; };
   const _end = endDuel; endDuel = function (...a) { const r = _end.apply(this, a); bankEarn('duels'); return r; };
-  const _gold = startGolden; startGolden = function (...a) { const r = _gold.apply(this, a); bankEarn('gold'); return r; };
+  const _gold = startGolden; startGolden = function (...a) { const r = _gold.apply(this, a); if (DEMO) bankEarn('gold'); return r; };
 }
 document.querySelectorAll('#lb-board button').forEach(x => x.addEventListener('click', () => { cityBoard = x.dataset.b; renderCity(); }));
 document.querySelectorAll('#lb-scope button').forEach(x => x.addEventListener('click', () => { cityScope = x.dataset.s; renderCity(); }));
@@ -3655,7 +3669,7 @@ const LADDER_NEWS = { 2: ['Новый приём: Рывок', 'Рывок бь�
 const DODGE = { perFight: 2, shrink: .75, ghost: .25, ghostMax: 2, baseWindow: QTE.window };
 const LIFE_GATES = { alley: 2, board: 3 };
 const fightsDone = () => state.fights ?? 99;
-const lifeDay = () => state.life ?? (state.born ? Math.floor((Date.now() - state.born) / 864e5) + 1 : 99);
+const lifeDay = () => state.life ?? (state.born ? dayNo(Date.now()) - dayNo(state.born) + 1 : 99);
 const movesOpen = () => { const m = LADDER.filter(([at]) => fightsDone() >= at).pop()[1]; return dayOk('K') ? m : m.replace('K', ''); };
 function oppMoves() { return movesOpen(); }
 
@@ -3734,6 +3748,10 @@ applyLife();
 // ---------- Тестовая сборка: сохранение, новичок с нуля, обучение, кабинет, друзья, банда ----------
 // Без ?demo в адресе игра идёт в реальном времени, с нуля и с сохранением в браузере. С ?demo — показ с пультом.
 const DEMO = /[?&]demo\b/.test(location.search);
+// игровые сутки начинаются в 05:00: кто играет за полночь, не теряет «вчера»
+function dayKeyOf(ms) { return new Date(ms - 5 * 3600e3).toDateString(); }
+function dayNo(ms) { const d = new Date(ms - 5 * 3600e3); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
+let awayInfo = null;
 const SAVE_KEY = 'chicago1931.save.v1';
 const REAL_SPEED = 1 / 60;                     // игровых минут за реальную секунду
 const GANG = { level: 8, stars: 250, cofounders: 2 };  // основать: уровень + взнос звёздами или бесплатно с двумя сооснователями; платный клуб отличается только видом
@@ -3757,7 +3775,7 @@ function freshState() {
   const s = initialState();
   Object.assign(s, { cash: 150, gold: 5, level: 1, xp: 0, energy: 30, energyAt: 0, ammo: 5, ammoAt: 0, jobsDone: 0 });
   BIZ.forEach(b => s.biz[b.id] = { level: 0, cash: 0, cashAt: 0, busyUntil: null, busyFrom: null });
-  Object.assign(s, { name: '', born: Date.now(), dayKey: new Date().toDateString(), tut: 0, fights: 0, chips: 0, rating: 1000, friends: [], gang: null, ref: Math.random().toString(36).slice(2, 8), days: 1 });
+  Object.assign(s, { name: '', born: Date.now(), dayKey: dayKeyOf(Date.now()), tut: 0, fights: 0, chips: 0, rating: 1000, friends: [], gang: null, ref: Math.random().toString(36).slice(2, 8), days: 1 });
   s.bn = { tickets: 1, stubs: 0, treasury: .12, day: { visit: 1 }, friends: 0, won: [], draws: 0, demoWon: true };
   return s;
 }
@@ -3765,7 +3783,7 @@ let wiping = false;
 function saveGame() { if (DEMO || wiping) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), state, sel })); } catch (e) { /* приватный режим — играем без сохранения */ } }
 function loadGame() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return d && d.state ? d : null; } catch (e) { return null; } }
 function dailyReset() {
-  const key = new Date().toDateString();
+  const key = dayKeyOf(Date.now());
   if (state.dayKey === key) return;
   state.dayKey = key; state.duels = 0; state.days = (state.days || 1) + 1;
   bankEnsure(); state.bn.day = { visit: 1 }; state.bn.tickets++;
@@ -3776,6 +3794,7 @@ if (!DEMO) {
   const sv = loadGame();
   if (sv) {
     state = sv.state; sel = sv.sel || 'kiosk';
+    awayInfo = { min: (Date.now() - sv.at) / 60e3, biz: BIZ.map(b => ({ ...state.biz[b.id] })) };
     state.t += Math.max(0, (Date.now() - sv.at) / 1000) * REAL_SPEED;   // кассы копились, пока игрока не было
   } else { state = freshState(); sel = 'kiosk'; }
   speed = REAL_SPEED; shownCash = state.cash;
@@ -4102,7 +4121,7 @@ const GOALS = {
 function goalsEnsure() {
   ensureState();
   if (state.tut >= 0 && state.tut < TUT.length - 1) return;   // цели дня выдаём после обучения
-  const key = new Date().toDateString() + (state.life ?? '');
+  const key = dayKeyOf(Date.now()) + (state.life ?? '');
   if (state.dg && state.dg.key === key) return;
   const day = lifeDay(), first = ['build', 'jobs', 'gold', 'lvl'];
   const cand = GOALS.pool.filter(g => g.ok());
@@ -4146,7 +4165,7 @@ function renderGoals() {
 {
   const _c = collect; collect = function (id, quiet) { const r = _c(id, quiet); if (r > 0) goalBump('collect'); return r; };
   const _j = doJob; doJob = function (j) { const b = state.jobsDone; const r = _j(j); if (state.jobsDone > b) goalBump('jobs'); goalCheck(); return r; };
-  const _g = startGolden; startGolden = function (...a) { const was = goalsActive(); const r = _g.apply(this, a); if (!was && goalsActive()) goalBump('gold'); return r; };
+  const _g = startGolden; startGolden = function (...a) { const was = goalsActive(); const r = _g.apply(this, a); if (DEMO && !was && goalsActive()) goalBump('gold'); return r; };
   const _u = upgrade; upgrade = function (id) { const b = state.biz[id].busyUntil; const r = _u(id); if (b == null && state.biz[id].busyUntil != null) goalBump('up'); return r; };
   const _b = build; build = function (id) { const r = _b(id); goalCheck(); return r; };
   const _e = endDuel; endDuel = function (...a) { const r = _e.apply(this, a); if (duel && duel.win) goalBump('win'); return r; };
@@ -4355,6 +4374,265 @@ function renderSnd() {
 $('vol-mute').addEventListener('click', () => { audioUnlock(); const c = sndCfg(); c.mute = !c.mute; applyVolumes(); renderSnd(); saveGame(); });
 { const _oc = openCab; openCab = function () { const r = _oc.apply(this, arguments); renderSnd(); return r; }; }
 renderSnd();
+
+// ---------- Календарь и «живой город» без обновлений (docs/design/reviews/casual.md) ----------
+// Дни недели, расписание цеппелина и пасхалок, Банковская ночь по дате, «Пока тебя не было»,
+// фишки за обычную игру, Сэл Пайка на второй день и «заклятый враг».
+const DOW = [
+  { n: 'Воскресенье', t: 'Суп у миссии: +1 билетик за первый заход' },
+  { n: 'Понедельник', t: 'Тяжёлый понедельник: дела дают +25% денег' },
+  { n: 'Вторник', t: 'Вечер вторника: после 18:00 опыт за дела ×1,5' },
+  { n: 'Среда', t: 'Среда в переулке: фишки за дуэли ×1,5' },
+  { n: 'Четверг', t: 'Четверг газетчиков: две пасхалки за заход' },
+  { n: 'Пятница', t: 'Облава: грязные за победы ×2' },
+  { n: 'Суббота', t: 'Субботний турнир: рейтинг за победы ×1,5' },
+];
+const SKY = { zepPerDay: 3, zepGapMin: 120, zepDelay: [10, 20], eggPerDay: 4, eggDelay: [25, 50], goldenMinCoins: 10 };
+const CASUAL_CHIPS = { firstVisit: 10, egg: 3, goal: 5, allGoals: 10 };
+const AWAY_MIN = 60;
+let bankDrawAny = null;   // розыгрыш без проверки даты — для итога пропущенной ночи
+const dow = () => new Date(Date.now() - 5 * 3600e3).getDay();
+const today = () => DOW[dow()];
+
+// --- Банковская ночь по календарю: последняя пятница месяца, 21:00 ---
+function lastFriday(y, m) { const d = new Date(y, m + 1, 0); d.setDate(d.getDate() - ((d.getDay() + 2) % 7)); d.setHours(21, 0, 0, 0); return d; }
+function nextNight(now = new Date()) {
+  let n = lastFriday(now.getFullYear(), now.getMonth());
+  if (now - n > 6 * 3600e3) n = lastFriday(now.getFullYear(), now.getMonth() + 1);
+  return n;
+}
+const MONTHS = ['ЯНВАРЯ', 'ФЕВРАЛЯ', 'МАРТА', 'АПРЕЛЯ', 'МАЯ', 'ИЮНЯ', 'ИЮЛЯ', 'АВГУСТА', 'СЕНТЯБРЯ', 'ОКТЯБРЯ', 'НОЯБРЯ', 'ДЕКАБРЯ'];
+function nightInfo() {
+  const n = nextNight(), now = new Date(), dd = Math.ceil((dayNo(n.getTime() + 5 * 3600e3) - dayNo(now.getTime())));
+  const open = now >= new Date(n.getTime() - 2 * 3600e3) && now - n <= 6 * 3600e3;
+  return { n, open, dd, key: n.toDateString(), label: `ПЯТНИЦА ${n.getDate()} ${MONTHS[n.getMonth()]} · 21:00 · ПО БИЛЕТИКАМ` };
+}
+{
+  if (state.bn) state.bn.seenFrom ??= Date.now();
+  const _rc = renderCity;
+  renderCity = function () {
+    _rc();
+    if (DEMO) return;
+    const ni = nightInfo(), drawn = state.bn?.lastNight === ni.key;
+    $('bn-left').textContent = ni.open ? 'Ночь идёт — заходи в зал' : ni.dd <= 0 ? 'Сегодня в 21:00' : `${ni.dd} дн. до ночи`;
+    const b = $('bn-draw');
+    b.textContent = drawn ? 'Ты уже был в зале' : ni.open ? 'Войти в зал' : `Ночь — ${ni.n.getDate()} ${MONTHS[ni.n.getMonth()].toLowerCase()}, 21:00`;
+    b.disabled = drawn || !ni.open;
+    const won = $('bn-won').querySelector('.none'); if (won) won.textContent = `Пока пусто. Ближайшая ночь — ${ni.n.getDate()} ${MONTHS[ni.n.getMonth()].toLowerCase()}.`;
+  };
+  const _bd = bankDraw;
+  bankDrawAny = _bd;
+  bankDraw = function () {
+    if (!DEMO) { const ni = nightInfo(); if (!ni.open || state.bn?.lastNight === ni.key) return; state.bn.lastNight = ni.key; }
+    return _bd.apply(this, arguments);
+  };
+  BANK.nightLabel = () => DEMO ? 'ПЯТНИЦА 27 НОЯБРЯ · 21:00 · ПО БИЛЕТИКАМ' : nightInfo().label;
+  BANK.daysLeft = () => DEMO ? BANK.nightDay - BANK.today : Math.max(0, nightInfo().dd);
+}
+// пропустил ночь — при первом заходе в Город после неё показываем, что выпало по его билетикам
+function missedNight() {
+  if (DEMO || !state.bn || !state.bn.tickets || show) return;
+  const now = new Date(), prev = lastFriday(now.getFullYear(), now.getMonth()), key = prev.toDateString();
+  const past = now - prev > 6 * 3600e3 ? prev : lastFriday(now.getFullYear(), now.getMonth() - 1), pkey = past.toDateString();
+  if (state.bn.lastNight === pkey || (state.bn.seenFrom || 0) > past.getTime()) return;
+  state.bn.lastNight = pkey;
+  toast('Ты пропустил Банковскую ночь', 'Кассир «Орфея» сохранил твои билетики — смотрим, что выпало.');
+  bankDrawAny();
+}
+
+// --- расписание неба: цеппелин и пасхалки по заходам, а не каждые две минуты ---
+let sessionZep = null, sessionEgg = 0, eggAt = null;
+function skyDay() { const k = dayKeyOf(Date.now()); if (!state.sky || state.sky.key !== k) state.sky = { key: k, zep: 0, egg: 0, lastZep: state.sky?.lastZep || 0 }; return state.sky; }
+{
+  const _te = tickEvents;
+  tickEvents = function (dt) {
+    if (DEMO || state.tut > 0) return _te.apply(this, arguments);
+    const sk = skyDay();
+    if (sessionZep === null) sessionZep = (sk.zep < SKY.zepPerDay && Date.now() - sk.lastZep > SKY.zepGapMin * 60e3) ? SKY.zepDelay[0] + Math.random() * (SKY.zepDelay[1] - SKY.zepDelay[0]) : -1;
+    if (sessionZep > 0) { sessionZep -= dt; if (sessionZep <= 0) { sessionZep = -1; sk.zep++; sk.lastZep = Date.now(); startGolden(); } }
+    const eggsThisVisit = dow() === 4 ? 2 : 1;
+    if (eggAt === null) eggAt = SKY.eggDelay[0] + Math.random() * (SKY.eggDelay[1] - SKY.eggDelay[0]);
+    if (sessionEgg < eggsThisVisit && sk.egg < SKY.eggPerDay && !ev.egg) { eggAt -= dt; if (eggAt <= 0) { sessionEgg++; sk.egg++; eggAt = 40 + Math.random() * 40; startEgg(); } }
+  };
+  // новый заход — после 20 минут в фоне
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 20 * 60e3) { sessionZep = null; sessionEgg = 0; eggAt = null; } });
+}
+// золотой час засчитывается (цель дня и билетик), если поймано хотя бы 10 монет
+{
+  let was = false;
+  setInterval(() => {
+    const now = goldenActive();
+    if (was && !now && !DEMO && ev.got >= SKY.goldenMinCoins) { goalBump('gold'); bankEarn('gold'); }
+    was = now;
+  }, 300);
+}
+
+// --- дни недели ---
+{
+  const _job = doJob;
+  doJob = function (j) {
+    const c0 = state.cash, x0 = state.xp, n0 = state.jobsDone, lv = state.level;
+    const r = _job.apply(this, arguments);
+    if (state.jobsDone > n0 && !DEMO) {
+      const d = dow();
+      if (d === 1) state.cash += Math.round((state.cash - c0) * .25);
+      if (d === 2 && new Date().getHours() >= 18 && state.level === lv) { state.xp += Math.round((state.xp - x0) * .5); levelUp(); }
+    }
+    return r;
+  };
+  const _end = endDuel;
+  endDuel = function () {
+    const ch = state.chips, dr = state.dirty, rt = state.rating;
+    const r = _end.apply(this, arguments);
+    if (!DEMO && duel && duel.win) {
+      const d = dow();
+      if (d === 3) state.chips += Math.round((state.chips - ch) * .5);
+      if (d === 5) state.dirty += state.dirty - dr;
+      if (d === 6) state.rating += Math.round((state.rating - rt) * .5);
+    }
+    return r;
+  };
+}
+function renderToday() {
+  const el = $('today'); if (!el) return;
+  el.hidden = DEMO || state.tut > 0;
+  const d = today(), w = weather();
+  el.innerHTML = `<b>${d.n}${w ? ' · ' + w.n : ''}</b><span>${d.t}${w ? '. ' + w.t : ''}</span>`;
+}
+// погода из даты: одна на весь город в этот день
+function weather() {
+  const dt = new Date(Date.now() - 5 * 3600e3), m = dt.getMonth(), seed = dayNo(Date.now()) * 9301 % 233280 / 233280;
+  if ((m === 11 || m <= 1) && seed < .5) return { n: 'снег', t: 'Снег над Доками' };
+  if (seed < .18) return { n: 'ветер с озера', t: 'Шляпы срывает чаще — ловить их выгоднее' };
+  if (seed < .32) return { n: 'туман', t: 'В тумане слухи о соперниках врут реже' };
+  return null;
+}
+
+// --- фишки за обычную игру, не только за дуэли ---
+{
+  const _dr = dailyReset;
+  dailyReset = function () {
+    const k = state.dayKey; const r = _dr.apply(this, arguments);
+    if (state.dayKey !== k) {
+      state.chips = (state.chips || 0) + CASUAL_CHIPS.firstVisit;
+      if (dow() === 0) { bankEnsure(); state.bn.tickets++; }
+      toast(`${today().n}`, `+${CASUAL_CHIPS.firstVisit} фишек за то, что заглянул. ${today().t}.`);
+      renderToday();
+    }
+    return r;
+  };
+  const _egg = tapEgg;
+  tapEgg = function (x, y) {
+    const r = _egg.apply(this, arguments);
+    if (r && !DEMO) { state.chips = (state.chips || 0) + CASUAL_CHIPS.egg; if (weather()?.n === 'ветер с озера') state.cash += Math.max(EGG.hatMin, Math.round(totalIncome() * EGG.hatIncomeShare)); goalBump('egg'); }
+    return r;
+  };
+  const _gc = goalCheck;
+  goalCheck = function () {
+    const before = state.dg ? state.dg.items.filter(x => x.done).length : 0, paid = state.dg?.paid;
+    const r = _gc.apply(this, arguments);
+    if (state.dg) {
+      const after = state.dg.items.filter(x => x.done).length;
+      if (after > before) state.chips = (state.chips || 0) + CASUAL_CHIPS.goal * (after - before);
+      if (!paid && state.dg.paid) state.chips += CASUAL_CHIPS.allGoals;
+    }
+    return r;
+  };
+}
+GOALS.pool.push(
+  { id: 'egg', t: (n) => n > 1 ? `Поймать ${n} пасхалки на улице` : 'Поймать шляпу или кота', need: [1, 2], ok: () => true },
+  { id: 'duels', t: (n) => `Сыграть ${n} дуэли`, need: [3, 4], ok: () => lifeDay() >= LIFE_GATES.alley },
+  { id: 'city', t: () => 'Заглянуть в Город: кто держит улицы', need: [1], ok: () => lifeDay() >= LIFE_GATES.board },
+  { id: 'share', t: () => 'Отправить вырезку из газеты в чат', need: [1], ok: () => (state.fights || 0) > 0 },
+  { id: 'up2', t: (n) => `Улучшить бизнесы ${n} раза`, need: [2, 3], ok: () => BIZ.filter(b => state.biz[b.id].level > 0).length >= 2 },
+  { id: 'earn', t: (n) => `Заработать на делах $${fmt(n)}`, need: [1000, 2500, 5000], ok: () => state.level >= 3, money: true },
+);
+{
+  const _e = endDuel; endDuel = function () { const r = _e.apply(this, arguments); goalBump('duels'); return r; };
+  const _s = showTab; showTab = function (n) { const r = _s.apply(this, arguments); if (n === 'city') { goalBump('city'); missedNight(); } return r; };
+  const _sp = sharePaper; sharePaper = function () { goalBump('share'); return _sp.apply(this, arguments); };
+  const _u = upgrade; upgrade = function (id) { const b = state.biz[id].busyUntil; const r = _u(id); if (b == null && state.biz[id].busyUntil != null) goalBump('up2'); return r; };
+  const _j = doJob; doJob = function (j) { const c = state.cash, n = state.jobsDone; const r = _j.apply(this, arguments); if (state.jobsDone > n) goalBump('earn', Math.max(0, state.cash - c)); return r; };
+}
+
+// --- «На всю энергию»: после 50 дел незачем тапать одно и то же ---
+const BULK_AFTER = 50;
+function renderBulk() {
+  const b = $('jobs-bulk'); if (!b) return;
+  b.hidden = state.jobsDone < BULK_AFTER;
+  const j = [...JOBS].reverse().find(x => x.energy <= state.energy);
+  b.disabled = !j; b.textContent = j ? `На всю энергию: «${j.name}»` : 'Энергия кончилась';
+}
+$('jobs-bulk').addEventListener('click', () => {
+  settleEnergy();
+  let n = 0; const c = state.cash, x = state.xp, lv = state.level, tq = toast;
+  toast = () => {};                       // одна сводка вместо десятка тостов
+  try { for (let i = 0; i < 40; i++) { const j = [...JOBS].reverse().find(y => y.energy <= state.energy); if (!j) break; doJob(j); n++; } } finally { toast = tq; }
+  toast(`${n} дел за раз · +${money(state.cash - c)}`, state.level > lv ? `Новый уровень: ${state.level}` : `+${state.xp - x + (state.level > lv ? 0 : 0)} опыта`, 'gold');
+  renderBulk();
+});
+setInterval(renderBulk, 1000);
+
+// --- Сэл Пайка — первый бой второго дня; «заклятый враг» возвращается за реваншем ---
+{
+  const _no = newOpponent;
+  newOpponent = function () {
+    const o = _no.apply(this, arguments);
+    if (DEMO) return o;
+    if (!state.salDone && lifeDay() >= LIFE_GATES.alley) {
+      o.name = 'Сэл Пайка'; o.outfit.fig = 'he'; o.rumor = 'Говорят, Сэл Пайка слышал про шляпу и не любит, когда новички задирают нос. Начинает осторожно.';
+      o.plan = ['C', 'F', 'C', 'F', 'F']; o.story = 'sal';
+      return o;
+    }
+    const ne = state.nemesis;
+    if (ne && Math.random() < .45) {
+      o.name = ne.name; o.outfit = ne.outfit; o.rating = ne.rating; o.nemesis = true;
+      o.rumor = `Заклятый враг. ${ne.name} уже уложил тебя однажды и ждёт реванша. За победу — награда ×2.`;
+    }
+    return o;
+  };
+  const _end = endDuel;
+  endDuel = function () {
+    const c0 = state.chips, d0 = state.dirty, r = _end.apply(this, arguments), d = duel;
+    if (DEMO || !d || d.draw) return r;
+    if (d.opp.story === 'sal') state.salDone = true;
+    if (!d.win) state.nemesis = { name: d.opp.name, outfit: d.opp.outfit, rating: d.opp.rating };
+    else if (d.opp.nemesis) { state.chips += state.chips - c0; state.dirty += state.dirty - d0; state.nemesis = null; setTimeout(() => toast('Реванш взят', `${d.opp.name} больше не заклятый враг. Награда удвоена.`, 'gold'), 2600); }
+    return r;
+  };
+}
+
+// --- «Пока тебя не было» ---
+function showAway() {
+  if (DEMO || !awayInfo || awayInfo.min < AWAY_MIN || state.tut > 0) return;
+  const a = awayInfo; awayInfo = null;
+  let got = 0, potential = 0; const built = [];
+  BIZ.forEach((b, i) => {
+    const s0 = a.biz[i], s = state.biz[b.id];
+    if (s0.busyUntil != null && s.busyUntil == null) built.push(s0.level === 0 ? `${b.name} построен` : `${b.name}: ${s.level}-й уровень`);
+    got += Math.max(0, s.cash - s0.cash);
+    potential += income(b, Math.max(1, s0.level)) * (s0.level || s.level ? a.min / 60 : 0);
+  });
+  const lost = Math.max(0, Math.round(potential - got));
+  const h = Math.floor(a.min / 60), m = Math.round(a.min % 60);
+  $('away-t').textContent = `Пока тебя не было · ${h ? h + ' ч ' : ''}${m} мин`;
+  $('away-list').innerHTML = [
+    `<li class="ok"><span>Кассы накопили</span><b class="num">${money(got)}</b></li>`,
+    lost > 50 ? `<li><span>Сгорело: кассы были полны</span><b class="num">${money(lost)}</b></li>` : '',
+    ...built.map(t => `<li class="ok"><span>${t}</span><b>✓</b></li>`),
+    `<li class="${state.energy >= maxEnergy(state.level) ? 'ok' : ''}"><span>Энергия</span><b class="num">${state.energy}/${maxEnergy(state.level)}</b></li>`,
+    `<li><span>Сегодня</span><b>${today().n}</b></li>`,
+  ].join('');
+  $('away-hint').textContent = lost > 50 ? 'Касса держит 10 часов дохода. Загляни до того, как она переполнится, — или прокачай бизнес.' : today().t + '.';
+  $('away').hidden = false;
+}
+$('away-go').addEventListener('click', () => { $('away').hidden = true; $('collectAll').click(); });
+$('away-x').addEventListener('click', () => { $('away').hidden = true; });
+
+renderToday();
+setInterval(renderToday, 30000);
+if (!DEMO) setTimeout(showAway, 900);
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
