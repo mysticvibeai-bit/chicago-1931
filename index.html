@@ -497,6 +497,7 @@ html,body{overscroll-behavior:none}
     <p class="hint">Голоса — на американском английском, как в кино тридцатых.</p>
     <div class="row"><button class="btn sm" id="vol-mute"></button></div>
   </div>
+  <div class="row"><button class="btn sm gold" id="cab-report">Отчёт разработчику</button></div>
   <div class="row"><button class="btn sm" id="cab-demo">Пульт разработчика</button><button class="btn sm" id="cab-reset">Начать заново</button></div>
 </div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -3780,6 +3781,8 @@ if (!DEMO) {
   speed = REAL_SPEED; shownCash = state.cash;
   q('.demo').hidden = true;
   if (location.search.includes('ref=') && !state.refBy) state.refBy = new URLSearchParams(location.search).get('ref');
+  state.sessions = (state.sessions || 0) + 1; state.playSec ??= 0;
+  setInterval(() => { if (!document.hidden) state.playSec = (state.playSec || 0) + 1; }, 1000);
   setInterval(() => { dailyReset(); saveGame(); }, 4000);
   addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
   addEventListener('pagehide', saveGame);
@@ -3949,9 +3952,21 @@ function renderCab() {
   $('cab-friends').innerHTML = fr.length ? fr.map(f => `<li class="${f.biz ? 'ok' : ''}"><span>${f.n}</span><b>${f.biz ? `+${FRIEND_REWARD.tickets} билетика · +${FRIEND_REWARD.gold} сл.` : 'пришёл, ещё не 5-й уровень и не 3-й день'}</b></li>`).join('') : '<li class="none">Пока никого. Позови — вместе веселее держать квартал.</li>';
   $('cab-stats').innerHTML = [
     ['Уровень', state.level], ['Дел провёрнуто', state.jobsDone], ['Побед в переулке', state.wins || 0], ['Рейтинг', `${leagueOf(state.rating)} · ${fmt(state.rating)}`],
-    ['Билетики на ночь', bn.tickets || 0], ['Доход', `${money(totalIncome())}/ч`], ['Позвал тебя', state.refBy ? `друг по ссылке ${state.refBy}` : '—'],
+    ['Билетики на ночь', bn.tickets || 0], ['Доход', `${money(totalIncome())}/ч`], ['Время в игре', fmtPlay(state.playSec)], ['Заходов', state.sessions || 1], ['Дел дня закрыто', state.goalsDone || 0], ['Позвал тебя', state.refBy ? `друг по ссылке ${state.refBy}` : '—'],
   ].map(([a, b]) => `<li><span>${a}</span><b class="num">${b}</b></li>`).join('');
   renderGang($('cab-gang'));
+}
+function fmtPlay(sec = 0) { const m = Math.round(sec / 60); return m < 60 ? `${m} мин` : `${Math.floor(m / 60)} ч ${m % 60} мин`; }
+function devReport() {
+  const b = (id) => { const x = state.biz[id]; return x.level ? `${x.level}${x.busyUntil != null ? '↑' : ''}` : (x.busyUntil != null ? 'стр.' : '—'); };
+  const dg = state.dg ? state.dg.items.map(it => `${it.id} ${it.have}/${it.need}${it.done ? '✓' : ''}`).join(', ') : '—';
+  return [`Чикаго 1931 · отчёт тестера · ${new Date().toLocaleString('ru-RU')}`,
+    `Имя: ${PN()} · день ${lifeDay()} · заходов ${state.sessions || 1} · в игре ${fmtPlay(state.playSec)}`,
+    `Уровень ${state.level} (опыт ${state.xp}/${xpToNext(state.level)}) · $${fmt(state.cash)} · слитки ${state.gold} · грязные $${fmt(state.dirty || 0)} · фишки ${state.chips || 0}`,
+    `Доход $${fmt(totalIncome())}/ч · бизнесы: киоск ${b('kiosk')}, прачечная ${b('laundry')}, гараж ${b('garage')}, типография ${b('printing')}, бар ${b('speakeasy')}, дом ${b('tenement')}`,
+    `Дел ${state.jobsDone} · боёв ${state.fights ?? 0} · побед ${state.wins || 0} · рейтинг ${state.rating}`,
+    `Билетики ${state.bn?.tickets ?? 0} · дел дня всего ${state.goalsDone || 0} · сегодня: ${dg}`,
+    `Банда: ${state.gang ? state.gang.name : 'нет'} · друзей ${(state.friends || []).length} · обучение ${state.tut === -1 ? 'пройдено' : 'шаг ' + state.tut}`].join('\n');
 }
 function shareLink() { return `${location.origin}${location.pathname}?ref=${state.ref || 'test'}`; }
 function shareText(text) {
@@ -3966,6 +3981,14 @@ function shareText(text) {
 function sharePaper() { const p = duel && duel.paper; shareText(p ? `«${p.head}» — Вечерний Чикаго. Реванш?` : `${PN()} зовёт тебя в Чикаго 1931.`); }
 $('cab-invite').addEventListener('click', () => shareText(`${PN()} зовёт тебя в Чикаго 1931: свой квартал, дуэли в переулке и Банковская ночь.`));
 $('cab-close').addEventListener('click', closeCab);
+$('cab-report').addEventListener('click', () => {
+  const text = devReport();
+  try {
+    const tg = window.Telegram && Telegram.WebApp;
+    if (tg && tg.initData !== undefined && tg.openTelegramLink) { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`); return; }
+  } catch (e) { /* не в Телеграме */ }
+  try { navigator.clipboard.writeText(text); toast('Отчёт скопирован', 'Вставь его в чат с разработчиком.'); } catch (e) { toast('Отчёт', text.slice(0, 120)); }
+});
 $('cab').addEventListener('click', (e) => { if (e.target === $('cab')) closeCab(); });
 q('.who .ava').addEventListener('click', openCab);
 q('.who .ava').setAttribute('role', 'button'); q('.who .ava').setAttribute('tabindex', '0'); q('.who .ava').setAttribute('aria-label', 'Личный кабинет');
@@ -4099,7 +4122,7 @@ function goalCheck() {
     const g = GOALS.pool.find(x => x.id === it.id);
     if (g.state) it.have = Math.max(it.have, g.state(it));
     if (!it.done && it.have >= it.need) {
-      it.done = true; state.gold += GOALS.gold; bump('st-gold');
+      it.done = true; state.gold += GOALS.gold; state.goalsDone = (state.goalsDone || 0) + 1; bump('st-gold');
       toast(`Дело дня: ${g.t(it.need, it)}`, `+${GOALS.gold} слитка`, 'gold');
     }
   }
@@ -4157,7 +4180,7 @@ const LINES = {
   n_extra: 'Extra! Extra!', n_paper: 'Evening Chicago! Two cents!', n_hot: 'Big fight on Clark Street!',
   r_intro: 'Chicago. November, 1931…', r_bank: 'Welcome to Bank Night!', r_drum: 'And the winning ticket is…', r_level: 'Moving up in the world.', r_golden: 'The zeppelin! Grab those coins!',
 };
-let actx = null, bus = null, noiseBuf = null, lastVo = -9, curMusic = null, musicKey = '', rainNode = null;
+let actx = null, bus = null, noiseBuf = null, lastVo = -9, curVoice = null, curMusic = null, musicKey = '', rainNode = null;
 const vobuf = {}, mbuf = {};
 function sndCfg() { ensureState(); state.audio ??= { ...SND.defaults }; return state.audio; }
 function audioUnlock() {
@@ -4239,8 +4262,11 @@ async function say(ids, force) {
   if (!force && actx.currentTime - lastVo < SND.gap) return;
   lastVo = actx.currentTime;
   const b = await loadBuf(SND.vo + id + '.mp3', vobuf); if (!b) return;
-  const s = actx.createBufferSource(); s.buffer = b; s.connect(bus.voice); s.start();
+  if (curVoice) { try { curVoice.stop(); } catch (e) { /* уже доиграла */ } }
+  const s = actx.createBufferSource(); s.buffer = b; s.connect(bus.voice); s.start(); curVoice = s;
+  s.onended = () => { if (curVoice === s) curVoice = null; };
   if (curMusic) { curMusic.duck.gain.setTargetAtTime(.45, actx.currentTime, .05); curMusic.duck.gain.setTargetAtTime(1, actx.currentTime + b.duration, .3); }
+  return b.duration;
 }
 async function playMusic(key) {
   if (!actx || musicKey === key) return;
@@ -4303,7 +4329,11 @@ const meVo = (m, f) => sheMe() ? f : m, oppVo = (m, f) => oppShe() ? f : m;
   const _up = upgrade; upgrade = function (id) { const b = state.biz[id].busyUntil; const r = _up.apply(this, arguments); if (b == null && state.biz[id].busyUntil != null) sfx('hammer'); return r; };
   const _lv = levelUp; levelUp = function () { const l = state.level; const r = _lv.apply(this, arguments); if (state.level > l) { sfx('fanfare'); if (Math.random() < .5) say('r_level'); } return r; };
   const _gd = startGolden; startGolden = function () { const was = goldenActive(); const r = _gd.apply(this, arguments); if (!was && goldenActive() && !$('v-block').hidden) say('r_golden', true); return r; };
-  const _bk = bankDraw; bankDraw = function () { const had = !!show; const r = _bk.apply(this, arguments); if (!had && show) { syncMusic(); say('r_bank', true); setTimeout(() => { say('r_drum', true); setTimeout(() => sfx('drumroll', 2.4), 1200); }, 2600); } return r; };
+  const _bk = bankDraw; bankDraw = function () { const had = !!show; const r = _bk.apply(this, arguments); if (!had && show) {
+    syncMusic(); const t0 = actx ? actx.currentTime : 0;
+    say('r_bank', true).then(d => { if (!actx || !show) return; const at = Math.max(0, (d || 3.4) + .15 - (actx.currentTime - t0)); setTimeout(() => { if (show) say('r_drum', true); }, at * 1000); });
+    setTimeout(() => { if (show) sfx('drumroll', 2.3); }, 3900);
+  } return r; };
   const _bf = bankFinish; bankFinish = function () { const r = _bf.apply(this, arguments); sfx('chime'); setTimeout(syncMusic, 400); return r; };
   const _tg = tutGo; tutGo = function () { const r = _tg.apply(this, arguments); const s = tutStep(); if (s) { sfx('chime'); if (s.t === 'Эй, новичок!') say('o_hat', true); if (s.t === 'Подворотня' && !sheMe()) say('m_hatback', true); } return r; };
 }
