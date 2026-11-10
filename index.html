@@ -307,6 +307,7 @@ html,body{overscroll-behavior:none}
   </div>
 
   <section id="v-block" class="view" style="display:flex;flex-direction:column;gap:12px">
+    <div class="card" id="goals" hidden><div class="sec-h"><h2>Дела на сегодня</h2><span class="meta num" id="goals-n"></span></div><ul class="bn-list" id="goals-list"></ul><p class="hint" id="goals-foot"></p></div>
     <div class="sec-h"><h2>Бизнесы</h2><span class="meta num" id="inc">доход $0/ч</span><button class="btn sm gold" id="collectAll">Собрать всё</button></div>
     <div class="scene"><canvas id="street" role="img" aria-label="Улица в Доках: шесть участков, на них бизнесы игрока"></canvas><span class="scene-hint">Доки · листай улицу</span><span class="golden" id="golden" hidden>Золотой час · проведи пальцем по монетам</span></div>
     <div class="lots" id="lots"></div>
@@ -3746,7 +3747,8 @@ function freshState() {
   s.bn = { tickets: 1, stubs: 0, treasury: .12, day: { visit: 1 }, friends: 0, won: [], draws: 0, demoWon: true };
   return s;
 }
-function saveGame() { if (DEMO) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), state, sel })); } catch (e) { /* приватный режим — играем без сохранения */ } }
+let wiping = false;
+function saveGame() { if (DEMO || wiping) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), state, sel })); } catch (e) { /* приватный режим — играем без сохранения */ } }
 function loadGame() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return d && d.state ? d : null; } catch (e) { return null; } }
 function dailyReset() {
   const key = new Date().toDateString();
@@ -3756,6 +3758,7 @@ function dailyReset() {
   toast('Новый день в Чикаго', '+1 билетик за то, что заглянул. Энергия и кассы ждали тебя.', 'gold');
 }
 if (!DEMO) {
+  if (/[?&]new\b/.test(location.search)) { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* нечего стирать */ } }
   const sv = loadGame();
   if (sv) {
     state = sv.state; sel = sv.sel || 'kiosk';
@@ -3834,7 +3837,7 @@ const TUT = [
   { el: () => q('#cab-invite'), t: 'Позови своих', p: `За друга, который дойдёт до 5-го уровня и вернётся на 3-й день, — +${FRIEND_REWARD.tickets} билетика на Банковскую ночь и ${FRIEND_REWARD.gold} слитков.`, next: 'Понял', inCab: true },
   { on() { closeCab(); }, el: () => q('.nav [data-tab="city"]'), t: 'Город', p: 'Кто держит город и Банковская ночь в «Орфее».', done: () => !$('v-city').hidden },
   { tab: 'city', el: () => q('#bn-tickets').closest('.card'), t: 'Билетики', p: 'Копятся за дела, кассу, дуэли и золотой час. В последнюю пятницу месяца их разыгрывают в «Орфее». Купить их нельзя.', next: 'Дальше' },
-  { free: true, t: 'Дальше — сам', p: 'Касса киоска наполнится к вечеру. Энергия копится — загляни в Дела. А завтра в переулке тебя ждёт Сэл Пайка: он слышал про шляпу.', next: 'По рукам' },
+  { tab: 'block', on() { goalsEnsure(); renderGoals(); $('goals').hidden = false; scrollTo(0, 0); }, el: () => $('goals'), t: 'Дела на сегодня', p: 'Вот чем заняться дальше: построить прачечную, провернуть дела, поймать цеппелин. За каждое — слитки, за все — билетик. А завтра в переулке тебя ждёт Сэл Пайка: он слышал про шляпу.', next: 'По рукам' },
 ];
 let tutAt = 0, tutScrolled = 0;
 const tutAge = () => Tnow - tutAt;
@@ -3855,7 +3858,7 @@ function tutAdvance() {
   const s = tutStep(); if (!s) return;
   if (s.off) s.off();
   state.tut++;
-  if (state.tut >= TUT.length) { state.tut = -1; $('coach').hidden = true; saveGame(); return; }
+  if (state.tut >= TUT.length) { state.tut = -1; $('coach').hidden = true; renderGoals(); saveGame(); return; }
   saveGame(); tutGo();
 }
 $('c-next').addEventListener('click', tutAdvance);
@@ -3958,6 +3961,7 @@ $('cab-save').addEventListener('click', () => { const n = $('cab-save').dataset.
 $('cab-demo').addEventListener('click', () => { const d = q('.demo'); d.hidden = !d.hidden; closeCab(); if (!d.hidden) d.scrollIntoView({ block: 'start' }); });
 $('cab-reset').addEventListener('click', () => {
   if (!confirm('Начать заново? Прогресс в этом браузере сотрётся.')) return;
+  wiping = true;
   try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* нечего стирать */ }
   location.reload();
 });
@@ -4043,6 +4047,83 @@ if (!DEMO) {
   else if (state.tut > 0) setTimeout(tutGo, 600);
 }
 applyLife();
+
+// ---------- Дела на сегодня: цели дня, чтобы после обучения было ясно, чем заняться ----------
+// Цели подбираются по тому, что уже открыто. За каждую — слитки, за все — билетик на Банковскую ночь.
+const GOALS = {
+  perDay: 4, gold: 3, allTicket: 1,
+  pool: [
+    { id: 'jobs',    t: (n) => `Провернуть ${n} дел`, need: [8, 12, 15], ok: () => true },
+    { id: 'collect', t: (n) => `Собрать кассы ${n} раза`, need: [3, 4, 5], ok: () => true },
+    { id: 'gold',    t: () => 'Поймать золотой час', need: [1], ok: () => true },
+    { id: 'build',   t: () => 'Построить прачечную', need: [1], ok: () => state.biz.laundry.level === 0 && state.biz.laundry.busyUntil == null, state: () => state.biz.laundry.level > 0 || state.biz.laundry.busyUntil != null ? 1 : 0 },
+    { id: 'up',      t: () => 'Улучшить любой бизнес', need: [1], ok: () => BIZ.some(b => state.biz[b.id].level > 0) },
+    { id: 'lvl',     t: (n, it) => `Дойти до ${it ? it.target : state.level + 1}-го уровня`, need: [1], ok: () => state.level < 12, state: (it) => state.level >= it.target ? 1 : 0 },
+    { id: 'win',     t: (n) => `Выиграть ${n} дуэли в переулке`, need: [2, 3], ok: () => lifeDay() >= LIFE_GATES.alley },
+    { id: 'launder', t: () => 'Отмыть грязные в прачечной', need: [1], ok: () => (state.dirty || 0) > 0 && state.biz.laundry.level > 0 },
+  ],
+};
+function goalsEnsure() {
+  ensureState();
+  if (state.tut >= 0 && state.tut < TUT.length - 1) return;   // цели дня выдаём после обучения
+  const key = new Date().toDateString() + (state.life ?? '');
+  if (state.dg && state.dg.key === key) return;
+  const day = lifeDay(), first = ['build', 'jobs', 'gold', 'lvl'];
+  const cand = GOALS.pool.filter(g => g.ok());
+  const chosen = day <= 1 ? first.map(id => cand.find(g => g.id === id)).filter(Boolean) : [];
+  const rest = cand.filter(g => !chosen.includes(g)).sort((a, b) => ((a.id.charCodeAt(0) * 7 + day * 13) % 11) - ((b.id.charCodeAt(0) * 7 + day * 13) % 11));
+  while (chosen.length < GOALS.perDay && rest.length) chosen.push(rest.shift());
+  state.dg = { key, lvlFrom: state.level, paid: false, items: chosen.map(g => ({ id: g.id, target: state.level + 1, need: g.need[Math.min(g.need.length - 1, Math.max(0, day - 1) % g.need.length)], have: 0, done: false })) };
+}
+function goalBump(id, n = 1) {
+  if (!state.dg || state.tut > 0) return;
+  const it = state.dg.items.find(x => x.id === id && !x.done); if (!it) return;
+  it.have = Math.min(it.need, it.have + n); goalCheck();
+}
+function goalCheck() {
+  if (!state.dg) return;
+  for (const it of state.dg.items) {
+    const g = GOALS.pool.find(x => x.id === it.id);
+    if (g.state) it.have = Math.max(it.have, g.state(it));
+    if (!it.done && it.have >= it.need) {
+      it.done = true; state.gold += GOALS.gold; bump('st-gold');
+      toast(`Дело дня: ${g.t(it.need, it)}`, `+${GOALS.gold} слитка`, 'gold');
+    }
+  }
+  if (!state.dg.paid && state.dg.items.every(x => x.done)) {
+    state.dg.paid = true; bankEnsure(); state.bn.tickets += GOALS.allTicket;
+    toast('Все дела дня закрыты', `+${GOALS.allTicket} билетик на Банковскую ночь. Завтра будут новые.`, 'gold');
+  }
+  renderGoals();
+}
+function renderGoals() {
+  const el = $('goals'); if (!el || !state.dg) return;
+  el.hidden = state.tut > 0 && state.tut < TUT.length - 1;
+  const done = state.dg.items.filter(x => x.done).length;
+  $('goals-n').textContent = `${done} из ${state.dg.items.length}`;
+  $('goals-list').innerHTML = state.dg.items.map(it => {
+    const g = GOALS.pool.find(x => x.id === it.id);
+    return `<li class="${it.done ? 'ok' : ''}"><span>${g.t(it.need, it)}</span><b class="num">${it.done ? '✓' : it.need > 1 ? `${it.have}/${it.need}` : `+${GOALS.gold} сл.`}</b></li>`;
+  }).join('');
+  $('goals-foot').textContent = state.dg.paid ? 'Все закрыты. Новые дела — завтра утром.' : `За каждое — ${GOALS.gold} слитка, за все — билетик на Банковскую ночь.`;
+}
+{
+  const _c = collect; collect = function (id, quiet) { const r = _c(id, quiet); if (r > 0) goalBump('collect'); return r; };
+  const _j = doJob; doJob = function (j) { const b = state.jobsDone; const r = _j(j); if (state.jobsDone > b) goalBump('jobs'); goalCheck(); return r; };
+  const _g = startGolden; startGolden = function (...a) { const was = goalsActive(); const r = _g.apply(this, a); if (!was && goalsActive()) goalBump('gold'); return r; };
+  const _u = upgrade; upgrade = function (id) { const b = state.biz[id].busyUntil; const r = _u(id); if (b == null && state.biz[id].busyUntil != null) goalBump('up'); return r; };
+  const _b = build; build = function (id) { const r = _b(id); goalCheck(); return r; };
+  const _e = endDuel; endDuel = function (...a) { const r = _e.apply(this, a); if (duel && duel.win) goalBump('win'); return r; };
+  const _l = launder; launder = function (...a) { const d = state.dirty; const r = _l.apply(this, a); if (state.dirty < d) goalBump('launder'); return r; };
+}
+function goalsActive() { return goldenActive(); }
+// Пока собираешь монеты пальцем, страница не прокручивается — иначе жест уходит в браузер.
+{
+  const street = $('street');
+  setInterval(() => { const ta = goldenActive() || (ev && ev.egg) ? 'none' : 'pan-y'; if (street.style.touchAction !== ta) street.style.touchAction = ta; }, 200);
+}
+goalsEnsure(); renderGoals();
+setInterval(() => { goalsEnsure(); goalCheck(); }, 5000);
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
