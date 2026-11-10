@@ -2,6 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#141210">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -4216,8 +4219,7 @@ function audioUnlock() {
   noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
   const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   applyVolumes(); syncMusic();
-  Object.entries(recRaw).forEach(([k, p]) => p.then(ab => { if (!ab) { recFail[k] = true; return; }
-    actx.decodeAudioData(ab.slice(0), b => { recBufs[k] = b; const w = recWait[k]; if (w && performance.now() - w.at < 450) playRec(k, w.v, w.spread); recWait[k] = null; }, () => { recFail[k] = true; }); }));
+  Object.keys(SND.rec).forEach(recPrepare);
 }
 function applyVolumes() {
   if (!bus) return;
@@ -4242,29 +4244,31 @@ function tone(t, type, f0, f1, dur, peak, a = .005) {
   const g = actx.createGain(); env(g, t, a, peak, dur);
   o.connect(g); g.connect(bus.sfx); o.start(t); o.stop(t + a + dur + .05);
 }
-// металл: затухающие негармонические обертоны, как у настоящей монеты или колокольчика кассы
-function ring(t, f, ratios, decays, peaks) {
-  ratios.forEach((r, i) => { const o = actx.createOscillator(); o.frequency.value = f * r * (1 + (Math.random() - .5) * .004);
-    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peaks[i], t + .002); g.gain.exponentialRampToValueAtTime(0.0001, t + decays[i]);
-    o.connect(g); g.connect(bus.sfx); o.start(t); o.stop(t + decays[i] + .05); });
+// Монеты и касса — только живые записи, синтеза для них больше нет (он звучал как «старый» звук).
+// Файлы качаем сразу при открытии, раскодируем после первого касания. Пока запись не готова, звук ждёт её
+// до 1,5 с; если загрузка сорвалась, следующая монета запускает новую попытку.
+const recBufs = {}, recWait = {}, recState = {}, recRaw = {};
+function recGet(k) { return recRaw[k] || (recRaw[k] = fetch(SND.rec[k]).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))); }
+function recDecode(ab) {
+  return new Promise((ok, no) => { try { const p = actx.decodeAudioData(ab.slice(0), ok, no); if (p && p.then) p.then(ok, no); } catch (e) { no(e); } });
 }
-// одна монетка: щелчок удара и звон тонкого диска (моды 1 : 1,59 : 2,14 : 2,65 : 3,16)
-function clink(t, f, v = .4, len = 1) {
-  noise(t, .012, 'bandpass', 6500, 0, .5 * v, 1.5);
-  ring(t, f, [1, 1.59, 2.14, 2.65, 3.16], [.45, .3, .22, .16, .1].map(d => d * len * (.8 + Math.random() * .4)), [.16, .1, .08, .05, .03].map(p => p * v));
+function recPrepare(k) {
+  if (!actx || recBufs[k] || recState[k] === 'busy') return;
+  recState[k] = 'busy';
+  recGet(k).then(recDecode).then(b => {
+    recBufs[k] = b; recState[k] = 'ok';
+    const w = recWait[k]; recWait[k] = null; if (w && performance.now() - w.at < 1500) playRec(k, w.v, w.spread);
+  }).catch(() => { recState[k] = 'fail'; recRaw[k] = null; });
 }
-// запись, если уже загружена: высота чуть гуляет, чтобы частые монетки не звучали одинаково
-// файлы качаем сразу при открытии, раскодируем после первого касания; пока не готово — ждём,
-// а синтез играет, только если запись не загрузилась совсем (иначе звучал «старый» звук)
-const recBufs = {}, recFail = {}, recWait = {}, recRaw = {};
-Object.entries(SND.rec).forEach(([k, u]) => { recRaw[k] = fetch(u).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); });
+Object.keys(SND.rec).forEach(k => recGet(k).catch(() => { recRaw[k] = null; }));
+// высота записи чуть гуляет, чтобы частые монетки не звучали одинаково
 function playRec(key, v = 1, spread = .08) {
   const b = recBufs[key];
-  if (!b) { if (recFail[key]) return false; recWait[key] = { at: performance.now(), v, spread }; return true; }
+  if (!b) { recWait[key] = { at: performance.now(), v, spread }; recPrepare(key); return; }
   const s = actx.createBufferSource(); s.buffer = b; s.playbackRate.value = 1 + (Math.random() - .5) * 2 * spread;
   const g = actx.createGain(); g.gain.value = v; s.connect(g); g.connect(bus.sfx); s.start();
-  return true;
 }
+const recStatus = () => Object.keys(SND.rec).map(k => `${k} ${recBufs[k] ? 'готов' : recState[k] === 'fail' ? 'НЕ ЗАГРУЗИЛСЯ' : recState[k] === 'busy' ? 'грузится' : 'ждёт касания'}`).join(', ');
 let lastPour = 0;
 const SFX = {
   shot() { const t = actx.currentTime; noise(t, .22, 'lowpass', 3200, 500, .9); tone(t, 'sine', 120, 45, .18, .7); },
@@ -4276,15 +4280,9 @@ const SFX = {
   thunk() { const t = actx.currentTime; tone(t, 'triangle', 260, 140, .08, .5); noise(t, .06, 'bandpass', 1800, 0, .3, 2); },
   punch() { const t = actx.currentTime; noise(t, .09, 'lowpass', 900, 250, .9); tone(t, 'sine', 80, 40, .12, .6); },
   slap() { const t = actx.currentTime; noise(t, .07, 'bandpass', 1700, 900, 1, 1.5); noise(t + .01, .05, 'highpass', 3000, 0, .4); },
-  coin() { if (playRec('coin', .9)) return; const t = actx.currentTime, f = 2300 + Math.random() * 700; clink(t, f, .5); clink(t + .045 + Math.random() * .03, f * (1.06 + Math.random() * .08), .28); },
-  pour(n = 6, t0 = actx.currentTime) { for (let i = 0; i < n; i++) clink(t0 + i * (.03 + Math.random() * .045), 2600 + Math.random() * 1400, .42 - i * .03, .45); },
-  // касса: щелчок рычага, выезжает ящик, монеты ссыпаются в ладонь — без колокольчика (на синтезе он звучит как стекло)
-  register() { const t = actx.currentTime;
-    if (t - lastPour < .5) return; lastPour = t;   // «собрать всё» не наслаивает звук на каждую кассу
-    if (playRec('pour', 1, .03)) return;
-    noise(t, .025, 'lowpass', 900, 0, .6); noise(t + .008, .015, 'highpass', 4000, 0, .3);
-    noise(t + .05, .16, 'bandpass', 500, 1500, .22, 1.2); noise(t + .21, .03, 'lowpass', 700, 0, .45);
-    SFX.pour(7, t + .24); },
+  coin() { playRec('coin', .9); },
+  // касса: мешок монет на стол; «собрать всё» не наслаивает звук на каждую кассу
+  register() { const t = actx.currentTime; if (t - lastPour < .5) return; lastPour = t; playRec('pour', 1, .03); },
   hammer() { for (let i = 0; i < 3; i++) { const t = actx.currentTime + i * .16; tone(t, 'triangle', 420, 300, .06, .35); noise(t, .04, 'bandpass', 2200, 0, .35, 4); } },
   type(n = 9) { for (let i = 0; i < n; i++) { const t = actx.currentTime + i * (.06 + Math.random() * .04); noise(t, .025, 'highpass', 2500 + Math.random() * 1500, 0, .45); } tone(actx.currentTime + n * .08 + .05, 'sine', 2400, 0, .4, .2); },
   chime() { const t = actx.currentTime; [523, 659, 784].forEach((f, i) => tone(t + i * .07, 'triangle', f, 0, .35, .16)); },
@@ -5330,6 +5328,16 @@ drawClubLot = function (cx, T) {
 {
   const club = SPECIALS.find(x => x.id === 'club');
   if (club) { club.name = 'Кабаре «Полумесяц»'; club.status = 'РЕВЮ · ОТКРОЕТСЯ СКОРО'; club.col = '#ff9ac4'; }
+}
+
+// ---------- Номер сборки: видно, какую версию открыл тестер (Telegram любит показывать старую) ----------
+const BUILD = '10.11 · 16';
+{
+  const row = $('cab-report').parentElement, p = document.createElement('p');
+  p.className = 'hint'; p.id = 'cab-build'; p.style.margin = '0'; row.after(p);
+  const upd = () => { p.textContent = `Сборка ${BUILD} · звук монет: ${recStatus()}`; };
+  const _rc = renderCab; renderCab = function (...a) { const r = _rc.apply(this, a); upd(); return r; };
+  const _dr = devReport; devReport = function () { return `${_dr()}\nСборка ${BUILD} · звук монет: ${recStatus()}`; };
 }
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
