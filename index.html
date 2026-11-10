@@ -272,6 +272,8 @@ html,body{overscroll-behavior:none}
 #jobs-bulk{flex:0 0 auto}
 .away .sheet-in{max-width:440px;margin-bottom:auto;margin-top:auto;border-radius:18px;border-bottom:1px solid var(--line)}
 .away{align-items:center;padding:16px}
+.tabs .locked-tab{flex-direction:column;gap:0;font-size:12px}.tabs .locked-tab small{font-size:10px;letter-spacing:.06em;color:var(--sepia)}
+.tabs button.tab{color:var(--paper);font-family:var(--display)}.tabs button.tab.off{background:transparent;color:var(--paper-dim);border:1px solid var(--line)}
 .stubs{display:flex;gap:4px;margin-top:10px}
 .stubs i{flex:1;height:14px;border:1px dashed var(--line-2);border-radius:3px}
 .stubs i.on{background:var(--gold-dim);border:1px solid var(--gold)}
@@ -527,7 +529,8 @@ const BIZ = [
   { id:'speakeasy', name:'Подпольный бар', unlock:10, buildCost:25000, baseCost:25000, income:2000, buildMin:90 },
   { id:'tenement',  name:'Доходный дом',   unlock:14, buildCost:70000, baseCost:70000, income:4500, buildMin:180 },
 ];
-const RULES = { maxLevel:10, costGrowth:1.8, incomeGrowth:1.28, timeGrowth:1.4, maxUpMin:480, gateBase:2, capH:10 };
+// кривая на 90+ дней — docs/design/reviews/progression90.md (касса 10 ч — по ревью казуала)
+const RULES = { maxLevel:12, costGrowth:1.6, incomeGrowth:1.22, timeGrowth:1.35, maxUpMin:720, gateBase:3, capH:10 };
 const JOBS = [
   { id:'d1', name:'Разгрузить контрабанду',     energy:2, cash:60,  xp:3 },
   { id:'d2', name:'Собрать долги на пристани',  energy:3, cash:100, xp:5 },
@@ -541,9 +544,11 @@ const income   = (b, l) => l < 1 ? 0 : b.income * Math.pow(RULES.incomeGrowth, l
 const cashCap  = (b, l) => income(b, l) * RULES.capH;
 const upCost   = (b, l) => Math.round(b.baseCost * Math.pow(RULES.costGrowth, l));
 const upMin    = (b, l) => Math.round(Math.min(RULES.maxUpMin, Math.max(5, b.buildMin) * Math.pow(RULES.timeGrowth, l)));
-const gate     = (pl) => Math.min(RULES.maxLevel, RULES.gateBase + Math.floor(pl / 2));
+const gate     = (pl) => Math.min(RULES.maxLevel, RULES.gateBase + Math.floor(pl / 3));
+// с какого уровня игрока бизнес L можно улучшить дальше (с учётом одного уровня «через инспектора»)
+const needPl   = (L) => { for (let p = 1; p <= 80; p++) if (gate(p) + 1 > L) return p; return 80; };
 const speedGold = (left) => left <= 5 ? 0 : Math.ceil((left - 5) / 5);
-const xpToNext = (l) => l <= 4 ? [20, 35, 55, 90][l - 1] : Math.round(20 * Math.pow(l, 1.5));
+const xpToNext = (l) => l <= 4 ? [20, 35, 55, 90][l - 1] : l <= 9 ? Math.round(20 * Math.pow(l, 1.5)) : Math.round(24 * Math.pow(l, 1.6));
 const maxEnergy = (l) => Math.min(80, 30 + 2 * (l - 1));
 const jobCash  = (j, l, roll) => Math.round(j.cash * (1 + 0.12 * (l - 1)) * (1 - .15 + .3 * roll));
 function regen(cur, max, lastAt, now, every) {
@@ -636,7 +641,7 @@ function settleEnergy() {
   state.ammo = a.value; state.ammoAt = a.lastAt;
 }
 function levelUp() {
-  while (state.xp >= xpToNext(state.level) && state.level < 40) {
+  while (state.xp >= xpToNext(state.level) && state.level < 50) {
     state.xp -= xpToNext(state.level); state.level++;
     state.energy = maxEnergy(state.level); state.energyAt = state.t; state.ammo = 5; state.ammoAt = state.t;
     toast(`Новый уровень: ${state.level}`, 'Энергия снова полная.', 'gold');
@@ -654,7 +659,7 @@ function build(id) {
 function upgrade(id) {
   const b = BIZ.find(x => x.id === id), s = state.biz[id];
   if (s.level >= RULES.maxLevel || s.busyUntil != null) return;
-  if (s.level >= gate(state.level)) return toast('Бизнес упёрся в твой уровень', `Улучшение до ${s.level+1}-го — с ${2*(s.level-1)}-го уровня игрока.`, 'err');
+  if (s.level >= gate(state.level)) return toast('Бизнес упёрся в твой уровень', `Улучшение до ${s.level+1}-го — с ${needPl(s.level)}-го уровня игрока.`, 'err');
   const cost = upCost(b, s.level);
   if (state.cash < cost) return toast('Не хватает денег', `Нужно ${money(cost)}.`, 'err');
   state.cash -= cost; shownCash = state.cash;
@@ -2902,7 +2907,8 @@ const _chooseMove = chooseMove;
 chooseMove = function (a) { _chooseMove(a); if (duel && duel.anim && duel.phase === 'anim') setupQte(); };
 duelStart = function () {
   if (!duel) duelEnter();
-  if (state.duels >= DUEL_LIMIT) return toast('Разборок на сегодня хватит', `Лимит ${DUEL_LIMIT} в день. Завтра переулок снова твой.`, 'err');
+  if (DEMO && state.duels >= DUEL_LIMIT) return toast('Разборок на сегодня хватит', `Лимит ${DUEL_LIMIT} в день. Завтра переулок снова твой.`, 'err');
+  if (!takeChallenge()) return;
   duel.phase = 'vs'; duel.vsT0 = Tnow;
   renderDuelUI();
 };
@@ -3255,8 +3261,8 @@ function renderPanel() {
     set('sub', `ур. ${st.level} · ${money(income(b, st.level))}/ч · касса до ${money(cap)}`);
     set('collectBtn', `Собрать ${money(a)}`); f('collectBtn').disabled = a < 1;
     const ub = f('upBtn');
-    if (st.level >= RULES.maxLevel) { set('upBtn', 'Максимум'); ub.disabled = true; set('hint', 'Бизнес на 10-м уровне — дальше некуда.'); }
-    else if (st.level >= gate(state.level)) { set('upBtn', `С ${2 * (st.level - 1)}-го уровня`); ub.disabled = true; set('hint', `Бизнес растёт вместе с тобой: улучшение до ${st.level + 1}-го — с ${2 * (st.level - 1)}-го уровня игрока.`); }
+    if (st.level >= RULES.maxLevel) { set('upBtn', 'Максимум'); ub.disabled = true; set('hint', 'Бизнес на 12-м уровне — дальше некуда.'); }
+    else if (st.level >= gate(state.level)) { set('upBtn', `С ${needPl(st.level)}-го уровня`); ub.disabled = true; set('hint', `Бизнес растёт вместе с тобой: улучшение до ${st.level + 1}-го — с ${needPl(st.level)}-го уровня игрока.`); }
     else {
       const c = upCost(b, st.level); set('upBtn', `Улучшить ${money(c)}`); ub.disabled = state.cash < c;
       const ns = stageOf(st.level + 1) !== stageOf(st.level);
@@ -4561,14 +4567,14 @@ const BULK_AFTER = 50;
 function renderBulk() {
   const b = $('jobs-bulk'); if (!b) return;
   b.hidden = state.jobsDone < BULK_AFTER;
-  const j = [...JOBS].reverse().find(x => x.energy <= state.energy);
+  const j = [...JOBS].filter(x => (x.dist || 'docks') === district).reverse().find(x => x.energy <= state.energy);
   b.disabled = !j; b.textContent = j ? `На всю энергию: «${j.name}»` : 'Энергия кончилась';
 }
 $('jobs-bulk').addEventListener('click', () => {
   settleEnergy();
   let n = 0; const c = state.cash, x = state.xp, lv = state.level, tq = toast;
   toast = () => {};                       // одна сводка вместо десятка тостов
-  try { for (let i = 0; i < 40; i++) { const j = [...JOBS].reverse().find(y => y.energy <= state.energy); if (!j) break; doJob(j); n++; } } finally { toast = tq; }
+  try { for (let i = 0; i < 40; i++) { const j = [...JOBS].filter(x => (x.dist || 'docks') === district).reverse().find(y => y.energy <= state.energy); if (!j) break; doJob(j); n++; } } finally { toast = tq; }
   toast(`${n} дел за раз · +${money(state.cash - c)}`, state.level > lv ? `Новый уровень: ${state.level}` : `+${state.xp - x + (state.level > lv ? 0 : 0)} опыта`, 'gold');
   renderBulk();
 });
@@ -4633,6 +4639,179 @@ $('away-x').addEventListener('click', () => { $('away').hidden = true; });
 renderToday();
 setInterval(renderToday, 30000);
 if (!DEMO) setTimeout(showAway, 900);
+
+// ---------- Прогрессия на 90+ дней (docs/design/reviews/progression90.md) ----------
+// Районы с уровня игрока, мастерство района в потраченной энергии, запас вызовов в переулок вместо дневного лимита,
+// ELO и потолок фишек за дуэли. Числа — из симуляции на 180 дней: максимум не раньше D165 у марафонца.
+const DISTRICTS = [
+  { id: 'docks', n: 'Доки', lvl: 1 },
+  { id: 'yards', n: 'Скотобойни', lvl: 7 },
+  { id: 'lasalle', n: 'Ла-Саль', lvl: 16 },
+  { id: 'loop', n: 'Луп', lvl: 23, soon: 'новый район — с обновлением' },
+];
+JOBS.forEach(j => j.dist = 'docks');
+JOBS.push(
+  { id: 'y1', dist: 'yards', name: 'Перегнать стадо до рассвета',      energy: 4,  cash: 420,  xp: 9 },
+  { id: 'y2', dist: 'yards', name: 'Договориться с профсоюзом',         energy: 6,  cash: 700,  xp: 14 },
+  { id: 'y3', dist: 'yards', name: 'Вывезти ящики через холодильник',   energy: 8,  cash: 1000, xp: 20, drop: { item: 'Мясницкий фартук', chance: .1 } },
+  { id: 'y4', dist: 'yards', name: 'Перехватить мясной поезд',          energy: 10, cash: 1400, xp: 26, drop: { item: 'Кепка «Бригадир»', chance: .05 } },
+  { id: 'l1', dist: 'lasalle', name: 'Пустить слух на бирже',           energy: 8,  cash: 2600, xp: 26 },
+  { id: 'l2', dist: 'lasalle', name: 'Выкупить долговые расписки',      energy: 11, cash: 3800, xp: 38 },
+  { id: 'l3', dist: 'lasalle', name: 'Перехватить телеграмму с котировками', energy: 14, cash: 5200, xp: 52, drop: { item: 'Котелок брокера', chance: .08 } },
+  { id: 'l4', dist: 'lasalle', name: 'Подменить ленту тикера',          energy: 18, cash: 7000, xp: 72, drop: { item: 'Золотые часы', chance: .04 } },
+);
+Object.assign(VOICE, {
+  y1: ['Коровы шли тихо. Пастух — ещё тише.', 'К рассвету стадо стояло где надо.'],
+  y2: ['Бригадир пожал руку. Крепко, но честно.', 'Профсоюз решил, что ты — свой.'],
+  y3: ['В холодильнике было холодно. В ящиках — горячо.', 'Сторож холодильника любит тёплые конверты.'],
+  y4: ['Поезд пришёл без мяса. Зато с тобой.', 'Машинист потом долго рассказывал про туман.'],
+  l1: ['К обеду слух стоил дороже акций.', 'Брокеры шептались. Ты — улыбался.'],
+  l2: ['Расписки дешёвые, пока о них не вспомнили.', 'Должник ещё не знает, кому теперь должен.'],
+  l3: ['Телеграмма дошла. Но сначала — до тебя.', 'Котировки знал весь город. Ты — на час раньше.'],
+  l4: ['Лента тикера ненадолго сошла с ума.', 'Биржа закрылась в недоумении.'],
+});
+const DIST_MASTERY = [300, 1500, 4500];   // потраченная энергия в районе; 3-я звезда — +10% опыта там
+const DUEL_STOCK = { max: 5, regenMin: 120 };
+const DUEL_CHIPS = { dayCap: 40, halfAfterWins: 8 };
+const ELO_K = 24;
+const OVERGATE = { levels: 1, costMult: 3 };  // «подмазать инспектора»: уровень сверх потолка за тройную цену
+
+let district = 'docks';
+const distOpen = (d) => state.level >= d.lvl && !d.soon;
+function mastOf(id) { state.mast ??= {}; return state.mast[id] || 0; }
+
+// карточки дел других районов — в тот же список, показываются по вкладке
+JOBS.filter(j => j.dist !== 'docks').forEach(j => {
+  const el = document.createElement('div'); el.className = 'card job';
+  el.innerHTML = `<div class="t"><div class="n">${j.name}</div><div class="m num"><span><svg class="i"><use href="#i-bolt"/></svg>${j.energy}</span><span data-f="cash"></span><span>+${j.xp} опыта</span>${j.drop ? `<span class="drop">${j.drop.item} ${Math.round(j.drop.chance * 100)}%</span>` : ''}</div></div><button class="btn gold">Взять</button>`;
+  el.querySelector('button').addEventListener('click', () => doJob(j));
+  el.dataset.id = j.id; jobsEl.appendChild(el);
+});
+MASTERY.splice(0);   // старое мастерство по числу дел заменено районным
+function renderDistricts() {
+  const tabs = q('#v-jobs .tabs');
+  tabs.style.gridTemplateColumns = `repeat(${DISTRICTS.length}, 1fr)`;
+  tabs.innerHTML = DISTRICTS.map(d => distOpen(d)
+    ? `<button class="tab${d.id === district ? '' : ' off'}" data-dist="${d.id}" type="button">${d.n}</button>`
+    : `<div class="tab off locked-tab"><svg class="i"><use href="#i-lock"/></svg>${d.n}<small>${d.soon ? 'скоро' : d.lvl + ' ур.'}</small></div>`).join('');
+  jobsEl.querySelectorAll('.job').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.id); el.hidden = j.dist !== district; });
+  renderMastery();
+}
+q('#v-jobs .tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-dist]'); if (!b) return; district = b.dataset.dist; renderDistricts(); });
+function renderMastery() {
+  const spent = mastOf(district), stars = DIST_MASTERY.filter(m => spent >= m).length, next = DIST_MASTERY[stars], dn = DISTRICTS.find(d => d.id === district).n;
+  $('stars').innerHTML = [0, 1, 2].map(k => `<span class="${k < stars ? 'on' : ''}">★</span>`).join('');
+  $('mast-t').textContent = next ? `${dn}: ${fmt(spent)} из ${fmt(next)} энергии до ${['первой', 'второй', 'третьей'][stars]} звезды` : `${dn}: все три звезды · +10% опыта`;
+  $('mast-bar').style.width = (next ? spent / next * 100 : 100) + '%';
+  q('#v-jobs .mast .g').textContent = stars < 2 ? '+10 слитков' : stars === 2 ? '+10% опыта' : '';
+}
+{
+  const _ui = updateUI;
+  updateUI = function (dt) { const r = _ui.apply(this, arguments); if (!$('v-jobs').hidden) renderMastery(); return r; };
+  const _job = doJob;
+  doJob = function (j) {
+    const n = state.jobsDone, x0 = state.xp, lv = state.level;
+    const r = _job.apply(this, arguments);
+    if (state.jobsDone > n) {
+      const d = j.dist || 'docks', before = DIST_MASTERY.filter(m => mastOf(d) >= m).length;
+      state.mast[d] = mastOf(d) + j.energy;
+      const after = DIST_MASTERY.filter(m => mastOf(d) >= m).length;
+      if (before >= 3 && state.level === lv) { state.xp += Math.round((state.xp - x0) * .1); levelUp(); }
+      if (after > before) {
+        const dn = DISTRICTS.find(x => x.id === d).n;
+        if (after < 3) { state.gold += 10; bump('st-gold'); toast(`Звезда мастерства: ${dn}`, '+10 слитков', 'gold'); }
+        else toast(`Три звезды: ${dn}`, 'Теперь опыт за дела здесь +10%. Улица знает тебя в лицо.', 'gold');
+      }
+    }
+    return r;
+  };
+  const _lv = levelUp;
+  levelUp = function () {
+    const l = state.level; const r = _lv.apply(this, arguments);
+    DISTRICTS.forEach(d => { if (!d.soon && l < d.lvl && state.level >= d.lvl) setTimeout(() => toast(`Открыт район: ${d.n}`, 'Новые дела и своё мастерство. Загляни в Дела.', 'gold'), 600); });
+    if (!$('v-jobs').hidden) renderDistricts();
+    return r;
+  };
+  const _st = showTab; showTab = function (n) { const r = _st.apply(this, arguments); if (n === 'jobs') renderDistricts(); return r; };
+}
+renderDistricts();
+
+// --- запас вызовов в переулок: 5 штук, +1 раз в 2 часа (вместо «10 в день») ---
+function duelStock() {
+  state.dstock ??= { n: DUEL_STOCK.max, at: Date.now() };
+  const s = state.dstock, step = DUEL_STOCK.regenMin * 60e3;
+  if (s.n >= DUEL_STOCK.max) s.at = Date.now();
+  else { const k = Math.floor((Date.now() - s.at) / step); if (k > 0) { s.n = Math.min(DUEL_STOCK.max, s.n + k); s.at += k * step; } }
+  return s;
+}
+function takeChallenge() {
+  if (DEMO || state.tut > 0) return true;   // бой обучения — бесплатно
+  const s = duelStock();
+  if (s.n < 1) { const left = Math.ceil((s.at + DUEL_STOCK.regenMin * 60e3 - Date.now()) / 60e3); toast('Вызовы кончились', `Новый — через ${fmtMin(left)}. Запас копится до ${DUEL_STOCK.max}.`, 'err'); return false; }
+  s.n--; return true;
+}
+{
+  const _rd = renderDuelUI;
+  renderDuelUI = function () {
+    const r = _rd.apply(this, arguments);
+    if (!DEMO) {
+      const s = duelStock(), left = s.n < DUEL_STOCK.max ? Math.ceil((s.at + DUEL_STOCK.regenMin * 60e3 - Date.now()) / 60e3) : 0;
+      $('d-left').textContent = `Вызовов ${s.n} из ${DUEL_STOCK.max}${left ? ` · +1 через ${fmtMin(left)}` : ''}${state.fights != null ? ` · боёв ${state.fights}` : ''}`;
+    }
+    return r;
+  };
+}
+
+// --- ELO и потолок фишек: рейтинг растёт от умения, а не от стажа ---
+{
+  const _end = endDuel;
+  endDuel = function () {
+    const r0 = state.rating, c0 = state.chips || 0, opp = duel?.opp?.rating ?? r0;
+    const r = _end.apply(this, arguments), d = duel;
+    if (DEMO || !d) return r;
+    const score = d.draw ? .5 : d.win ? 1 : 0, exp = 1 / (1 + Math.pow(10, (opp - r0) / 400));
+    let delta = Math.round(ELO_K * (score - exp));
+    if (d.win && dow() === 6) delta = Math.round(delta * 1.5);
+    state.rating = Math.max(900, r0 + delta);
+    const key = dayKeyOf(Date.now());
+    if (!state.dday || state.dday.key !== key) state.dday = { key, chips: 0, wins: 0 };
+    let got = Math.max(0, state.chips - c0);
+    if (d.win) { state.dday.wins++; if (state.dday.wins > DUEL_CHIPS.halfAfterWins) got = Math.floor(got / 2); }
+    got = Math.min(got, Math.max(0, DUEL_CHIPS.dayCap - state.dday.chips));
+    state.dday.chips += got; state.chips = c0 + got;
+    if (d.win) state.xp += Math.max(1, Math.round(xpToNext(state.level) * .008));
+    if (d.paper) d.paper.reward = d.paper.reward.replace(/рейтинг [+−-]?\d+/, `рейтинг ${delta >= 0 ? '+' : ''}${delta}`).replace(/\+\d+ фишек/, `+${got} фишек`);
+    levelUp();
+    return r;
+  };
+}
+
+// --- «подмазать инспектора»: один уровень сверх потолка за тройную цену ---
+{
+  const _up = upgrade;
+  upgrade = function (id) {
+    const b = BIZ.find(x => x.id === id), s = state.biz[id];
+    if (s.level >= gate(state.level) && s.level < gate(state.level) + OVERGATE.levels && s.level < RULES.maxLevel && s.busyUntil == null) {
+      const cost = upCost(b, s.level) * OVERGATE.costMult;
+      if (state.cash < cost) return toast('Не хватает денег', `Инспектор берёт втрое: ${money(cost)}.`, 'err');
+      state.cash -= cost; shownCash = state.cash; s.busyFrom = state.t; s.busyUntil = state.t + upMin(b, s.level);
+      toast('Инспектор подмазан', `${b.name}: улучшение сверх положенного за ${money(cost)}.`, 'gold');
+      return;
+    }
+    return _up.apply(this, arguments);
+  };
+  const _rp = renderPanel;
+  renderPanel = function () {
+    const r = _rp.apply(this, arguments);
+    const b = BIZ.find(x => x.id === sel), st = state.biz[sel], ub = panel.querySelector('[data-f="upBtn"]');
+    if (ub && st.busyUntil == null && st.level > 0 && st.level >= gate(state.level) && st.level < gate(state.level) + OVERGATE.levels && st.level < RULES.maxLevel) {
+      const c = upCost(b, st.level) * OVERGATE.costMult;
+      ub.textContent = `Инспектору ${money(c)}`; ub.disabled = state.cash < c;
+      const h = panel.querySelector('[data-f="hint"]'); if (h) h.textContent = `Бизнес упёрся в твой уровень. Можно подмазать инспектора: ещё один уровень за тройную цену.`;
+    }
+    return r;
+  };
+}
 
 window.claude?.hot?.snapshot?.(() => ({ state, speed, sel }));
 const boot = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
