@@ -169,6 +169,8 @@ html,body{overscroll-behavior:none}
 .duel-scene canvas,.ward-scene canvas{display:block;width:100%;cursor:default;touch-action:pan-y}
 .extra{position:absolute;inset:12px;background:var(--news);color:var(--news-ink);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;justify-content:center;box-shadow:0 14px 40px rgba(0,0,0,.6);animation:tin .3s ease-out;overflow:auto}
 .np-top{font-size:11px;letter-spacing:.16em;border-bottom:2px solid var(--news-ink);padding-bottom:6px;font-weight:600}
+.extra{justify-content:safe center}
+.np-v{align-self:center;font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 14px;border:2px solid currentColor;border-radius:4px;transform:rotate(-2deg)}.np-v.w{color:#1f6b2a}.np-v.l{color:#a3221a}
 .np-h{font-size:20px;font-weight:700;line-height:1.15;text-wrap:balance}
 .np-s{font-family:var(--serif);font-style:italic;font-size:14px;color:#4a4034}
 .np-r{font-size:14px;font-weight:600;color:#6b5a32}
@@ -691,7 +693,7 @@ function doJob(j) {
   state.cash += cash; state.xp += j.xp; state.jobsDone++;
   const st = MASTERY.findIndex(m => state.jobsDone === m);
   let title = `+${money(cash)} · +${j.xp} опыта`;
-  if (j.drop && Math.random() < j.drop.chance) title += ` · выпал ${j.drop.item.toLowerCase()}`;
+  if (j.drop && Math.random() < j.drop.chance) title += ` · трофей: ${j.drop.item.toLowerCase()}!`;
   const v = VOICE[j.id]; toast(title, v[Math.floor(Math.random() * v.length)]);
   if (st >= 0) { state.gold += 10; toast(`Звезда мастерства Доков`, '+10 слитков', 'gold'); }
   bump('st-cash');
@@ -2465,7 +2467,7 @@ function endDuel() {
   const head = draw ? `НИЧЬЯ ${where}: ОБА УШЛИ ДВОРАМИ` : win ? (wet ? `${opp} ${gv(oppShe(), 'УДИРАЛ', 'УДИРАЛА')} ${where} В МОКРЫХ ШТАНАХ` : `${PNU()} ${gv(sheMe(), 'УЛОЖИЛ', 'УЛОЖИЛА')} ${opp} ${where}`) : (wet ? `${PNU()} ${gv(sheMe(), 'ДРОГНУЛ', 'ДРОГНУЛА')} ${where}` : `${opp} ${gv(oppShe(), 'ВЗЯЛ', 'ВЗЯЛА')} ВЕРХ ${where}`);
   const sub = draw ? 'Сирена развела их по разным переулкам.' : win ? (wet ? 'Прачечная Лиу уже предложила скидку. Свидетели держались за животы.' : `Отметин на пальто: ${d.wounds[1].length}. Свидетели говорят, ${gv(sheMe(), 'он', 'она')} даже не ${gv(sheMe(), 'снял', 'сняла')} шляпу.`) : (wet ? 'Над переулком кружили мухи. Говорят, реванш будет в сухих брюках.' : `${firstName()} ${gv(sheMe(), 'ушёл', 'ушла')} дворами. Говорят, уже ищет реванш.`);
   const ex = $('d-extra');
-  ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
+  ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-v"></div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
   ex.querySelector('.np-h').textContent = head; ex.querySelector('.np-s').textContent = sub; ex.querySelector('.np-r').textContent = reward;
   setTimeout(() => { ex.hidden = false; }, reduce ? 0 : 2800);
   bump('st-cash');
@@ -2485,7 +2487,7 @@ function renderDuelUI() {
   $('d-hpA').classList.toggle('low', d.hp[0] < 30); $('d-hpB').classList.toggle('low', d.hp[1] < 30);
   $('d-gritA').textContent = '◆'.repeat(d.grit[0]) + '◇'.repeat(3 - d.grit[0]) + `  нож ×${d.knives[0]}`;
   $('d-gritB').textContent = `нож ×${d.knives[1]}  ` + '◆'.repeat(d.grit[1]) + '◇'.repeat(3 - d.grit[1]);
-  $('d-round').textContent = d.phase === 'vs' ? 'ВЫХОДИ' : d.phase === 'pre' ? 'ДО БОЯ' : d.phase === 'end' ? 'ИТОГ' : `РАУНД ${Math.min(5, d.round)}/5`;
+  $('d-round').textContent = d.phase === 'vs' ? 'ВЫХОДИ' : d.phase === 'pre' ? 'ДО БОЯ' : d.phase === 'end' ? (d.draw ? 'НИЧЬЯ' : d.win ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ') : `РАУНД ${Math.min(5, d.round)}/5`;
   $('d-dist').textContent = d.dist === 'far' ? 'ДАЛЬНЯЯ' : 'БЛИЖНЯЯ';
   $('d-rumor').textContent = '«' + o.rumor + '»';
   $('d-pre').hidden = d.phase !== 'pre'; $('d-moves').hidden = !(d.phase === 'choose' || d.phase === 'anim');
@@ -2920,8 +2922,8 @@ function vsDone() {
 }
 function showPaper(delay) {
   const d = duel, p = d.paper, ex = $('d-extra');
-  ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
-  ex.querySelector('.np-h').textContent = p.head; ex.querySelector('.np-s').textContent = p.sub; ex.querySelector('.np-r').textContent = p.reward;
+  ex.innerHTML = `<div class="np-top">ВЕЧЕРНИЙ ЧИКАГО · ЭКСТРЕННЫЙ ВЫПУСК</div><div class="np-v"></div><div class="np-h"></div><div class="np-s"></div><div class="np-r num"></div><div class="row"><button class="btn gold" data-d="again">Реванш</button><button class="btn" data-d="next">Новый соперник</button></div><button class="btn sm np-share" data-d="share">Отправить в чат</button>`;
+  const v = ex.querySelector('.np-v'); v.textContent = d.draw ? 'Ничья' : d.win ? '★ Ты победил' : 'Ты проиграл'; v.className = 'np-v ' + (d.draw ? '' : d.win ? 'w' : 'l'); ex.querySelector('.np-h').textContent = p.head; ex.querySelector('.np-s').textContent = p.sub; ex.querySelector('.np-r').textContent = p.reward;
   setTimeout(() => { if (duel === d) ex.hidden = false; }, reduce ? 0 : delay);
 }
 endDuel = function () {
@@ -3066,6 +3068,23 @@ function duelOverlays(g, T, dt, k, gr) {
     g.font = font(500, 10); g.textAlign = 'right'; g.fillStyle = 'rgba(239,230,208,.6)'; g.fillText('тап — пропустить', W2 - 10, H2 - 8);
     g.restore();
   }
+  // Итог крупно: кто победил — видно сразу, до газеты
+  if (d.phase === 'end' && !(d.fin && d.fin.mode === 'prompt' && d.fin.shown)) {
+    const a = Math.min(1, (T - d.endAt) * 3), win = d.win && !d.draw;
+    const big = d.draw ? 'НИЧЬЯ' : win ? 'ТЫ ПОБЕДИЛ!' : 'ТЫ ПРОИГРАЛ';
+    const small = d.draw ? '' : win ? `${d.opp.name} повержен` : `Верх взял ${d.opp.name}`;
+    g.save(); g.globalAlpha = a; g.textAlign = 'center'; g.strokeStyle = OL;
+    g.translate(W2 / 2, 44); g.rotate(-.04); const k = 1 + Math.max(0, .6 - (T - d.endAt)) * .8; g.scale(k, k);
+    g.font = font(700, 32); g.lineWidth = 7; g.fillStyle = d.draw ? '#efe6d0' : win ? '#ffd23a' : '#ff4a3a'; g.strokeText(big, 0, 0); g.fillText(big, 0, 0);
+    if (small) { g.font = font(600, 13); g.lineWidth = 3; g.fillStyle = '#efe6d0'; g.strokeText(small, 0, 22); g.fillText(small, 0, 22); }
+    g.restore();
+    if (!d.draw) { // метки над головами
+      g.save(); g.textAlign = 'center'; g.font = font(700, 12); g.lineWidth = 3; g.strokeStyle = OL;
+      [0, 1].forEach((i) => { const x = clamp(d.pos[i] * W2, 50, W2 - 50), won = (i === 0) === win;
+        g.fillStyle = won ? '#ffd23a' : '#ff8a7a'; const t = won ? '★ ПОБЕДИТЕЛЬ' : 'проигравший'; const y = Math.max(86, gr - 168 * k); g.strokeText(t, x, y); g.fillText(t, x, y); });
+      g.restore();
+    }
+  }
   // «Позор»
   const f = d.fin;
   if (d.phase === 'end' && f) {
@@ -3078,8 +3097,8 @@ function duelOverlays(g, T, dt, k, gr) {
         const F = FINS[f.id];
         g.save(); g.fillStyle = 'rgba(10,9,8,.55)'; g.fillRect(-10, -10, W2 + 20, H2 + 20);
         g.textAlign = 'center'; g.strokeStyle = OL;
-        g.font = font(700, 34); g.lineWidth = 7; g.fillStyle = '#ff4a3a'; g.save(); g.translate(W2 / 2, 46); g.rotate(-.05); g.scale(1 + Math.sin(T * 8) * .04, 1 + Math.sin(T * 8) * .04); g.strokeText('ПОЗОР!', 0, 0); g.fillText('ПОЗОР!', 0, 0); g.restore();
-        g.font = font(600, 13); g.lineWidth = 3; g.fillStyle = '#efe6d0'; g.strokeText(`${F.name}: ${F.hint}`, W2 / 2, 70); g.fillText(`${F.name}: ${F.hint}`, W2 / 2, 70);
+        g.font = font(700, 34); g.lineWidth = 7; g.fillStyle = '#ff4a3a'; g.save(); g.translate(W2 / 2, 46); g.rotate(-.05); g.scale(1 + Math.sin(T * 8) * .04, 1 + Math.sin(T * 8) * .04); g.fillStyle = '#ffd23a'; g.strokeText('ТЫ ПОБЕДИЛ!', 0, 0); g.fillText('ТЫ ПОБЕДИЛ!', 0, 0); g.restore();
+        g.font = font(600, 13); g.lineWidth = 3; g.fillStyle = '#efe6d0'; const fh = `Добей — опозорь соперника: ${F.hint.charAt(0).toLowerCase() + F.hint.slice(1)}`; g.strokeText(fh, W2 / 2, 70); g.fillText(fh, W2 / 2, 70);
         g.globalAlpha = .35 + .25 * Math.sin(T * 6); g.font = font(700, 90); g.fillStyle = '#ffd23a'; g.lineWidth = 6; g.textBaseline = 'middle';
         g.strokeText(F.glyph, W2 / 2, H2 * .55); g.fillText(F.glyph, W2 / 2, H2 * .55); g.textBaseline = 'alphabetic'; g.globalAlpha = 1;
         g.fillStyle = 'rgba(58,50,41,.9)'; g.fillRect(W2 * .2, H2 - 18, W2 * .6, 5); g.fillStyle = '#ffd23a'; g.fillRect(W2 * .2, H2 - 18, W2 * .6 * left / FIN_TIME.prompt, 5);
@@ -3289,7 +3308,7 @@ $('collectAll').addEventListener('click', () => {
 const jobsEl = $('jobs');
 JOBS.forEach(j => {
   const el = document.createElement('div'); el.className = 'card job';
-  el.innerHTML = `<div class="t"><div class="n">${j.name}</div><div class="m num"><span><svg class="i"><use href="#i-bolt"/></svg>${j.energy}</span><span data-f="cash"></span><span>+${j.xp} опыта</span>${j.drop ? `<span class="drop">${j.drop.item} ${Math.round(j.drop.chance * 100)}%</span>` : ''}</div></div><button class="btn gold">Взять</button>`;
+  el.innerHTML = `<div class="t"><div class="n">${j.name}</div><div class="m num"><span><svg class="i"><use href="#i-bolt"/></svg>${j.energy}</span><span data-f="cash"></span><span>+${j.xp} опыта</span>${j.drop ? `<span class="drop" title="Редкий трофей: может выпасть после дела">шанс трофея ${Math.round(j.drop.chance * 100)}%: ${j.drop.item.toLowerCase()}</span>` : ''}</div></div><button class="btn gold">Взять</button>`;
   el.querySelector('button').addEventListener('click', () => doJob(j));
   el.dataset.id = j.id; jobsEl.appendChild(el);
 });
@@ -4151,7 +4170,7 @@ function goalBump(id, n = 1) {
 function goalCheck() {
   if (!state.dg) return;
   for (const it of state.dg.items) {
-    const g = GOALS.pool.find(x => x.id === it.id);
+    const g = GOALS.pool.find(x => x.id === it.id); if (!g) continue;
     if (g.state) it.have = Math.max(it.have, g.state(it));
     if (!it.done && it.have >= it.need) {
       it.done = true; state.gold += GOALS.gold; state.goalsDone = (state.goalsDone || 0) + 1; bump('st-gold');
@@ -4169,7 +4188,7 @@ function renderGoals() {
   el.hidden = state.tut > 0 && state.tut < TUT.length - 1;
   const done = state.dg.items.filter(x => x.done).length;
   $('goals-n').textContent = `${done} из ${state.dg.items.length}`;
-  $('goals-list').innerHTML = state.dg.items.map(it => {
+  $('goals-list').innerHTML = state.dg.items.filter(it => GOALS.pool.some(x => x.id === it.id)).map(it => {
     const g = GOALS.pool.find(x => x.id === it.id);
     return `<li class="${it.done ? 'ok' : ''}"><span>${g.t(it.need, it)}</span><b class="num">${it.done ? '✓' : it.need > 1 ? `${it.have}/${it.need}` : `+${GOALS.gold} сл.`}</b></li>`;
   }).join('');
@@ -4720,7 +4739,7 @@ function mastOf(id) { state.mast ??= {}; return state.mast[id] || 0; }
 // карточки дел других районов — в тот же список, показываются по вкладке
 JOBS.filter(j => j.dist !== 'docks').forEach(j => {
   const el = document.createElement('div'); el.className = 'card job';
-  el.innerHTML = `<div class="t"><div class="n">${j.name}</div><div class="m num"><span><svg class="i"><use href="#i-bolt"/></svg>${j.energy}</span><span data-f="cash"></span><span>+${j.xp} опыта</span>${j.drop ? `<span class="drop">${j.drop.item} ${Math.round(j.drop.chance * 100)}%</span>` : ''}</div></div><button class="btn gold">Взять</button>`;
+  el.innerHTML = `<div class="t"><div class="n">${j.name}</div><div class="m num"><span><svg class="i"><use href="#i-bolt"/></svg>${j.energy}</span><span data-f="cash"></span><span>+${j.xp} опыта</span>${j.drop ? `<span class="drop" title="Редкий трофей: может выпасть после дела">шанс трофея ${Math.round(j.drop.chance * 100)}%: ${j.drop.item.toLowerCase()}</span>` : ''}</div></div><button class="btn gold">Взять</button>`;
   el.querySelector('button').addEventListener('click', () => doJob(j));
   el.dataset.id = j.id; jobsEl.appendChild(el);
 });
@@ -5340,7 +5359,7 @@ drawClubLot = function (cx, T) {
 }
 
 // ---------- Номер сборки: видно, какую версию открыл тестер (Telegram любит показывать старую) ----------
-const BUILD = '10.11 · 18';
+const BUILD = '11.11 · 19';
 {
   const row = $('cab-report').parentElement, p = document.createElement('p');
   p.className = 'hint'; p.id = 'cab-build'; p.style.margin = '0'; row.after(p);
